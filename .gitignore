@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+.env.local
+.vscode/*.local
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+Thumbs.db
