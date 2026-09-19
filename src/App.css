@@ -220,6 +220,19 @@ button:disabled {
   background: var(--paper);
 }
 
+.auth-startup-error {
+  position: fixed;
+  z-index: 1;
+  inset: 16px 16px auto;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 12px 16px;
+  border: 1px solid #c58b8b;
+  color: #7e2020;
+  background: #fff4f4;
+  text-align: center;
+}
+
 .workspace-shell {
   padding: clamp(28px, 7vw, 96px);
 }
