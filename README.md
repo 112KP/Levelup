@@ -25,3 +25,14 @@ npm run lint
 npm run typecheck
 npm run build
 ```
+
+## GitHub Actions
+
+Pull requests targeting `develop` or `main` run lint, typecheck, and build through `.github/workflows/ci.yml`.
+
+Pushes to `main` use `.github/workflows/deploy.yml` to build and deploy to GitHub Pages. Add these repository secrets under **Settings > Secrets and variables > Actions > New repository secret**:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+
+GitHub Pages is currently unavailable for this private repository on the active GitHub plan. Make the repository public or use a plan that supports Pages for private repositories before merging a deployment change into `main`.
