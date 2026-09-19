@@ -180,13 +180,24 @@ function Workspace() {
 }
 
 function App() {
-  const { session, loading } = useAuth()
+  const { session, loading, authError } = useAuth()
 
   if (loading) {
     return <main className="loading-screen">Loading your workspace...</main>
   }
 
-  return session ? <Workspace /> : <AuthScreen />
+  return session ? (
+    <Workspace />
+  ) : (
+    <>
+      {authError && (
+        <p className="auth-startup-error" role="alert">
+          Authentication could not be restored: {authError}
+        </p>
+      )}
+      <AuthScreen />
+    </>
+  )
 }
 
 export default App
