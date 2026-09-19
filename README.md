@@ -1,13 +1,47 @@
-# Levelup
+# React + TypeScript + Vite
 
-This repository contains the Levelup web application.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Branches
+Currently, two official plugins are available:
 
-- `main`: production branch; pushes deploy to GitHub Pages.
-- `develop`: integration branch for completed feature work.
-- `feature/<short-description>`: short-lived feature branches created from `develop`.
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-## Development
+## React Compiler
 
-The application setup and Supabase configuration will be added in the next stage. Local environment values belong in `.env.local`; never commit that file.
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+
+## Expanding the ESLint configuration
+
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+
+```js
+export default defineConfig([
+  # Levelup
+
+  Levelup is a React and TypeScript web application backed by Supabase and deployed to GitHub Pages.
+
+  ## Branches
+
+  - `main`: production branch; pushes deploy to GitHub Pages.
+  - `develop`: integration branch for completed feature work.
+  - `feature/<short-description>`: short-lived feature branches created from `develop`.
+
+  ## Development
+
+  ```bash
+  npm install
+  cp .env.example .env.local
+  npm run dev
+  ```
+
+  Local environment values belong in `.env.local`; never commit that file.
+
+  Available checks:
+
+  ```bash
+  npm run lint
+  npm run typecheck
+  npm run build
+  ```
+You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
