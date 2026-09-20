@@ -28,7 +28,7 @@ button:disabled {
 
 .auth-layout,
 .workspace-shell {
-  min-height: 100svh;
+  min-height: 100dvh;
   background: var(--paper);
   color: var(--ink);
 }
@@ -121,7 +121,9 @@ button:disabled {
 
 .auth-form input {
   width: 100%;
+  min-height: 44px;
   padding: 13px 14px;
+  font-size: 16px;
   border: 1px solid var(--line);
   border-radius: 0;
   color: var(--ink);
@@ -137,7 +139,7 @@ button:disabled {
 .secondary-button,
 .icon-button {
   display: inline-flex;
-  min-height: 46px;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
   gap: 9px;
@@ -192,6 +194,7 @@ button:disabled {
 }
 
 .text-button {
+  min-height: 44px;
   padding: 0;
   border: 0;
   color: var(--accent-dark);
