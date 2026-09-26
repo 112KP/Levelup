@@ -31,11 +31,14 @@ const statDetails: {
     { name: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
 ]
 
+const profileColumns = 'id,user_id,display_name,job,rank,active_title_id,level,hp_current,hp_max,mp_current,mp_max,fatigue,xp,xp_to_next,strength,agility,sense,vitality,intelligence,available_points,gold,created_at,updated_at' as const
+
 export function StatusWindow() {
     const { session, logout } = useAuth()
     const userId = session?.user.id
     const [profile, setProfile] = useState<Profile | null>(null)
     const profileRef = useRef<Profile | null>(null)
+    const [activeTitle, setActiveTitle] = useState<string | null>(null)
     const questDialogRef = useRef<HTMLDialogElement | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
@@ -45,7 +48,8 @@ export function StatusWindow() {
     const [levelUp, setLevelUp] = useState(false)
 
     useEffect(() => {
-        if (!userId) return
+        const profileUserId = userId ?? ''
+        if (!profileUserId) return
 
         let active = true
         let levelUpTimer: number | undefined
@@ -59,6 +63,24 @@ export function StatusWindow() {
             }
             profileRef.current = nextProfile
             setProfile(nextProfile)
+            if (!nextProfile) setActiveTitle(null)
+        }
+
+        async function syncActiveTitle(titleId: string | null) {
+            if (!titleId) {
+                setActiveTitle(null)
+                return
+            }
+
+            const { data } = await supabase
+                .from('titles')
+                .select('name')
+                .eq('id', titleId)
+                .maybeSingle()
+
+            if (active && profileRef.current?.active_title_id === titleId) {
+                setActiveTitle(data?.name ?? null)
+            }
         }
 
         const channel = supabase
@@ -69,7 +91,7 @@ export function StatusWindow() {
                     event: '*',
                     schema: 'public',
                     table: 'profiles',
-                    filter: `id=eq.${userId}`,
+                    filter: `user_id=eq.${profileUserId}`,
                 },
                 (payload) => {
                     if (payload.eventType === 'DELETE') {
@@ -77,7 +99,9 @@ export function StatusWindow() {
                         setError('Your status record is no longer available.')
                         return
                     }
-                    commitProfile(payload.new as Profile)
+                    const nextProfile = payload.new as Profile
+                    commitProfile(nextProfile)
+                    void syncActiveTitle(nextProfile.active_title_id)
                     setError('')
                 },
             )
@@ -86,8 +110,8 @@ export function StatusWindow() {
         async function loadProfile() {
             const { data, error: queryError } = await supabase
                 .from('profiles')
-                .select('*')
-                .eq('id', userId)
+                .select(profileColumns)
+                .eq('user_id', profileUserId)
                 .maybeSingle()
 
             if (!active) return
@@ -101,7 +125,8 @@ export function StatusWindow() {
                 setError('Your status record has not been created yet.')
                 return
             }
-            commitProfile(data as unknown as Profile)
+            commitProfile(data)
+            void syncActiveTitle(data.active_title_id)
             setError('')
         }
 
@@ -143,13 +168,13 @@ export function StatusWindow() {
 
         const { data, error: refreshError } = await supabase
             .from('profiles')
-            .select('*')
-            .eq('id', previousProfile.id)
+            .select(profileColumns)
+            .eq('user_id', previousProfile.user_id)
             .maybeSingle()
 
         if (data && !refreshError) {
-            profileRef.current = data as unknown as Profile
-            setProfile(data as unknown as Profile)
+            profileRef.current = data
+            setProfile(data)
         }
         setAllocationMessage(`${statDetails.find((item) => item.name === stat)?.label} increased.`)
         setAllocating(false)
@@ -214,10 +239,10 @@ export function StatusWindow() {
                             <div className="identity">
                                 <h1 id="status-title">{profile.display_name || 'Unnamed Player'}</h1>
                                 <p className="identity-job">{profile.job || 'Unassigned'}</p>
-                                {profile.active_title && (
+                                {activeTitle && (
                                     <span className="active-title">
                                         <Sparkles size={14} aria-hidden="true" />
-                                        {profile.active_title}
+                                        {activeTitle}
                                     </span>
                                 )}
                             </div>
@@ -226,8 +251,8 @@ export function StatusWindow() {
 
                         <div className="status-rule"><span>VITALS</span></div>
                         <section className="vitals-grid" aria-label="Player vitals">
-                            <VitalsBar label="HP" current={profile.hp} max={profile.max_hp} kind="hp" />
-                            <VitalsBar label="MP" current={profile.mp} max={profile.max_mp} kind="mp" />
+                            <VitalsBar label="HP" current={profile.hp_current} max={profile.hp_max} kind="hp" />
+                            <VitalsBar label="MP" current={profile.mp_current} max={profile.mp_max} kind="mp" />
                             <VitalsBar label="FATIGUE" current={profile.fatigue} max={100} kind="fatigue" />
                         </section>
 
