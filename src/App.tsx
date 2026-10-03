@@ -5,10 +5,11 @@ import { BrowserRouter, NavLink, Navigate, Route, Routes } from 'react-router-do
 import { useAuth } from './auth/useAuth'
 import { CornerFrame } from './components/status/CornerFrame'
 import { StatusWindow } from './components/status/StatusWindow'
-import { DungeonsPage } from './pages/DungeonsPage'
+import { ManageDungeonsPage } from './pages/ManageDungeonsPage'
 import { HistoryPage } from './pages/HistoryPage'
+import { HomePage } from './pages/HomePage'
 import { ItemsPage } from './pages/ItemsPage'
-import { QuestsPage } from './pages/QuestsPage'
+import { ManageQuestsPage } from './pages/ManageQuestsPage'
 import { SkillsPage } from './pages/SkillsPage'
 import { TitlesPage } from './pages/TitlesPage'
 import { TodayBoardPage } from './pages/TodayBoardPage'
@@ -20,14 +21,15 @@ import {
 import './App.css'
 
 const navItems = [
-    { to: '/', label: 'Status' },
-    { to: '/quests', label: 'Quests' },
+    { to: '/', label: 'Home' },
+    { to: '/quests/manage', label: 'Manage Quests' },
     { to: '/today', label: 'Today' },
     { to: '/titles', label: 'Titles' },
     { to: '/skills', label: 'Skills' },
     { to: '/items', label: 'Items' },
-    { to: '/dungeons', label: 'Dungeons' },
+    { to: '/dungeons/manage', label: 'Manage Dungeons' },
     { to: '/history', label: 'History' },
+    { to: '/profile', label: 'Profile' },
 ]
 
 function AuthScreen() {
@@ -166,10 +168,7 @@ function AppShell() {
     return (
         <div className="workspace-shell">
             <header className="workspace-header">
-                <div>
-                    <p className="eyebrow">LEVELUP / COMMAND CENTER</p>
-                    <h1>RPG management</h1>
-                </div>
+                <NavLink to="/" className="workspace-brand">LEVELUP <i>/</i> SYSTEM</NavLink>
             </header>
 
             <nav className="nav-grid" aria-label="Main navigation">
@@ -190,13 +189,17 @@ function AppShell() {
             <main className="management-main">
                 <CornerFrame className="management-frame">
                     <Routes>
-                        <Route path="/" element={<StatusWindow />} />
-                        <Route path="/quests" element={<QuestsPage />} />
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/home" element={<Navigate to="/" replace />} />
+                        <Route path="/profile" element={<StatusWindow />} />
+                        <Route path="/quests" element={<Navigate to="/quests/manage" replace />} />
+                        <Route path="/quests/manage" element={<ManageQuestsPage />} />
                         <Route path="/today" element={<TodayBoardPage />} />
                         <Route path="/titles" element={<TitlesPage />} />
                         <Route path="/skills" element={<SkillsPage />} />
                         <Route path="/items" element={<ItemsPage />} />
-                        <Route path="/dungeons" element={<DungeonsPage />} />
+                        <Route path="/dungeons" element={<Navigate to="/dungeons/manage" replace />} />
+                        <Route path="/dungeons/manage" element={<ManageDungeonsPage />} />
                         <Route path="/history" element={<HistoryPage />} />
                         <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>

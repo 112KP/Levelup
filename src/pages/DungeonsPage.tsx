@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../auth/useAuth'
 import { createDungeon, deleteDungeon, fetchDungeons, updateDungeon } from '../lib/dungeons'
-import type { DungeonRow, DungeonStatus, Rank } from '../types/database'
+import type { DungeonRow, Rank } from '../types/database'
 
 const rankOptions: Rank[] = ['E', 'D', 'C', 'B', 'A', 'S']
 
 const defaultForm = {
     name: '',
     dungeon_rank: 'E' as Rank,
-    status: 'open' as DungeonStatus,
     xp_reward: 0,
     gold_reward: 0,
     deadline: '',
@@ -61,7 +60,6 @@ export function DungeonsPage() {
         setForm({
             name: dungeon.name,
             dungeon_rank: dungeon.dungeon_rank,
-            status: dungeon.status,
             xp_reward: dungeon.xp_reward,
             gold_reward: dungeon.gold_reward,
             deadline: dungeon.deadline ?? '',
@@ -76,7 +74,6 @@ export function DungeonsPage() {
         const payload = {
             name: form.name.trim(),
             dungeon_rank: form.dungeon_rank,
-            ...(editingId && form.status === 'cleared' ? {} : { status: form.status }),
             xp_reward: Number(form.xp_reward) || 0,
             gold_reward: Number(form.gold_reward) || 0,
             deadline: form.deadline || null,
@@ -130,22 +127,11 @@ export function DungeonsPage() {
                             <label>Name</label>
                             <input className="field-input" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
                         </div>
-                        <div className="field-group inline-grid two-up">
-                            <div>
-                                <label>Rank</label>
-                                <select className="field-input" value={form.dungeon_rank} onChange={(event) => setForm({ ...form, dungeon_rank: event.target.value as Rank })}>
-                                    {rankOptions.map((rank) => <option key={rank} value={rank}>{rank}</option>)}
-                                </select>
-                            </div>
-                            <div>
-                                <label>Status</label>
-                                <select className="field-input" value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as DungeonStatus })}>
-                                    <option value="open">Open</option>
-                                    <option value="in_progress">In progress</option>
-                                    {form.status === 'cleared' && <option value="cleared" disabled>Cleared</option>}
-                                    <option value="failed">Failed</option>
-                                </select>
-                            </div>
+                        <div className="field-group">
+                            <label>Rank</label>
+                            <select className="field-input" value={form.dungeon_rank} onChange={(event) => setForm({ ...form, dungeon_rank: event.target.value as Rank })}>
+                                {rankOptions.map((rank) => <option key={rank} value={rank}>{rank}</option>)}
+                            </select>
                         </div>
                         <div className="field-group inline-grid two-up">
                             <div>

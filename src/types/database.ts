@@ -14,6 +14,7 @@ export type StatName =
     | 'intelligence'
 
 export type QuestRecurrence = 'daily' | 'weekly' | 'one_time'
+export type QuestDifficulty = 'easy' | 'medium' | 'hard'
 export type QuestLogStatus = 'pending' | 'completed' | 'failed'
 export type SkillType = 'active' | 'passive'
 export type ItemType = 'equipment' | 'consumable' | 'material'
@@ -75,6 +76,7 @@ export type QuestRow = {
     name: string
     description: string | null
     recurrence: QuestRecurrence
+    difficulty: QuestDifficulty
     target_value: number
     unit: string | null
     xp_reward: number
@@ -177,6 +179,7 @@ export interface Database {
                     name: string
                     description?: string | null
                     recurrence?: QuestRecurrence
+                    difficulty?: QuestDifficulty
                     target_value?: number
                     unit?: string | null
                     xp_reward?: number
@@ -236,14 +239,11 @@ export interface Database {
                     user_id?: string
                     name: string
                     dungeon_rank?: Rank
-                    status?: DungeonStatus
                     xp_reward?: number
                     gold_reward?: number
                     deadline?: string | null
                 }
-                Update: Partial<Database['public']['Tables']['dungeons']['Insert']> & {
-                    cleared_at?: string | null
-                }
+                Update: Partial<Omit<Database['public']['Tables']['dungeons']['Insert'], 'id' | 'user_id'>>
                 Relationships: []
             }
             activity_log: {
@@ -270,6 +270,14 @@ export interface Database {
             fail_quest: {
                 Args: { p_log_id: string }
                 Returns: void
+            }
+            set_dungeon_status: {
+                Args: { p_dungeon_id: string; p_status: DungeonStatus }
+                Returns: void
+            }
+            clear_dungeon: {
+                Args: { p_dungeon_id: string }
+                Returns: Json
             }
             set_active_title: {
                 Args: { p_title_id: string | null }
