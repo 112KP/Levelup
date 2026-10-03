@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { Check, CircleUserRound, SkipForward } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { Check, SkipForward } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
 import { fetchDungeons, getDaysRemaining } from '../lib/dungeons'
@@ -42,8 +42,6 @@ export function HomePage() {
     const [error, setError] = useState('')
     const [busyId, setBusyId] = useState<string | null>(null)
     const [toast, setToast] = useState('')
-    const [profileMenuOpen, setProfileMenuOpen] = useState(false)
-    const profileMenuRef = useRef<HTMLDivElement | null>(null)
     const today = todayKey()
     const shortDate = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' }).format(new Date())
 
@@ -87,22 +85,6 @@ export function HomePage() {
         return () => window.clearTimeout(timer)
     }, [toast])
 
-    useEffect(() => {
-        if (!profileMenuOpen) return
-        function handlePointerDown(event: PointerEvent) {
-            if (!profileMenuRef.current?.contains(event.target as Node)) setProfileMenuOpen(false)
-        }
-        function handleKeyDown(event: KeyboardEvent) {
-            if (event.key === 'Escape') setProfileMenuOpen(false)
-        }
-        document.addEventListener('pointerdown', handlePointerDown)
-        document.addEventListener('keydown', handleKeyDown)
-        return () => {
-            document.removeEventListener('pointerdown', handlePointerDown)
-            document.removeEventListener('keydown', handleKeyDown)
-        }
-    }, [profileMenuOpen])
-
     async function changeQuestStatus(entry: QuestBoardEntry, status: 'completed' | 'failed') {
         setBusyId(entry.id)
         setError('')
@@ -143,29 +125,6 @@ export function HomePage() {
         <section className="screen-page home-screen" aria-labelledby="home-title">
             <header className="home-topbar">
                 <p className="home-date">{shortDate}</p>
-                <div className="home-profile" ref={profileMenuRef}>
-                    <button
-                        className="profile-button"
-                        type="button"
-                        aria-label="Open profile menu"
-                        aria-haspopup="true"
-                        aria-expanded={profileMenuOpen}
-                        aria-controls="profile-menu"
-                        onClick={() => setProfileMenuOpen((open) => !open)}
-                    >
-                        <CircleUserRound size={22} aria-hidden="true" />
-                    </button>
-                    {profileMenuOpen && (
-                        <>
-                            <button className="profile-menu-backdrop" type="button" aria-label="Close profile menu" onClick={() => setProfileMenuOpen(false)} />
-                            <nav className="profile-menu" id="profile-menu" aria-label="Profile menu">
-                                <Link to="/profile" onClick={() => setProfileMenuOpen(false)}>View Profile</Link>
-                                <Link to="/quests/manage" onClick={() => setProfileMenuOpen(false)}>Manage Quests</Link>
-                                <Link to="/dungeons/manage" onClick={() => setProfileMenuOpen(false)}>Manage Dungeons</Link>
-                            </nav>
-                        </>
-                    )}
-                </div>
             </header>
 
             <div className="screen-header home-heading">

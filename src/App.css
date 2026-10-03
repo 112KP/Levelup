@@ -254,6 +254,7 @@ button:disabled {
     display: flex;
     min-height: 28px;
     align-items: center;
+    justify-content: space-between;
     max-width: 1200px;
     margin: 0 auto 10px;
 }
@@ -270,42 +271,6 @@ button:disabled {
 .workspace-brand i {
     color: #b083ff;
     font-style: normal;
-}
-
-.nav-grid {
-    display: flex;
-    gap: 8px;
-    max-width: 1200px;
-    margin: 0 auto 14px;
-    overflow-x: auto;
-    padding: 2px 1px 6px;
-    scrollbar-color: rgba(168, 110, 255, 0.38) transparent;
-}
-
-.nav-link {
-    display: inline-flex;
-    min-height: 44px;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    padding: 8px 12px;
-    border: 1px solid rgba(155, 92, 240, 0.42);
-    border-radius: 8px;
-    color: #c7e9ff;
-    background: rgba(10, 18, 36, 0.7);
-    text-decoration: none;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    transition: all 180ms ease;
-    font-size: 0.76rem;
-}
-
-.nav-link:hover,
-.nav-link-active {
-    border-color: rgba(62, 198, 255, 0.7);
-    background: rgba(62, 198, 255, 0.08);
-    box-shadow: 0 0 16px rgba(62, 198, 255, 0.2);
 }
 
 .management-main {
@@ -350,18 +315,18 @@ button:disabled {
     place-items: center;
     border: 1px solid rgba(168, 110, 255, 0.55);
     border-radius: 50%;
-    color: var(--home-blue);
+    color: var(--blue-accent);
     background: rgba(10, 18, 36, 0.86);
     box-shadow: 0 0 15px rgba(168, 110, 255, 0.18);
 }
 
 .profile-button:hover,
 .profile-button:focus-visible {
-    border-color: var(--home-blue);
+    border-color: var(--blue-accent);
     box-shadow: 0 0 16px rgba(62, 198, 255, 0.28);
 }
 
-.home-profile {
+.profile-menu-anchor {
     position: relative;
     z-index: 12;
 }
@@ -373,7 +338,10 @@ button:disabled {
     right: 0;
     display: grid;
     width: 232px;
+    max-height: min(75dvh, 560px);
+    align-content: start;
     padding: 5px;
+    overflow-y: auto;
     border: 1px solid rgba(168, 110, 255, 0.48);
     border-radius: 7px;
     background: rgba(8, 13, 27, 0.96);
@@ -381,7 +349,7 @@ button:disabled {
     backdrop-filter: blur(12px);
 }
 
-.profile-menu a {
+.profile-menu-link {
     display: flex;
     min-height: 44px;
     align-items: center;
@@ -393,8 +361,9 @@ button:disabled {
     text-decoration: none;
 }
 
-.profile-menu a:hover,
-.profile-menu a:focus-visible {
+.profile-menu-link:hover,
+.profile-menu-link:focus-visible,
+.profile-menu-link.is-active {
     color: #bfeeff;
     background: rgba(62, 198, 255, 0.1);
     outline-offset: -2px;
@@ -465,13 +434,13 @@ button:disabled {
     white-space: nowrap;
 }
 
-.active-dungeon-info > span {
+.active-dungeon-info>span {
     color: var(--home-dim);
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.68rem;
 }
 
-.active-dungeon-info > span.overdue {
+.active-dungeon-info>span.overdue {
     color: #ff4d6d;
 }
 
@@ -592,9 +561,17 @@ button:disabled {
     text-transform: uppercase;
 }
 
-.difficulty-tag.easy { color: #70f8b5; }
-.difficulty-tag.medium { color: #ffd36b; }
-.difficulty-tag.hard { color: #ff7189; }
+.difficulty-tag.easy {
+    color: #70f8b5;
+}
+
+.difficulty-tag.medium {
+    color: #ffd36b;
+}
+
+.difficulty-tag.hard {
+    color: #ff7189;
+}
 
 .home-quest-recurrence,
 .home-quest-description {
@@ -678,8 +655,13 @@ button:disabled {
     animation: skeleton-pulse 1.2s ease-in-out infinite alternate;
 }
 
-.quest-skeleton span:nth-child(2) { width: min(44%, 200px); }
-.quest-skeleton span:nth-child(3) { width: min(58%, 260px); }
+.quest-skeleton span:nth-child(2) {
+    width: min(44%, 200px);
+}
+
+.quest-skeleton span:nth-child(3) {
+    width: min(58%, 260px);
+}
 
 .manage-screen {
     color: #dfefff;
@@ -780,7 +762,7 @@ button:disabled {
     overflow-wrap: anywhere;
 }
 
-.manage-row-main > p {
+.manage-row-main>p {
     margin: 3px 0 0;
     color: #9fb1cc;
     font-size: 0.83rem;
@@ -1070,10 +1052,21 @@ button:disabled {
     text-transform: uppercase;
 }
 
-.dungeon-status-badge.open { color: #3ec6ff; }
-.dungeon-status-badge.in_progress { color: #c39aff; }
-.dungeon-status-badge.cleared { color: #70f8b5; }
-.dungeon-status-badge.failed { color: #ff7189; }
+.dungeon-status-badge.open {
+    color: #3ec6ff;
+}
+
+.dungeon-status-badge.in_progress {
+    color: #c39aff;
+}
+
+.dungeon-status-badge.cleared {
+    color: #70f8b5;
+}
+
+.dungeon-status-badge.failed {
+    color: #ff7189;
+}
 
 .dungeon-days {
     color: #b6d8f3;
@@ -1110,12 +1103,21 @@ a:focus-visible {
 }
 
 @keyframes quest-card-arrive {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes skeleton-pulse {
-    to { opacity: 0.42; }
+    to {
+        opacity: 0.42;
+    }
 }
 
 .screen-page {
@@ -1592,7 +1594,7 @@ textarea.field-input {
         flex-direction: column-reverse;
     }
 
-    .manage-form-actions > button {
+    .manage-form-actions>button {
         width: 100%;
     }
 
@@ -1614,8 +1616,11 @@ textarea.field-input {
         z-index: 12;
         inset: auto 0 0;
         width: 100%;
+        max-height: min(80dvh, 620px);
+        align-content: start;
         gap: 3px;
         padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+        overflow-y: auto;
         border-right: 0;
         border-bottom: 0;
         border-left: 0;
@@ -1651,7 +1656,4 @@ textarea.field-input {
         box-shadow: 8px 8px 0 #201629;
     }
 
-    .workspace-header {
-        flex-direction: column;
-    }
 }

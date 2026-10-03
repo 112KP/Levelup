@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { ShieldCheck } from 'lucide-react'
+import { CircleUserRound, ShieldCheck } from 'lucide-react'
 import { BrowserRouter, NavLink, Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './auth/useAuth'
 import { CornerFrame } from './components/status/CornerFrame'
@@ -29,8 +29,63 @@ const navItems = [
     { to: '/items', label: 'Items' },
     { to: '/dungeons/manage', label: 'Manage Dungeons' },
     { to: '/history', label: 'History' },
-    { to: '/profile', label: 'Profile' },
+    { to: '/profile', label: 'View Profile' },
 ]
+
+function ProfileNavigationMenu() {
+    const [open, setOpen] = useState(false)
+    const menuRef = useRef<HTMLDivElement | null>(null)
+
+    useEffect(() => {
+        if (!open) return
+        function handlePointerDown(event: PointerEvent) {
+            if (!menuRef.current?.contains(event.target as Node)) setOpen(false)
+        }
+        function handleKeyDown(event: KeyboardEvent) {
+            if (event.key === 'Escape') setOpen(false)
+        }
+        document.addEventListener('pointerdown', handlePointerDown)
+        document.addEventListener('keydown', handleKeyDown)
+        return () => {
+            document.removeEventListener('pointerdown', handlePointerDown)
+            document.removeEventListener('keydown', handleKeyDown)
+        }
+    }, [open])
+
+    return (
+        <div className="profile-menu-anchor" ref={menuRef}>
+            <button
+                className="profile-button"
+                type="button"
+                aria-label="Open navigation menu"
+                aria-haspopup="true"
+                aria-expanded={open}
+                aria-controls="profile-menu"
+                onClick={() => setOpen((current) => !current)}
+            >
+                <CircleUserRound size={22} aria-hidden="true" />
+            </button>
+            {open && (
+                <>
+                    <button className="profile-menu-backdrop" type="button" aria-label="Close navigation menu" onClick={() => setOpen(false)} />
+                    <nav className="profile-menu" id="profile-menu" aria-label="Main navigation">
+                        {navItems.map(({ to, label }) => (
+                            <NavLink
+                                key={to}
+                                to={to}
+                                end={to === '/'}
+                                className={({ isActive }) => isActive ? 'profile-menu-link is-active' : 'profile-menu-link'}
+                                onClick={() => setOpen(false)}
+                            >
+                                {label}
+                            </NavLink>
+                        ))}
+                    </nav>
+                </>
+            )}
+        </div>
+    )
+}
 
 function AuthScreen() {
     const [mode, setMode] = useState<'sign-in' | 'sign-up'>('sign-in')
@@ -169,22 +224,8 @@ function AppShell() {
         <div className="workspace-shell">
             <header className="workspace-header">
                 <NavLink to="/" className="workspace-brand">LEVELUP <i>/</i> SYSTEM</NavLink>
+                <ProfileNavigationMenu />
             </header>
-
-            <nav className="nav-grid" aria-label="Main navigation">
-                {navItems.map(({ to, label }) => (
-                    <NavLink
-                        key={to}
-                        to={to}
-                        end={to === '/'}
-                        className={({ isActive }) =>
-                            ['nav-link', isActive ? 'nav-link-active' : ''].filter(Boolean).join(' ')
-                        }
-                    >
-                        {label}
-                    </NavLink>
-                ))}
-            </nav>
 
             <main className="management-main">
                 <CornerFrame className="management-frame">
