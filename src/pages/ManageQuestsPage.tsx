@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Plus, Search, X } from 'lucide-react'
 import { useAuth } from '../auth/useAuth'
-import { createQuest, deleteQuest, fetchQuests, updateQuest } from '../lib/quests'
+import {
+    createQuest,
+    deleteQuest,
+    fetchQuestStatRewards,
+    fetchQuests,
+    setQuestStatRewards,
+    updateQuest,
+} from '../lib/quests'
 import type { QuestDifficulty, QuestRecurrence, QuestRow, StatName } from '../types/database'
 
 const recurrenceOptions: Array<{ value: QuestRecurrence | 'all'; label: string }> = [
@@ -18,6 +25,14 @@ const difficultyOptions: Array<{ value: QuestDifficulty | 'all'; label: string }
     { value: 'hard', label: 'Hard' },
 ]
 
+const statOptions: Array<{ value: StatName; label: string }> = [
+    { value: 'strength', label: 'Strength' },
+    { value: 'agility', label: 'Agility' },
+    { value: 'sense', label: 'Sense' },
+    { value: 'vitality', label: 'Vitality' },
+    { value: 'intelligence', label: 'Intelligence' },
+]
+
 const defaultForm = {
     name: '',
     description: '',
@@ -27,7 +42,7 @@ const defaultForm = {
     unit: '',
     xp_reward: 0,
     gold_reward: 0,
-    stat_reward: 'none' as StatName | 'none',
+    stat_rewards: [] as StatName[],
     stat_reward_amount: 0,
     penalty_hp: 0,
     penalty_gold: 0,
@@ -42,6 +57,8 @@ export function ManageQuestsPage() {
     const { session } = useAuth()
     const userId = session?.user.id ?? ''
     const [quests, setQuests] = useState<QuestRow[]>([])
+    const [statRewardsByQuestId, setStatRewardsByQuestId] = useState<Record<string, StatName[]>>({})
+    const [statRewardAmountsByQuestId, setStatRewardAmountsByQuestId] = useState<Record<string, number>>({})
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [search, setSearch] = useState('')
@@ -57,13 +74,29 @@ export function ManageQuestsPage() {
     const loadQuests = useCallback(async () => {
         if (!userId) return
         setLoading(true)
-        const { data, error: queryError } = await fetchQuests(userId)
-        if (queryError) {
-            setError(queryError.message || 'Unable to load quests.')
+        const [questsResult, rewardsResult] = await Promise.all([
+            fetchQuests(userId),
+            fetchQuestStatRewards(userId),
+        ])
+        if (questsResult.error || rewardsResult.error) {
+            setError(questsResult.error?.message || rewardsResult.error?.message || 'Unable to load quests.')
             setLoading(false)
             return
         }
-        setQuests(data ?? [])
+        const loadedQuests = questsResult.data ?? []
+        const rewardsByQuest: Record<string, StatName[]> = {}
+        const amountsByQuest: Record<string, number> = {}
+        for (const quest of loadedQuests) {
+            const questRewards = (rewardsResult.data ?? []).filter((reward) => reward.quest_id === quest.id)
+            rewardsByQuest[quest.id] = questRewards.map((reward) => reward.stat_name)
+            amountsByQuest[quest.id] = questRewards[0]?.amount ?? quest.stat_reward_amount
+            if (rewardsByQuest[quest.id].length === 0 && quest.stat_reward) {
+                rewardsByQuest[quest.id] = [quest.stat_reward]
+            }
+        }
+        setQuests(loadedQuests)
+        setStatRewardsByQuestId(rewardsByQuest)
+        setStatRewardAmountsByQuestId(amountsByQuest)
         setError('')
         setLoading(false)
     }, [userId])
@@ -104,8 +137,8 @@ export function ManageQuestsPage() {
             unit: quest.unit ?? '',
             xp_reward: quest.xp_reward,
             gold_reward: quest.gold_reward,
-            stat_reward: quest.stat_reward ?? 'none',
-            stat_reward_amount: quest.stat_reward_amount,
+            stat_rewards: statRewardsByQuestId[quest.id] ?? (quest.stat_reward ? [quest.stat_reward] : []),
+            stat_reward_amount: statRewardAmountsByQuestId[quest.id] ?? quest.stat_reward_amount,
             penalty_hp: quest.penalty_hp,
             penalty_gold: quest.penalty_gold,
             is_active: quest.is_active,
@@ -139,25 +172,55 @@ export function ManageQuestsPage() {
             unit: form.unit.trim() || null,
             xp_reward: Math.max(0, Number(form.xp_reward) || 0),
             gold_reward: Math.max(0, Number(form.gold_reward) || 0),
-            stat_reward: form.stat_reward === 'none' ? null : form.stat_reward,
+            stat_reward: null,
             stat_reward_amount: Math.max(0, Number(form.stat_reward_amount) || 0),
             penalty_hp: Math.max(0, Number(form.penalty_hp) || 0),
             penalty_gold: Math.max(0, Number(form.penalty_gold) || 0),
             is_active: form.is_active,
         }
-        const result = editingId
-            ? await updateQuest(editingId, payload)
-            : await createQuest({ ...payload, user_id: userId })
+        const wasEditing = Boolean(editingId)
+        let savedQuestId = editingId
 
-        if (result.error) {
-            setError(result.error.message || 'The quest could not be saved.')
+        if (editingId) {
+            const result = await updateQuest(editingId, payload)
+            if (result.error) {
+                setError(result.error.message || 'The quest could not be saved.')
+                setBusy(false)
+                return
+            }
+        } else {
+            const result = await createQuest({ ...payload, user_id: userId })
+            if (result.error) {
+                setError(result.error.message || 'The quest could not be saved.')
+                setBusy(false)
+                return
+            }
+            savedQuestId = result.data.id
+        }
+
+        if (!savedQuestId) {
+            setError('The saved quest ID could not be resolved for its stat rewards.')
             setBusy(false)
+            return
+        }
+
+        const { error: rewardError } = await setQuestStatRewards(
+            savedQuestId,
+            form.stat_rewards.map((stat_name) => ({
+                stat_name,
+                amount: Math.max(0, Number(form.stat_reward_amount) || 0),
+            })),
+        )
+        if (rewardError) {
+            setError(`Quest saved, but stat rewards could not be saved: ${rewardError.message}`)
+            setBusy(false)
+            await loadQuests()
             return
         }
 
         setBusy(false)
         closeForm()
-        setToast(editingId ? 'Quest updated.' : 'Quest created.')
+        setToast(wasEditing ? 'Quest updated.' : 'Quest created.')
         await loadQuests()
     }
 
@@ -283,10 +346,27 @@ export function ManageQuestsPage() {
                         <label className="field-group">XP reward<input className="field-input" type="number" min="0" step="1" value={form.xp_reward} onChange={(event) => setForm({ ...form, xp_reward: Number(event.target.value) })} /></label>
                         <label className="field-group">Gold reward<input className="field-input" type="number" min="0" step="1" value={form.gold_reward} onChange={(event) => setForm({ ...form, gold_reward: Number(event.target.value) })} /></label>
                     </div>
-                    <div className="inline-grid two-up">
-                        <label className="field-group">Stat reward<select className="field-input" value={form.stat_reward} onChange={(event) => setForm({ ...form, stat_reward: event.target.value as StatName | 'none' })}><option value="none">None</option><option value="strength">Strength</option><option value="agility">Agility</option><option value="sense">Sense</option><option value="vitality">Vitality</option><option value="intelligence">Intelligence</option></select></label>
-                        <label className="field-group">Stat amount<input className="field-input" type="number" min="0" step="1" value={form.stat_reward_amount} onChange={(event) => setForm({ ...form, stat_reward_amount: Number(event.target.value) })} /></label>
-                    </div>
+                    <fieldset className="stat-reward-fieldset">
+                        <legend>Stat rewards</legend>
+                        <div className="stat-reward-options">
+                            {statOptions.map(({ value, label }) => (
+                                <label className="stat-reward-option" key={value}>
+                                    <input
+                                        type="checkbox"
+                                        checked={form.stat_rewards.includes(value)}
+                                        onChange={(event) => setForm({
+                                            ...form,
+                                            stat_rewards: event.target.checked
+                                                ? [...form.stat_rewards, value]
+                                                : form.stat_rewards.filter((stat) => stat !== value),
+                                        })}
+                                    />
+                                    {label}
+                                </label>
+                            ))}
+                        </div>
+                    </fieldset>
+                    <label className="field-group">Amount per selected stat<input className="field-input" type="number" min="0" step="1" disabled={form.stat_rewards.length === 0} value={form.stat_reward_amount} onChange={(event) => setForm({ ...form, stat_reward_amount: Number(event.target.value) })} /></label>
                     <div className="inline-grid two-up">
                         <label className="field-group">HP penalty<input className="field-input" type="number" min="0" step="1" value={form.penalty_hp} onChange={(event) => setForm({ ...form, penalty_hp: Number(event.target.value) })} /></label>
                         <label className="field-group">Gold penalty<input className="field-input" type="number" min="0" step="1" value={form.penalty_gold} onChange={(event) => setForm({ ...form, penalty_gold: Number(event.target.value) })} /></label>

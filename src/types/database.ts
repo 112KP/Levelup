@@ -90,6 +90,14 @@ export type QuestRow = {
     updated_at: string
 }
 
+export type QuestStatRewardRow = {
+    user_id: string
+    quest_id: string
+    stat_name: StatName
+    amount: number
+    created_at: string
+}
+
 export type QuestLogRow = {
     id: string
     user_id: string
@@ -193,6 +201,12 @@ export interface Database {
                 Update: Partial<Database['public']['Tables']['quests']['Insert']>
                 Relationships: []
             }
+            quest_stat_rewards: {
+                Row: QuestStatRewardRow
+                Insert: never
+                Update: never
+                Relationships: []
+            }
             quest_logs: {
                 Row: QuestLogRow
                 Insert: never
@@ -269,6 +283,10 @@ export interface Database {
             }
             fail_quest: {
                 Args: { p_log_id: string }
+                Returns: void
+            }
+            set_quest_stat_rewards: {
+                Args: { p_quest_id: string; p_stat_rewards: Json }
                 Returns: void
             }
             set_dungeon_status: {

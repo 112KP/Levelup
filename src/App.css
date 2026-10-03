@@ -957,6 +957,47 @@ button:disabled {
     gap: 10px;
 }
 
+.stat-reward-fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 10px;
+    border: 1px solid rgba(155, 92, 240, 0.32);
+    border-radius: 6px;
+    background: rgba(7, 10, 18, 0.45);
+}
+
+.stat-reward-fieldset legend {
+    padding: 0 5px;
+    color: #9fb8d8;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.stat-reward-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 8px;
+}
+
+.stat-reward-option {
+    display: flex;
+    min-width: 0;
+    min-height: 44px;
+    align-items: center;
+    gap: 9px;
+    color: #dfefff;
+    font-size: 0.88rem;
+}
+
+.stat-reward-option input {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    accent-color: #3ec6ff;
+}
+
 .manage-checkbox {
     display: flex;
     min-height: 44px;
@@ -1553,6 +1594,10 @@ textarea.field-input {
 
     .manage-form-actions > button {
         width: 100%;
+    }
+
+    .stat-reward-options {
+        grid-template-columns: 1fr;
     }
 
     .profile-menu-backdrop {

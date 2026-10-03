@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient'
-import type { Database, QuestLogRow, QuestRow } from '../types/database'
+import type { Database, QuestLogRow, QuestRow, QuestStatRewardRow } from '../types/database'
 
 export async function fetchQuests(userId: string) {
     return supabase
@@ -10,7 +10,7 @@ export async function fetchQuests(userId: string) {
 }
 
 export async function createQuest(payload: Database['public']['Tables']['quests']['Insert']) {
-    return supabase.from('quests').insert(payload)
+    return supabase.from('quests').insert(payload).select('id').single()
 }
 
 export async function updateQuest(id: string, updates: Database['public']['Tables']['quests']['Update']) {
@@ -19,6 +19,23 @@ export async function updateQuest(id: string, updates: Database['public']['Table
 
 export async function deleteQuest(id: string) {
     return supabase.from('quests').delete().eq('id', id)
+}
+
+export async function fetchQuestStatRewards(userId: string) {
+    return supabase
+        .from('quest_stat_rewards')
+        .select('*')
+        .eq('user_id', userId)
+}
+
+export async function setQuestStatRewards(
+    questId: string,
+    rewards: Array<Pick<QuestStatRewardRow, 'stat_name' | 'amount'>>,
+) {
+    return supabase.rpc('set_quest_stat_rewards', {
+        p_quest_id: questId,
+        p_stat_rewards: rewards,
+    })
 }
 
 export async function generateDailyQuestLogs() {

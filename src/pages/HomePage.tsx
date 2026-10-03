@@ -6,11 +6,12 @@ import { fetchDungeons, getDaysRemaining } from '../lib/dungeons'
 import {
     completeQuest,
     failQuest,
+    fetchQuestStatRewards,
     fetchTodayQuestLogs,
     generateDailyQuestLogs,
 } from '../lib/quests'
 import type { QuestBoardEntry } from '../lib/quests'
-import type { DungeonRow, QuestLogStatus } from '../types/database'
+import type { DungeonRow, QuestLogStatus, QuestStatRewardRow } from '../types/database'
 import { RankBadge } from '../components/status/RankBadge'
 
 const tabs: Array<{ status: QuestLogStatus; label: string }> = [
@@ -35,6 +36,7 @@ export function HomePage() {
     const userId = session?.user.id ?? ''
     const [entries, setEntries] = useState<QuestBoardEntry[]>([])
     const [dungeons, setDungeons] = useState<DungeonRow[]>([])
+    const [statRewardsByQuestId, setStatRewardsByQuestId] = useState<Record<string, QuestStatRewardRow[]>>({})
     const [activeTab, setActiveTab] = useState<QuestLogStatus>('pending')
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
@@ -50,19 +52,26 @@ export function HomePage() {
         setLoading(true)
         setError('')
         const { error: generationError } = await generateDailyQuestLogs()
-        const [logsResult, dungeonsResult] = await Promise.all([
+        const [logsResult, dungeonsResult, rewardsResult] = await Promise.all([
             fetchTodayQuestLogs(userId, today),
             fetchDungeons(userId),
+            fetchQuestStatRewards(userId),
         ])
 
-        if (logsResult.error || dungeonsResult.error) {
-            setError(logsResult.error?.message || dungeonsResult.error?.message || 'Unable to load your board.')
+        if (logsResult.error || dungeonsResult.error || rewardsResult.error) {
+            setError(logsResult.error?.message || dungeonsResult.error?.message || rewardsResult.error?.message || 'Unable to load your board.')
             setLoading(false)
             return
         }
 
         setEntries((logsResult.data ?? []) as QuestBoardEntry[])
         setDungeons(dungeonsResult.data ?? [])
+        const rewardsByQuestId: Record<string, QuestStatRewardRow[]> = {}
+        for (const reward of rewardsResult.data ?? []) {
+            rewardsByQuestId[reward.quest_id] ??= []
+            rewardsByQuestId[reward.quest_id].push(reward)
+        }
+        setStatRewardsByQuestId(rewardsByQuestId)
         setError(generationError?.message ? `Daily quests could not be generated: ${generationError.message}` : '')
         setLoading(false)
     }, [today, userId])
@@ -107,7 +116,15 @@ export function HomePage() {
         const quest = entry.quests
         setEntries((current) => current.map((item) => item.id === entry.id ? { ...item, status } : item))
         if (quest && status === 'completed') {
-            const stat = quest.stat_reward ? `, +${quest.stat_reward_amount} ${quest.stat_reward}` : ''
+            const savedRewards = statRewardsByQuestId[quest.id]
+            const rewards = savedRewards?.length
+                ? savedRewards
+                : quest.stat_reward
+                    ? [{ stat_name: quest.stat_reward, amount: quest.stat_reward_amount }]
+                    : []
+            const stat = rewards.length
+                ? `, ${rewards.map((reward) => `+${reward.amount} ${reward.stat_name}`).join(', ')}`
+                : ''
             setToast(`${quest.name}: +${quest.xp_reward} XP, +${quest.gold_reward} gold${stat}.`)
         } else if (quest) {
             const penalties = [
@@ -216,6 +233,12 @@ export function HomePage() {
                         const quest = entry.quests
                         if (!quest) return null
                         const pending = entry.status === 'pending'
+                        const savedRewards = statRewardsByQuestId[quest.id]
+                        const rewards = savedRewards?.length
+                            ? savedRewards
+                            : quest.stat_reward
+                                ? [{ stat_name: quest.stat_reward, amount: quest.stat_reward_amount }]
+                                : []
                         return (
                             <article className={`home-quest-card${pending ? '' : ' is-settled'}`} key={entry.id}>
                                 {pending && (
@@ -240,7 +263,7 @@ export function HomePage() {
                                     <div className="home-quest-rewards">
                                         <span>+{quest.xp_reward} XP</span>
                                         <span>+{quest.gold_reward} gold</span>
-                                        {quest.stat_reward && <span>+{quest.stat_reward_amount} {quest.stat_reward}</span>}
+                                        {rewards.map((reward) => <span key={reward.stat_name}>+{reward.amount} {reward.stat_name}</span>)}
                                     </div>
                                 </div>
                                 {pending ? (
