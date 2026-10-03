@@ -31,7 +31,11 @@ function recurrenceLabel(recurrence: string) {
     return recurrence.charAt(0).toUpperCase() + recurrence.slice(1)
 }
 
-export function HomePage() {
+type HomePageProps = {
+    onRefreshReady: (refresh: (() => Promise<void>) | null) => void
+}
+
+export function HomePage({ onRefreshReady }: HomePageProps) {
     const { session } = useAuth()
     const userId = session?.user.id ?? ''
     const [entries, setEntries] = useState<QuestBoardEntry[]>([])
@@ -78,6 +82,11 @@ export function HomePage() {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         void loadHome()
     }, [loadHome])
+
+    useEffect(() => {
+        onRefreshReady(loadHome)
+        return () => onRefreshReady(null)
+    }, [loadHome, onRefreshReady])
 
     useEffect(() => {
         if (!toast) return

@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { CircleUserRound, ShieldCheck } from 'lucide-react'
-import { BrowserRouter, NavLink, Navigate, Route, Routes } from 'react-router-dom'
+import { CircleUserRound, RefreshCw, ShieldCheck } from 'lucide-react'
+import { BrowserRouter, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuth } from './auth/useAuth'
 import { CornerFrame } from './components/status/CornerFrame'
 import { StatusWindow } from './components/status/StatusWindow'
@@ -32,7 +32,13 @@ const navItems = [
     { to: '/profile', label: 'View Profile' },
 ]
 
-function ProfileNavigationMenu() {
+type ProfileNavigationMenuProps = {
+    showRefresh: boolean
+    refreshing: boolean
+    onRefresh: () => void
+}
+
+function ProfileNavigationMenu({ showRefresh, refreshing, onRefresh }: ProfileNavigationMenuProps) {
     const [open, setOpen] = useState(false)
     const menuRef = useRef<HTMLDivElement | null>(null)
 
@@ -53,18 +59,31 @@ function ProfileNavigationMenu() {
     }, [open])
 
     return (
-        <div className="profile-menu-anchor" ref={menuRef}>
-            <button
-                className="profile-button"
-                type="button"
-                aria-label="Open navigation menu"
-                aria-haspopup="true"
-                aria-expanded={open}
-                aria-controls="profile-menu"
-                onClick={() => setOpen((current) => !current)}
-            >
-                <CircleUserRound size={22} aria-hidden="true" />
-            </button>
+        <div className="workspace-header-actions">
+            {showRefresh && (
+                <button
+                    className={`home-refresh-button${refreshing ? ' is-refreshing' : ''}`}
+                    type="button"
+                    aria-label="Refresh home"
+                    title="Refresh home"
+                    disabled={refreshing}
+                    onClick={onRefresh}
+                >
+                    <RefreshCw size={19} aria-hidden="true" />
+                </button>
+            )}
+            <div className="profile-menu-anchor" ref={menuRef}>
+                <button
+                    className="profile-button"
+                    type="button"
+                    aria-label="Open navigation menu"
+                    aria-haspopup="true"
+                    aria-expanded={open}
+                    aria-controls="profile-menu"
+                    onClick={() => setOpen((current) => !current)}
+                >
+                    <CircleUserRound size={22} aria-hidden="true" />
+                </button>
             {open && (
                 <>
                     <button className="profile-menu-backdrop" type="button" aria-label="Close navigation menu" onClick={() => setOpen(false)} />
@@ -83,6 +102,7 @@ function ProfileNavigationMenu() {
                     </nav>
                 </>
             )}
+            </div>
         </div>
     )
 }
@@ -220,17 +240,38 @@ function AuthScreen() {
 }
 
 function AppShell() {
+    const location = useLocation()
+    const [homeRefresh, setHomeRefresh] = useState<(() => Promise<void>) | null>(null)
+    const [refreshing, setRefreshing] = useState(false)
+    const registerHomeRefresh = useCallback((refresh: (() => Promise<void>) | null) => {
+        setHomeRefresh(() => refresh)
+    }, [])
+
+    async function refreshHome() {
+        if (!homeRefresh || refreshing) return
+        setRefreshing(true)
+        try {
+            await homeRefresh()
+        } finally {
+            setRefreshing(false)
+        }
+    }
+
     return (
         <div className="workspace-shell">
             <header className="workspace-header">
                 <NavLink to="/" className="workspace-brand">LEVELUP <i>/</i> SYSTEM</NavLink>
-                <ProfileNavigationMenu />
+                <ProfileNavigationMenu
+                    showRefresh={location.pathname === '/'}
+                    refreshing={refreshing}
+                    onRefresh={() => void refreshHome()}
+                />
             </header>
 
             <main className="management-main">
                 <CornerFrame className="management-frame">
                     <Routes>
-                        <Route path="/" element={<HomePage />} />
+                        <Route path="/" element={<HomePage onRefreshReady={registerHomeRefresh} />} />
                         <Route path="/home" element={<Navigate to="/" replace />} />
                         <Route path="/profile" element={<StatusWindow />} />
                         <Route path="/quests" element={<Navigate to="/quests/manage" replace />} />

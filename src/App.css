@@ -273,6 +273,39 @@ button:disabled {
     font-style: normal;
 }
 
+.workspace-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.home-refresh-button {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border: 1px solid rgba(62, 198, 255, 0.4);
+    border-radius: 50%;
+    color: #3ec6ff;
+    background: rgba(10, 18, 36, 0.86);
+    box-shadow: 0 0 13px rgba(62, 198, 255, 0.12);
+}
+
+.home-refresh-button:hover:not(:disabled),
+.home-refresh-button:focus-visible {
+    border-color: #3ec6ff;
+    background: rgba(62, 198, 255, 0.1);
+    box-shadow: 0 0 16px rgba(62, 198, 255, 0.28);
+}
+
+.home-refresh-button.is-refreshing svg {
+    animation: home-refresh-spin 800ms linear infinite;
+}
+
+@keyframes home-refresh-spin {
+    to { transform: rotate(360deg); }
+}
+
 .management-main {
     max-width: 1200px;
     margin: 0 auto;
