@@ -1,14 +1,34 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { ShieldCheck } from 'lucide-react'
+import { BrowserRouter, NavLink, Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './auth/useAuth'
+import { CornerFrame } from './components/status/CornerFrame'
 import { StatusWindow } from './components/status/StatusWindow'
+import { DungeonsPage } from './pages/DungeonsPage'
+import { HistoryPage } from './pages/HistoryPage'
+import { ItemsPage } from './pages/ItemsPage'
+import { QuestsPage } from './pages/QuestsPage'
+import { SkillsPage } from './pages/SkillsPage'
+import { TitlesPage } from './pages/TitlesPage'
+import { TodayBoardPage } from './pages/TodayBoardPage'
 import {
     signInWithGoogle,
     signInWithPassword,
     signUpWithPassword,
 } from './services/authService'
 import './App.css'
+
+const navItems = [
+    { to: '/', label: 'Status' },
+    { to: '/quests', label: 'Quests' },
+    { to: '/today', label: 'Today' },
+    { to: '/titles', label: 'Titles' },
+    { to: '/skills', label: 'Skills' },
+    { to: '/items', label: 'Items' },
+    { to: '/dungeons', label: 'Dungeons' },
+    { to: '/history', label: 'History' },
+]
 
 function AuthScreen() {
     const [mode, setMode] = useState<'sign-in' | 'sign-up'>('sign-in')
@@ -142,6 +162,50 @@ function AuthScreen() {
     )
 }
 
+function AppShell() {
+    return (
+        <div className="workspace-shell">
+            <header className="workspace-header">
+                <div>
+                    <p className="eyebrow">LEVELUP / COMMAND CENTER</p>
+                    <h1>RPG management</h1>
+                </div>
+            </header>
+
+            <nav className="nav-grid" aria-label="Main navigation">
+                {navItems.map(({ to, label }) => (
+                    <NavLink
+                        key={to}
+                        to={to}
+                        end={to === '/'}
+                        className={({ isActive }) =>
+                            ['nav-link', isActive ? 'nav-link-active' : ''].filter(Boolean).join(' ')
+                        }
+                    >
+                        {label}
+                    </NavLink>
+                ))}
+            </nav>
+
+            <main className="management-main">
+                <CornerFrame className="management-frame">
+                    <Routes>
+                        <Route path="/" element={<StatusWindow />} />
+                        <Route path="/quests" element={<QuestsPage />} />
+                        <Route path="/today" element={<TodayBoardPage />} />
+                        <Route path="/titles" element={<TitlesPage />} />
+                        <Route path="/skills" element={<SkillsPage />} />
+                        <Route path="/items" element={<ItemsPage />} />
+                        <Route path="/dungeons" element={<DungeonsPage />} />
+                        <Route path="/history" element={<HistoryPage />} />
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                </CornerFrame>
+            </main>
+        </div>
+    )
+}
+
 function App() {
     const { session, loading, authError } = useAuth()
 
@@ -149,15 +213,23 @@ function App() {
         return <main className="loading-screen">Loading your workspace...</main>
     }
 
-    return session ? <StatusWindow /> : (
-        <>
-            {authError && (
-                <p className="auth-startup-error" role="alert">
-                    Authentication could not be restored: {authError}
-                </p>
-            )}
-            <AuthScreen />
-        </>
+    if (!session) {
+        return (
+            <>
+                {authError && (
+                    <p className="auth-startup-error" role="alert">
+                        Authentication could not be restored: {authError}
+                    </p>
+                )}
+                <AuthScreen />
+            </>
+        )
+    }
+
+    return (
+        <BrowserRouter>
+            <AppShell />
+        </BrowserRouter>
     )
 }
 

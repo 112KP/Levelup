@@ -24,12 +24,12 @@ const statDetails: {
     label: string
     icon: typeof Dumbbell
 }[] = [
-    { name: 'strength', label: 'Strength', icon: Dumbbell },
-    { name: 'agility', label: 'Agility', icon: Wind },
-    { name: 'sense', label: 'Sense', icon: Eye },
-    { name: 'vitality', label: 'Vitality', icon: HeartPulse },
-    { name: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
-]
+        { name: 'strength', label: 'Strength', icon: Dumbbell },
+        { name: 'agility', label: 'Agility', icon: Wind },
+        { name: 'sense', label: 'Sense', icon: Eye },
+        { name: 'vitality', label: 'Vitality', icon: HeartPulse },
+        { name: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
+    ]
 
 const profileColumns = 'id,user_id,display_name,job,rank,active_title_id,level,hp_current,hp_max,mp_current,mp_max,fatigue,xp,xp_to_next,strength,agility,sense,vitality,intelligence,available_points,gold,created_at,updated_at' as const
 
@@ -154,8 +154,8 @@ export function StatusWindow() {
         setAllocationMessage('')
 
         const { error: rpcError } = await supabase.rpc('allocate_points', {
-            stat_name: stat,
-            points: 1,
+            p_stat: stat,
+            p_points: 1,
         })
 
         if (rpcError) {
