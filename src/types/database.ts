@@ -14,6 +14,7 @@ export type StatName =
     | 'intelligence'
 
 export type QuestRecurrence = 'daily' | 'weekly' | 'one_time'
+export type QuestPrahar = 'Morning' | 'Afternoon' | 'Evening' | 'Night'
 export type QuestDifficulty = 'easy' | 'medium' | 'hard'
 export type QuestLogStatus = 'pending' | 'completed' | 'failed'
 export type SkillType = 'active' | 'passive'
@@ -76,6 +77,7 @@ export type QuestRow = {
     name: string
     description: string | null
     recurrence: QuestRecurrence
+    prahar: QuestPrahar
     difficulty: QuestDifficulty
     target_value: number
     unit: string | null
@@ -187,6 +189,7 @@ export interface Database {
                     name: string
                     description?: string | null
                     recurrence?: QuestRecurrence
+                    prahar?: QuestPrahar
                     difficulty?: QuestDifficulty
                     target_value?: number
                     unit?: string | null
@@ -276,6 +279,10 @@ export interface Database {
             generate_daily_quest_logs: {
                 Args: Record<string, never>
                 Returns: number
+            }
+            add_quest_to_today: {
+                Args: { p_quest_id: string }
+                Returns: string
             }
             complete_quest: {
                 Args: { p_log_id: string }

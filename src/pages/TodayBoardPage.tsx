@@ -103,7 +103,7 @@ export function TodayBoardPage() {
                                 const quest = entry.quests
                                 if (!quest) return null
                                 return (
-                                    <div key={entry.id} className="quest-card pending">
+                                    <div key={entry.id} className={`quest-card pending prahar-${quest.prahar.toLowerCase()}`}>
                                         <div>
                                             <h3>{quest.name}</h3>
                                             {quest.description && <p>{quest.description}</p>}
@@ -137,7 +137,7 @@ export function TodayBoardPage() {
                                     const quest = entry.quests
                                     if (!quest) return null
                                     return (
-                                        <div key={entry.id} className="quest-card done">
+                                        <div key={entry.id} className={`quest-card done prahar-${quest.prahar.toLowerCase()}`}>
                                             <div>
                                                 <h4>{quest.name}</h4>
                                                 <p>{entry.status === 'completed' ? 'Completed' : 'Failed'}</p>

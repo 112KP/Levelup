@@ -9,7 +9,7 @@ import {
     setQuestStatRewards,
     updateQuest,
 } from '../lib/quests'
-import type { QuestDifficulty, QuestRecurrence, QuestRow, StatName } from '../types/database'
+import type { QuestDifficulty, QuestPrahar, QuestRecurrence, QuestRow, StatName } from '../types/database'
 
 const recurrenceOptions: Array<{ value: QuestRecurrence | 'all'; label: string }> = [
     { value: 'all', label: 'All recurrences' },
@@ -37,15 +37,16 @@ const defaultForm = {
     name: '',
     description: '',
     recurrence: 'daily' as QuestRecurrence,
+    prahar: 'Night' as QuestPrahar,
     difficulty: 'medium' as QuestDifficulty,
     target_value: 1,
     unit: '',
-    xp_reward: 0,
-    gold_reward: 0,
+    xp_reward: '',
+    gold_reward: '',
     stat_rewards: [] as StatName[],
-    stat_reward_amount: 0,
-    penalty_hp: 0,
-    penalty_gold: 0,
+    stat_reward_amount: '',
+    penalty_hp: '',
+    penalty_gold: '',
     is_active: true,
 }
 
@@ -132,15 +133,16 @@ export function ManageQuestsPage() {
             name: quest.name,
             description: quest.description ?? '',
             recurrence: quest.recurrence,
+            prahar: quest.prahar,
             difficulty: quest.difficulty,
             target_value: quest.target_value,
             unit: quest.unit ?? '',
-            xp_reward: quest.xp_reward,
-            gold_reward: quest.gold_reward,
+            xp_reward: String(quest.xp_reward),
+            gold_reward: String(quest.gold_reward),
             stat_rewards: statRewardsByQuestId[quest.id] ?? (quest.stat_reward ? [quest.stat_reward] : []),
-            stat_reward_amount: statRewardAmountsByQuestId[quest.id] ?? quest.stat_reward_amount,
-            penalty_hp: quest.penalty_hp,
-            penalty_gold: quest.penalty_gold,
+            stat_reward_amount: String(statRewardAmountsByQuestId[quest.id] ?? quest.stat_reward_amount),
+            penalty_hp: String(quest.penalty_hp),
+            penalty_gold: String(quest.penalty_gold),
             is_active: quest.is_active,
         })
         setError('')
@@ -167,6 +169,7 @@ export function ManageQuestsPage() {
             name,
             description: form.description.trim() || null,
             recurrence: form.recurrence,
+            prahar: form.prahar,
             difficulty: form.difficulty,
             target_value: Math.max(1, Number(form.target_value) || 1),
             unit: form.unit.trim() || null,
@@ -284,42 +287,42 @@ export function ManageQuestsPage() {
                 <div className="manage-loading" role="status" aria-live="polite">Loading quests...</div>
             ) : error && quests.length === 0 ? null : (
                 quests.length === 0 ? (
-                <div className="manage-empty"><h3>No quests yet</h3><p>Create your first quest to start filling the daily board.</p></div>
+                    <div className="manage-empty"><h3>No quests yet</h3><p>Create your first quest to start filling the daily board.</p></div>
                 ) : filteredQuests.length === 0 ? (
-                <div className="manage-empty"><h3>No matching quests</h3><p>Try another search or filter.</p></div>
+                    <div className="manage-empty"><h3>No matching quests</h3><p>Try another search or filter.</p></div>
                 ) : (
-                <div className="manage-list">
-                    {filteredQuests.map((quest) => (
-                        <article className="manage-row quest-manage-row" key={quest.id}>
-                            <div className="manage-row-main">
-                                <h3>{quest.name}</h3>
-                                {quest.description && <p>{quest.description}</p>}
-                                <div className="manage-row-tags">
-                                    <span>{recurrenceLabel(quest.recurrence)}</span>
-                                    <span className={`difficulty-tag ${quest.difficulty}`}>{quest.difficulty}</span>
-                                    <span className="reward-text">+{quest.xp_reward} XP</span>
-                                    <span className="reward-text">+{quest.gold_reward} gold</span>
+                    <div className="manage-list">
+                        {filteredQuests.map((quest) => (
+                            <article className="manage-row quest-manage-row" key={quest.id}>
+                                <div className="manage-row-main">
+                                    <h3>{quest.name}</h3>
+                                    {quest.description && <p>{quest.description}</p>}
+                                    <div className="manage-row-tags">
+                                        <span>{recurrenceLabel(quest.recurrence)}</span>
+                                        <span className={`difficulty-tag ${quest.difficulty}`}>{quest.difficulty}</span>
+                                        <span className="reward-text">+{quest.xp_reward} XP</span>
+                                        <span className="reward-text">+{quest.gold_reward} gold</span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="manage-row-actions">
-                                <button
-                                    type="button"
-                                    role="switch"
-                                    aria-checked={quest.is_active}
-                                    aria-label={`${quest.name} enrolled`}
-                                    className={`enrolled-switch${quest.is_active ? ' is-on' : ''}`}
-                                    disabled={busyToggleId === quest.id}
-                                    onClick={() => void toggleEnrolled(quest)}
-                                >
-                                    <span className="switch-thumb" aria-hidden="true" />
-                                    <span>{quest.is_active ? 'Enrolled' : 'Not enrolled'}</span>
-                                </button>
-                                <button type="button" className="rpg-action-button" onClick={() => openEditForm(quest)}>Edit</button>
-                                <button type="button" className="rpg-action-button danger" onClick={() => void handleDelete(quest)}>Delete</button>
-                            </div>
-                        </article>
-                    ))}
-                </div>
+                                <div className="manage-row-actions">
+                                    <button
+                                        type="button"
+                                        role="switch"
+                                        aria-checked={quest.is_active}
+                                        aria-label={`${quest.name} enrolled`}
+                                        className={`enrolled-switch${quest.is_active ? ' is-on' : ''}`}
+                                        disabled={busyToggleId === quest.id}
+                                        onClick={() => void toggleEnrolled(quest)}
+                                    >
+                                        <span className="switch-thumb" aria-hidden="true" />
+                                        <span>{quest.is_active ? 'Enrolled' : 'Not enrolled'}</span>
+                                    </button>
+                                    <button type="button" className="rpg-action-button" onClick={() => openEditForm(quest)}>Edit</button>
+                                    <button type="button" className="rpg-action-button danger" onClick={() => void handleDelete(quest)}>Delete</button>
+                                </div>
+                            </article>
+                        ))}
+                    </div>
                 )
             )}
 
@@ -336,16 +339,17 @@ export function ManageQuestsPage() {
                     <label className="field-group">Description<textarea className="field-input" rows={3} value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} /></label>
                     <div className="inline-grid two-up">
                         <label className="field-group">Recurrence<select className="field-input" value={form.recurrence} onChange={(event) => setForm({ ...form, recurrence: event.target.value as QuestRecurrence })}><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="one_time">One-time</option></select></label>
+                        <label className="field-group">Prahar<select className="field-input" value={form.prahar} onChange={(event) => setForm({ ...form, prahar: event.target.value as QuestPrahar })}><option value="Morning">Morning</option><option value="Afternoon">Afternoon</option><option value="Evening">Evening</option><option value="Night">Night</option></select></label>
+                    </div>
+                    <div className="inline-grid two-up">
                         <label className="field-group">Difficulty<select className="field-input" value={form.difficulty} onChange={(event) => setForm({ ...form, difficulty: event.target.value as QuestDifficulty })}><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select></label>
-                    </div>
-                    <div className="inline-grid two-up">
                         <label className="field-group">Target value<input className="field-input" type="number" min="1" step="1" value={form.target_value} onChange={(event) => setForm({ ...form, target_value: Number(event.target.value) })} /></label>
-                        <label className="field-group">Unit<input className="field-input" value={form.unit} onChange={(event) => setForm({ ...form, unit: event.target.value })} /></label>
                     </div>
                     <div className="inline-grid two-up">
-                        <label className="field-group">XP reward<input className="field-input" type="number" min="0" step="1" value={form.xp_reward} onChange={(event) => setForm({ ...form, xp_reward: Number(event.target.value) })} /></label>
-                        <label className="field-group">Gold reward<input className="field-input" type="number" min="0" step="1" value={form.gold_reward} onChange={(event) => setForm({ ...form, gold_reward: Number(event.target.value) })} /></label>
+                        <label className="field-group">Unit<input className="field-input" value={form.unit} onChange={(event) => setForm({ ...form, unit: event.target.value })} /></label>
+                        <label className="field-group">XP reward<input className="field-input" type="number" min="0" step="1" value={form.xp_reward} onChange={(event) => setForm({ ...form, xp_reward: event.target.value })} /></label>
                     </div>
+                    <label className="field-group">Gold reward<input className="field-input" type="number" min="0" step="1" value={form.gold_reward} onChange={(event) => setForm({ ...form, gold_reward: event.target.value })} /></label>
                     <fieldset className="stat-reward-fieldset">
                         <legend>Stat rewards</legend>
                         <div className="stat-reward-options">
@@ -366,10 +370,10 @@ export function ManageQuestsPage() {
                             ))}
                         </div>
                     </fieldset>
-                    <label className="field-group">Amount per selected stat<input className="field-input" type="number" min="0" step="1" disabled={form.stat_rewards.length === 0} value={form.stat_reward_amount} onChange={(event) => setForm({ ...form, stat_reward_amount: Number(event.target.value) })} /></label>
+                    <label className="field-group">Amount per selected stat<input className="field-input" type="number" min="0" step="1" disabled={form.stat_rewards.length === 0} value={form.stat_reward_amount} onChange={(event) => setForm({ ...form, stat_reward_amount: event.target.value })} /></label>
                     <div className="inline-grid two-up">
-                        <label className="field-group">HP penalty<input className="field-input" type="number" min="0" step="1" value={form.penalty_hp} onChange={(event) => setForm({ ...form, penalty_hp: Number(event.target.value) })} /></label>
-                        <label className="field-group">Gold penalty<input className="field-input" type="number" min="0" step="1" value={form.penalty_gold} onChange={(event) => setForm({ ...form, penalty_gold: Number(event.target.value) })} /></label>
+                        <label className="field-group">HP penalty<input className="field-input" type="number" min="0" step="1" value={form.penalty_hp} onChange={(event) => setForm({ ...form, penalty_hp: event.target.value })} /></label>
+                        <label className="field-group">Gold penalty<input className="field-input" type="number" min="0" step="1" value={form.penalty_gold} onChange={(event) => setForm({ ...form, penalty_gold: event.target.value })} /></label>
                     </div>
                     <label className="manage-checkbox"><input type="checkbox" checked={form.is_active} onChange={(event) => setForm({ ...form, is_active: event.target.checked })} /> Enrolled and active</label>
                     {error && <p className="status-error" role="alert">{error}</p>}

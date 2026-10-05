@@ -42,11 +42,15 @@ export async function generateDailyQuestLogs() {
     return supabase.rpc('generate_daily_quest_logs')
 }
 
+export async function addQuestToToday(questId: string) {
+    return supabase.rpc('add_quest_to_today', { p_quest_id: questId })
+}
+
 export async function fetchTodayQuestLogs(userId: string, day: string) {
     return supabase
         .from('quest_logs')
         .select(
-            'id, user_id, quest_id, quest_date, progress_value, status, completed_at, penalty_applied, created_at, updated_at, quests:quest_id (id, name, description, xp_reward, gold_reward, penalty_hp, penalty_gold, stat_reward, stat_reward_amount, recurrence, difficulty, target_value, unit)',
+            'id, user_id, quest_id, quest_date, progress_value, status, completed_at, penalty_applied, created_at, updated_at, quests:quest_id (id, name, description, xp_reward, gold_reward, penalty_hp, penalty_gold, stat_reward, stat_reward_amount, recurrence, prahar, difficulty, target_value, unit)',
         )
         .eq('user_id', userId)
         .eq('quest_date', day)
@@ -73,6 +77,7 @@ export type QuestBoardEntry = QuestLogRow & {
         stat_reward: QuestRow['stat_reward']
         stat_reward_amount: number
         recurrence: string
+        prahar: QuestRow['prahar']
         difficulty: QuestRow['difficulty']
         target_value: number
         unit: string | null

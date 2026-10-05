@@ -1,17 +1,19 @@
-import { useCallback, useEffect, useState } from 'react'
-import { Check, SkipForward } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Check, Plus, SkipForward, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
 import { fetchDungeons, getDaysRemaining } from '../lib/dungeons'
 import {
+    addQuestToToday,
     completeQuest,
     failQuest,
     fetchQuestStatRewards,
+    fetchQuests,
     fetchTodayQuestLogs,
     generateDailyQuestLogs,
 } from '../lib/quests'
 import type { QuestBoardEntry } from '../lib/quests'
-import type { DungeonRow, QuestLogStatus, QuestStatRewardRow } from '../types/database'
+import type { DungeonRow, QuestLogStatus, QuestRow, QuestStatRewardRow } from '../types/database'
 import { RankBadge } from '../components/status/RankBadge'
 
 const tabs: Array<{ status: QuestLogStatus; label: string }> = [
@@ -21,9 +23,7 @@ const tabs: Array<{ status: QuestLogStatus; label: string }> = [
 ]
 
 function todayKey() {
-    const today = new Date()
-    const offset = today.getTimezoneOffset() * 60_000
-    return new Date(today.getTime() - offset).toISOString().slice(0, 10)
+    return new Date().toISOString().slice(0, 10)
 }
 
 function recurrenceLabel(recurrence: string) {
@@ -39,6 +39,7 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
     const { session } = useAuth()
     const userId = session?.user.id ?? ''
     const [entries, setEntries] = useState<QuestBoardEntry[]>([])
+    const [quests, setQuests] = useState<QuestRow[]>([])
     const [dungeons, setDungeons] = useState<DungeonRow[]>([])
     const [statRewardsByQuestId, setStatRewardsByQuestId] = useState<Record<string, QuestStatRewardRow[]>>({})
     const [activeTab, setActiveTab] = useState<QuestLogStatus>('pending')
@@ -46,27 +47,42 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
     const [error, setError] = useState('')
     const [busyId, setBusyId] = useState<string | null>(null)
     const [toast, setToast] = useState('')
-    const today = todayKey()
+    const [busyAddId, setBusyAddId] = useState<string | null>(null)
+    const [today, setToday] = useState(todayKey)
+    const addQuestDialogRef = useRef<HTMLDialogElement | null>(null)
     const shortDate = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' }).format(new Date())
+
+    useEffect(() => {
+        const timer = window.setInterval(() => {
+            const currentDay = todayKey()
+            if (today !== currentDay) {
+                setToday(currentDay)
+                setActiveTab('pending')
+            }
+        }, 60_000)
+        return () => window.clearInterval(timer)
+    }, [today])
 
     const loadHome = useCallback(async () => {
         if (!userId) return
         setLoading(true)
         setError('')
         const { error: generationError } = await generateDailyQuestLogs()
-        const [logsResult, dungeonsResult, rewardsResult] = await Promise.all([
+        const [logsResult, dungeonsResult, rewardsResult, questsResult] = await Promise.all([
             fetchTodayQuestLogs(userId, today),
             fetchDungeons(userId),
             fetchQuestStatRewards(userId),
+            fetchQuests(userId),
         ])
 
-        if (logsResult.error || dungeonsResult.error || rewardsResult.error) {
-            setError(logsResult.error?.message || dungeonsResult.error?.message || rewardsResult.error?.message || 'Unable to load your board.')
+        if (logsResult.error || dungeonsResult.error || rewardsResult.error || questsResult.error) {
+            setError(logsResult.error?.message || dungeonsResult.error?.message || rewardsResult.error?.message || questsResult.error?.message || 'Unable to load your board.')
             setLoading(false)
             return
         }
 
         setEntries((logsResult.data ?? []) as QuestBoardEntry[])
+        setQuests(questsResult.data ?? [])
         setDungeons(dungeonsResult.data ?? [])
         const rewardsByQuestId: Record<string, QuestStatRewardRow[]> = {}
         for (const reward of rewardsResult.data ?? []) {
@@ -127,7 +143,29 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
         setBusyId(null)
     }
 
+    async function handleAddQuest(quest: QuestRow) {
+        setBusyAddId(quest.id)
+        setError('')
+        const result = await addQuestToToday(quest.id)
+        if (result.error) {
+            addQuestDialogRef.current?.close()
+            setError(result.error.message || 'The quest could not be added to today.')
+            setBusyAddId(null)
+            return
+        }
+
+        addQuestDialogRef.current?.close()
+        setToast(`${quest.name} added to today's To-Do list.`)
+        setBusyAddId(null)
+        await loadHome()
+    }
+
     const visibleEntries = entries.filter((entry) => entry.status === activeTab)
+    const availableQuests = quests.filter((quest) =>
+        quest.is_active
+        && quest.recurrence !== 'daily'
+        && !entries.some((entry) => entry.quest_id === quest.id),
+    )
     const activeDungeons = dungeons.filter((dungeon) => dungeon.status === 'open' || dungeon.status === 'in_progress')
 
     return (
@@ -141,7 +179,50 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
                     <p className="eyebrow">DAILY QUEST BOARD</p>
                     <h2 id="home-title">Today&apos;s quests</h2>
                 </div>
+                <button
+                    type="button"
+                    className="primary-button manage-create-button"
+                    disabled={loading}
+                    onClick={() => addQuestDialogRef.current?.showModal()}
+                >
+                    <Plus size={17} aria-hidden="true" /> Add quest
+                </button>
             </div>
+
+            <dialog className="manage-dialog" ref={addQuestDialogRef} aria-labelledby="add-today-quest-title">
+                <div className="manage-form">
+                    <header className="manage-dialog-header">
+                        <div>
+                            <p className="eyebrow">TODAY&apos;S QUESTS</p>
+                            <h2 id="add-today-quest-title">Add quest to today</h2>
+                        </div>
+                        <button type="button" className="dialog-close-button" aria-label="Close quest list" onClick={() => addQuestDialogRef.current?.close()}>
+                            <X size={19} aria-hidden="true" />
+                        </button>
+                    </header>
+                    {availableQuests.length === 0 ? (
+                        <p className="status-empty">No active weekly or one-time quests are available to add today.</p>
+                    ) : (
+                        <div className="today-quest-picker-list">
+                            {availableQuests.map((quest) => (
+                                <button
+                                    className="today-quest-picker-item"
+                                    key={quest.id}
+                                    type="button"
+                                    disabled={busyAddId !== null}
+                                    onClick={() => void handleAddQuest(quest)}
+                                >
+                                    <span className="today-quest-picker-copy">
+                                        <strong>{quest.name}</strong>
+                                        <span>{recurrenceLabel(quest.recurrence)} · {quest.prahar}</span>
+                                    </span>
+                                    <Plus size={18} aria-hidden="true" />
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </dialog>
 
             {toast && <div className="toast-banner" role="status">{toast}</div>}
             {error && <p className="status-error" role="alert">{error}</p>}
@@ -208,7 +289,7 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
                                 ? [{ stat_name: quest.stat_reward, amount: quest.stat_reward_amount }]
                                 : []
                         return (
-                            <article className={`home-quest-card${pending ? '' : ' is-settled'}`} key={entry.id}>
+                            <article className={`home-quest-card prahar-${quest.prahar.toLowerCase()}${pending ? '' : ' is-settled'}`} key={entry.id}>
                                 {pending && (
                                     <button
                                         className="quest-complete-button"
