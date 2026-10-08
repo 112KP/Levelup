@@ -1940,6 +1940,11 @@ textarea.field-input {
         font-size: clamp(1.45rem, 9vw, 2.1rem);
     }
 
+    .screen-header {
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
     .home-quest-card {
         gap: 9px;
         min-height: 88px;
@@ -1960,6 +1965,32 @@ textarea.field-input {
     .quest-card h4 {
         margin-bottom: 8px;
         font-size: 1.08rem;
+    }
+
+    .meta-row {
+        gap: 6px 8px;
+        font-size: 0.72rem;
+    }
+
+    .panel-block {
+        padding: 12px;
+    }
+
+    .content-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .management-frame {
+        padding: 12px 0 0;
+    }
+
+    .manage-row {
+        padding: 11px 12px;
+    }
+
+    .manage-row-actions {
+        width: 100%;
+        justify-content: flex-start;
     }
 
     .inline-grid {
