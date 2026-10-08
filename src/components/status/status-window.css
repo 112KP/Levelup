@@ -105,8 +105,8 @@
 .hud-corner {
     position: absolute;
     z-index: 2;
-    width: 16px;
-    height: 16px;
+    width: 12px;
+    height: 12px;
     border: 2px solid var(--purple-glow);
     opacity: 0.8;
     filter: drop-shadow(0 0 5px var(--purple-glow));
@@ -783,17 +783,23 @@
 @media (max-width: 520px) {
     .status-page {
         min-height: 100svh;
-        padding: max(8px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+        padding: max(6px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+        overflow-x: hidden;
     }
 
     .status-topbar {
-        min-height: 34px;
+        min-height: 30px;
         margin-bottom: 6px;
     }
 
     .system-mark,
     .logout-button {
-        min-height: 34px;
+        min-height: 30px;
+    }
+
+    .system-mark {
+        font-size: 0.7rem;
+        letter-spacing: 0.08em;
     }
 
     .status-frame {
@@ -802,27 +808,34 @@
 
     .status-heading {
         align-items: center;
+        gap: 10px;
         margin-bottom: 10px;
     }
 
     .identity h1 {
-        font-size: 1.25rem;
+        font-size: 1.2rem;
     }
 
     .identity-job {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
+    }
+
+    .rank-badge {
+        width: 34px;
+        height: 34px;
+        flex-basis: 34px;
     }
 
     .active-title {
-        min-height: 24px;
+        min-height: 22px;
         margin-top: 4px;
         padding: 2px 7px;
-        font-size: 0.72rem;
+        font-size: 0.68rem;
     }
 
     .vitals-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 7px;
+        gap: 6px;
     }
 
     .vital-heading {
@@ -849,11 +862,11 @@
     }
 
     .level-number {
-        min-width: 45px;
+        min-width: 42px;
     }
 
     .level-number strong {
-        font-size: 1.65rem;
+        font-size: 1.55rem;
     }
 
     .xp-heading {
@@ -866,11 +879,11 @@
     }
 
     .points-banner {
-        min-height: 32px;
+        min-height: 30px;
         gap: 6px;
         margin-bottom: 8px;
         padding: 4px 8px;
-        font-size: 0.78rem;
+        font-size: 0.74rem;
     }
 
     .status-rule {
