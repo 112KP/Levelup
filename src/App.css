@@ -607,6 +607,18 @@ button:disabled {
     color: #1e2934;
 }
 
+.home-quest-card.prahar-morning {
+    background: rgba(255, 159, 74, 0.05);
+}
+
+.home-quest-card.prahar-afternoon {
+    background: rgba(255, 224, 74, 0.05);
+}
+
+.home-quest-card.prahar-evening {
+    background: rgba(76, 166, 255, 0.05);
+}
+
 .home-quest-card.prahar-morning .home-quest-heading h3,
 .home-quest-card.prahar-afternoon .home-quest-heading h3,
 .home-quest-card.prahar-evening .home-quest-heading h3,
@@ -1325,6 +1337,211 @@ textarea.field-input {
     border-radius: 12px;
     background: rgba(10, 18, 36, 0.84);
     box-shadow: inset 0 0 0 1px rgba(155, 92, 240, 0.08);
+}
+
+.effect-builder {
+    display: grid;
+    gap: 14px;
+    padding: 14px;
+    border: 1px solid rgba(168, 110, 255, 0.38);
+    border-radius: 8px;
+    background: rgba(7, 10, 18, 0.72);
+    box-shadow: inset 0 0 0 1px rgba(155, 92, 240, 0.12), 0 0 18px rgba(155, 92, 240, 0.08);
+}
+
+.effect-builder-heading h4,
+.effect-subheading h5 {
+    margin: 0;
+    color: #dfffe7;
+}
+
+.effect-builder-heading h4 {
+    font-size: 1.1rem;
+}
+
+.effect-builder-heading .eyebrow {
+    color: #3ec6ff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+}
+
+.effect-vitals-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.effect-stepper {
+    display: grid;
+    min-width: 0;
+    gap: 6px;
+}
+
+.effect-stepper-label {
+    color: #9fb8d8;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    line-height: 1.15;
+    text-transform: uppercase;
+}
+
+.effect-stepper-controls {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+}
+
+.effect-stepper-button {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    place-items: center;
+    padding: 0;
+    border: 1px solid rgba(62, 198, 255, 0.48);
+    border-radius: 5px;
+    color: #3ec6ff;
+    background: rgba(62, 198, 255, 0.08);
+    cursor: pointer;
+}
+
+.effect-stepper-button:hover:not(:disabled) {
+    background: rgba(62, 198, 255, 0.17);
+}
+
+.effect-stepper-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.effect-stepper-value {
+    min-width: 2ch;
+    color: #c7ffe0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88rem;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    text-shadow: 0 0 8px #17b866, 0 0 15px rgba(23, 184, 102, 0.65);
+    font-variant-numeric: tabular-nums;
+}
+
+.effect-attributes {
+    display: grid;
+    gap: 10px;
+}
+
+.effect-subheading {
+    display: grid;
+    gap: 9px;
+}
+
+.effect-subheading h5 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.92rem;
+}
+
+.effect-mode-control {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 3px;
+    border: 1px solid rgba(155, 92, 240, 0.32);
+    border-radius: 6px;
+    background: rgba(7, 10, 18, 0.8);
+}
+
+.effect-mode-control button {
+    min-height: 34px;
+    padding: 5px 7px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: #9fb8d8;
+    background: transparent;
+    font: inherit;
+    font-size: 0.76rem;
+    font-weight: 700;
+    line-height: 1.15;
+    cursor: pointer;
+}
+
+.effect-mode-control button.is-active {
+    border-color: rgba(62, 198, 255, 0.42);
+    color: #bfe6ff;
+    background: rgba(62, 198, 255, 0.1);
+}
+
+.effect-mode-note {
+    color: #9fb8d8;
+    font-size: 0.74rem;
+    line-height: 1.35;
+}
+
+.effect-attributes-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 8px;
+}
+
+.effect-attribute-item {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    align-items: center;
+    gap: 5px;
+    color: #b083ff;
+}
+
+.effect-attribute-item .effect-stepper {
+    grid-column: 2;
+}
+
+.effect-attribute-item>svg {
+    grid-row: 1;
+}
+
+.effect-summary {
+    margin: 0;
+    padding-top: 10px;
+    border-top: 1px solid rgba(168, 110, 255, 0.2);
+    color: #c7ffe0;
+    font-size: 0.82rem;
+    line-height: 1.4;
+}
+
+.effect-summary.is-empty {
+    color: #9fb8d8;
+}
+
+.item-effect-summary {
+    margin-top: 3px;
+    color: #c7ffe0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-shadow: 0 0 6px rgba(23, 184, 102, 0.45);
+}
+
+.inventory-use-button {
+    min-height: 32px;
+    padding: 4px 10px;
+    font-size: 0.78rem;
+}
+
+@media (max-width: 520px) {
+    .effect-builder {
+        gap: 11px;
+        padding: 11px;
+    }
+
+    .effect-mode-control button {
+        font-size: 0.7rem;
+    }
+
+    .effect-vitals-grid {
+        gap: 7px;
+    }
 }
 
 .panel-block h3,

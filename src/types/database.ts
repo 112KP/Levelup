@@ -280,6 +280,10 @@ export interface Database {
                 Args: Record<string, never>
                 Returns: number
             }
+            fail_expired_quest_logs: {
+                Args: Record<string, never>
+                Returns: number
+            }
             add_quest_to_today: {
                 Args: { p_quest_id: string }
                 Returns: string
@@ -303,6 +307,14 @@ export interface Database {
             clear_dungeon: {
                 Args: { p_dungeon_id: string }
                 Returns: Json
+            }
+            use_item: {
+                Args: { p_item_id: string }
+                Returns: void
+            }
+            toggle_equip: {
+                Args: { p_item_id: string; p_equipped: boolean }
+                Returns: void
             }
             set_active_title: {
                 Args: { p_title_id: string | null }

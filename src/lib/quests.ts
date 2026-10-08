@@ -39,6 +39,8 @@ export async function setQuestStatRewards(
 }
 
 export async function generateDailyQuestLogs() {
+    const { error } = await supabase.rpc('fail_expired_quest_logs')
+    if (error) return { data: null, error }
     return supabase.rpc('generate_daily_quest_logs')
 }
 

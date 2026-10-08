@@ -197,50 +197,50 @@ export function ManageDungeonsPage() {
                 <div className="manage-loading" role="status" aria-live="polite">Loading dungeons...</div>
             ) : error && dungeons.length === 0 ? null : (
                 sortedDungeons.length === 0 ? (
-                <div className="manage-empty"><h3>No dungeons yet</h3><p>Create a dungeon to track a larger goal against a deadline.</p></div>
+                    <div className="manage-empty"><h3>No dungeons yet</h3><p>Create a dungeon to track a larger goal against a deadline.</p></div>
                 ) : (
-                <div className="manage-list">
-                    {sortedDungeons.map((dungeon) => {
-                        const remaining = getDaysRemaining(dungeon.deadline)
-                        const busyThisDungeon = busyId === dungeon.id
-                        return (
-                            <article
-                                className={`manage-row dungeon-manage-row${focusedId === dungeon.id ? ' is-focused' : ''}`}
-                                id={`dungeon-${dungeon.id}`}
-                                key={dungeon.id}
-                                tabIndex={-1}
-                                aria-label={`${dungeon.name}, ${statusLabel(dungeon.status)}`}
-                            >
-                                <div className="dungeon-rank"><RankBadge rank={dungeon.dungeon_rank} /></div>
-                                <div className="manage-row-main">
-                                    <div className="dungeon-row-heading">
-                                        <h3>{dungeon.name}</h3>
-                                        <span className={`dungeon-status-badge ${dungeon.status}`}>{statusLabel(dungeon.status)}</span>
+                    <div className="manage-list">
+                        {sortedDungeons.map((dungeon) => {
+                            const remaining = getDaysRemaining(dungeon.deadline)
+                            const busyThisDungeon = busyId === dungeon.id
+                            return (
+                                <article
+                                    className={`manage-row dungeon-manage-row${focusedId === dungeon.id ? ' is-focused' : ''}`}
+                                    id={`dungeon-${dungeon.id}`}
+                                    key={dungeon.id}
+                                    tabIndex={-1}
+                                    aria-label={`${dungeon.name}, ${statusLabel(dungeon.status)}`}
+                                >
+                                    <div className="dungeon-rank"><RankBadge rank={dungeon.dungeon_rank} /></div>
+                                    <div className="manage-row-main">
+                                        <div className="dungeon-row-heading">
+                                            <h3>{dungeon.name}</h3>
+                                            <span className={`dungeon-status-badge ${dungeon.status}`}>{statusLabel(dungeon.status)}</span>
+                                        </div>
+                                        <div className="manage-row-tags">
+                                            <span>{deadlineLabel(dungeon.deadline)}</span>
+                                            <span className="reward-text">+{dungeon.xp_reward} XP</span>
+                                            <span className="reward-text">+{dungeon.gold_reward} gold</span>
+                                            {dungeon.deadline && (
+                                                <span className={`dungeon-days${remaining !== null && remaining < 0 ? ' overdue' : ''}`}>
+                                                    {remaining !== null && remaining < 0 ? 'Overdue' : `${remaining} ${remaining === 1 ? 'day' : 'days'} left`}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="manage-row-tags">
-                                        <span>{deadlineLabel(dungeon.deadline)}</span>
-                                        <span className="reward-text">+{dungeon.xp_reward} XP</span>
-                                        <span className="reward-text">+{dungeon.gold_reward} gold</span>
-                                        {dungeon.deadline && (
-                                            <span className={`dungeon-days${remaining !== null && remaining < 0 ? ' overdue' : ''}`}>
-                                                {remaining !== null && remaining < 0 ? 'Overdue' : `${remaining} ${remaining === 1 ? 'day' : 'days'} left`}
-                                            </span>
-                                        )}
+                                    <div className="dungeon-row-actions">
+                                        <button type="button" className="rpg-action-button" onClick={() => openEditForm(dungeon)}>Edit</button>
+                                        <button type="button" className="rpg-action-button danger" onClick={() => void handleDelete(dungeon)}>Delete</button>
+                                        {dungeon.status === 'open' && <button type="button" className="rpg-action-button" disabled={busyThisDungeon} onClick={() => void changeStatus(dungeon, 'in_progress')}>Start</button>}
+                                        {(dungeon.status === 'open' || dungeon.status === 'in_progress') && <button type="button" className="rpg-action-button danger" disabled={busyThisDungeon} onClick={() => void changeStatus(dungeon, 'failed')}>Abandon</button>}
+                                        <button type="button" className="rpg-action-button dungeon-clear-button" disabled={dungeon.status !== 'in_progress' || busyThisDungeon} onClick={() => void handleClear(dungeon)} aria-label={`Clear ${dungeon.name}`}>
+                                            {busyThisDungeon && dungeon.status === 'in_progress' ? 'Clearing...' : 'Clear'}
+                                        </button>
                                     </div>
-                                </div>
-                                <div className="dungeon-row-actions">
-                                    <button type="button" className="rpg-action-button" onClick={() => openEditForm(dungeon)}>Edit</button>
-                                    <button type="button" className="rpg-action-button danger" onClick={() => void handleDelete(dungeon)}>Delete</button>
-                                    {dungeon.status === 'open' && <button type="button" className="rpg-action-button" disabled={busyThisDungeon} onClick={() => void changeStatus(dungeon, 'in_progress')}>Start</button>}
-                                    {(dungeon.status === 'open' || dungeon.status === 'in_progress') && <button type="button" className="rpg-action-button danger" disabled={busyThisDungeon} onClick={() => void changeStatus(dungeon, 'failed')}>Abandon</button>}
-                                    <button type="button" className="rpg-action-button dungeon-clear-button" disabled={dungeon.status !== 'in_progress' || busyThisDungeon} onClick={() => void handleClear(dungeon)} aria-label={`Clear ${dungeon.name}`}>
-                                        {busyThisDungeon && dungeon.status === 'in_progress' ? 'Clearing...' : 'Clear'}
-                                    </button>
-                                </div>
-                            </article>
-                        )
-                    })}
-                </div>
+                                </article>
+                            )
+                        })}
+                    </div>
                 )
             )}
 

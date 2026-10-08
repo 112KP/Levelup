@@ -26,7 +26,7 @@ const navItems = [
     { to: '/today', label: 'Today' },
     { to: '/titles', label: 'Titles' },
     { to: '/skills', label: 'Skills' },
-    { to: '/items', label: 'Items' },
+    { to: '/inventory', label: 'Inventory' },
     { to: '/dungeons/manage', label: 'Manage Dungeons' },
     { to: '/history', label: 'History' },
     { to: '/profile', label: 'View Profile' },
@@ -84,24 +84,24 @@ function ProfileNavigationMenu({ showRefresh, refreshing, onRefresh }: ProfileNa
                 >
                     <CircleUserRound size={22} aria-hidden="true" />
                 </button>
-            {open && (
-                <>
-                    <button className="profile-menu-backdrop" type="button" aria-label="Close navigation menu" onClick={() => setOpen(false)} />
-                    <nav className="profile-menu" id="profile-menu" aria-label="Main navigation">
-                        {navItems.map(({ to, label }) => (
-                            <NavLink
-                                key={to}
-                                to={to}
-                                end={to === '/'}
-                                className={({ isActive }) => isActive ? 'profile-menu-link is-active' : 'profile-menu-link'}
-                                onClick={() => setOpen(false)}
-                            >
-                                {label}
-                            </NavLink>
-                        ))}
-                    </nav>
-                </>
-            )}
+                {open && (
+                    <>
+                        <button className="profile-menu-backdrop" type="button" aria-label="Close navigation menu" onClick={() => setOpen(false)} />
+                        <nav className="profile-menu" id="profile-menu" aria-label="Main navigation">
+                            {navItems.map(({ to, label }) => (
+                                <NavLink
+                                    key={to}
+                                    to={to}
+                                    end={to === '/'}
+                                    className={({ isActive }) => isActive ? 'profile-menu-link is-active' : 'profile-menu-link'}
+                                    onClick={() => setOpen(false)}
+                                >
+                                    {label}
+                                </NavLink>
+                            ))}
+                        </nav>
+                    </>
+                )}
             </div>
         </div>
     )
@@ -279,7 +279,8 @@ function AppShell() {
                         <Route path="/today" element={<TodayBoardPage />} />
                         <Route path="/titles" element={<TitlesPage />} />
                         <Route path="/skills" element={<SkillsPage />} />
-                        <Route path="/items" element={<ItemsPage />} />
+                        <Route path="/inventory" element={<ItemsPage />} />
+                        <Route path="/items" element={<Navigate to="/inventory" replace />} />
                         <Route path="/dungeons" element={<Navigate to="/dungeons/manage" replace />} />
                         <Route path="/dungeons/manage" element={<ManageDungeonsPage />} />
                         <Route path="/history" element={<HistoryPage />} />
