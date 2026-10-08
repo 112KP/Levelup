@@ -36,7 +36,7 @@
 
 .status-topbar {
     display: flex;
-    width: min(100%, 680px);
+    width: min(100%, 420px);
     align-items: center;
     justify-content: space-between;
     margin: 0 auto 16px;
@@ -79,7 +79,7 @@
 
 .corner-frame {
     position: relative;
-    width: min(100%, 680px);
+    width: min(100%, 420px);
     border: 1px solid rgba(168, 110, 255, 0.38);
     border-radius: 8px;
     background: var(--panel);

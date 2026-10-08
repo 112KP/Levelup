@@ -12,6 +12,19 @@
     box-sizing: border-box;
 }
 
+html,
+body,
+#root {
+    min-height: 100%;
+    margin: 0;
+    background: #070a12;
+}
+
+body {
+    min-height: 100dvh;
+    overflow-x: hidden;
+}
+
 button,
 input {
     font: inherit;
@@ -244,7 +257,7 @@ button:disabled {
 }
 
 .workspace-shell {
-    max-width: 760px;
+    max-width: 420px;
     min-height: 100dvh;
     margin: 0 auto;
     padding: max(14px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
@@ -257,7 +270,7 @@ button:disabled {
     min-height: 28px;
     align-items: center;
     justify-content: space-between;
-    max-width: 720px;
+    max-width: 420px;
     margin: 0 auto 10px;
 }
 
@@ -311,7 +324,7 @@ button:disabled {
 }
 
 .management-main {
-    max-width: 720px;
+    max-width: 420px;
     margin: 0 auto;
 }
 
@@ -630,7 +643,7 @@ button:disabled {
 .quest-card.prahar-afternoon h4,
 .quest-card.prahar-evening h3,
 .quest-card.prahar-evening h4 {
-    color: #17202c;
+    color: #122534;
     text-shadow: none;
 }
 
@@ -1280,7 +1293,7 @@ a:focus-visible {
     position: relative;
     z-index: 1;
     display: block;
-    max-width: 720px;
+    max-width: 420px;
     margin: 0 auto;
 }
 
