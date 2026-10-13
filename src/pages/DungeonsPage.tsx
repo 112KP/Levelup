@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../auth/useAuth'
 import { createDungeon, deleteDungeon, fetchDungeons, updateDungeon } from '../lib/dungeons'
 import type { DungeonRow, Rank } from '../types/database'
+import { formatEasternDate } from '../lib/dateTime'
 
 const rankOptions: Rank[] = ['E', 'D', 'C', 'B', 'A', 'S']
 
@@ -44,9 +45,9 @@ export function DungeonsPage() {
 
     const sortedDungeons = useMemo(() => {
         return [...dungeons].sort((a, b) => {
-            const left = a.deadline ? new Date(a.deadline).getTime() : Number.MAX_SAFE_INTEGER
-            const right = b.deadline ? new Date(b.deadline).getTime() : Number.MAX_SAFE_INTEGER
-            return left - right
+            if (!a.deadline) return b.deadline ? 1 : 0
+            if (!b.deadline) return -1
+            return a.deadline.localeCompare(b.deadline)
         })
     }, [dungeons])
 
@@ -183,7 +184,7 @@ export function DungeonsPage() {
                                             <td>{dungeon.dungeon_rank}</td>
                                             <td><span className={`status-pill ${dungeon.status}`}>{dungeon.status}</span></td>
                                             <td>{dungeon.xp_reward} XP / {dungeon.gold_reward} gold</td>
-                                            <td>{dungeon.deadline ? new Date(`${dungeon.deadline}T00:00:00`).toLocaleDateString() : '—'}</td>
+                                            <td>{dungeon.deadline ? formatEasternDate(dungeon.deadline) : '—'}</td>
                                             <td>
                                                 <div className="inline-actions">
                                                     <button type="button" className="link-button" onClick={() => handleEdit(dungeon)}>Edit</button>

@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../auth/useAuth'
 import { completeQuest, failQuest, fetchTodayQuestLogs, generateDailyQuestLogs } from '../lib/quests'
 import type { QuestBoardEntry } from '../lib/quests'
+import { getEasternDateKey } from '../lib/dateTime'
 
 function formatOutcomeLabel(status: string, data: { questName?: string; xp?: number; gold?: number; penaltyHp?: number; penaltyGold?: number }) {
     if (status === 'complete') {
@@ -19,7 +20,15 @@ export function TodayBoardPage() {
     const [busyId, setBusyId] = useState<string | null>(null)
     const [toast, setToast] = useState('')
 
-    const today = useMemo(() => new Date().toISOString().slice(0, 10), [])
+    const [today, setToday] = useState(getEasternDateKey)
+
+    useEffect(() => {
+        const timer = window.setInterval(() => {
+            const currentDay = getEasternDateKey()
+            if (today !== currentDay) setToday(currentDay)
+        }, 60_000)
+        return () => window.clearInterval(timer)
+    }, [today])
 
     const loadTodayBoard = useCallback(async () => {
         if (!userId) return

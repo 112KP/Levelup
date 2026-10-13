@@ -5,6 +5,7 @@ import { clearDungeon, createDungeon, deleteDungeon, fetchDungeons, getDaysRemai
 import type { DungeonRow, DungeonStatus, Rank } from '../types/database'
 import { RankBadge } from '../components/status/RankBadge'
 import { useSearchParams } from 'react-router-dom'
+import { formatEasternDate } from '../lib/dateTime'
 
 const rankOptions: Rank[] = ['E', 'D', 'C', 'B', 'A', 'S']
 
@@ -22,7 +23,7 @@ function statusLabel(status: DungeonStatus) {
 
 function deadlineLabel(deadline: string | null) {
     if (!deadline) return 'No deadline'
-    return new Date(`${deadline}T00:00:00`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    return formatEasternDate(deadline, { day: 'numeric', month: 'short', year: 'numeric' }, 'en-GB')
 }
 
 export function ManageDungeonsPage() {

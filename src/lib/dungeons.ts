@@ -1,10 +1,11 @@
 import { supabase } from './supabaseClient'
+import { getEasternDateKey } from './dateTime'
 import type { Database, DungeonStatus } from '../types/database'
 
 export function getDaysRemaining(deadline: string | null) {
     if (!deadline) return null
-    const today = new Date()
-    const todayValue = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate())
+    const [todayYear, todayMonth, todayDay] = getEasternDateKey().split('-').map(Number)
+    const todayValue = Date.UTC(todayYear, todayMonth - 1, todayDay)
     const [year, month, day] = deadline.split('-').map(Number)
     const dueValue = Date.UTC(year, month - 1, day)
     return Math.round((dueValue - todayValue) / 86_400_000)

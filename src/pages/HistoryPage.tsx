@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../auth/useAuth'
 import { fetchActivityHistory } from '../lib/history'
 import type { ActivityLogRow } from '../types/database'
+import { formatEasternDate } from '../lib/dateTime'
 
 const icons: Record<string, string> = {
     xp_gain: '✦',
@@ -68,7 +69,7 @@ export function HistoryPage() {
                                 <div>
                                     <div className="history-heading">
                                         <strong>{item.event_type.replaceAll('_', ' ')}</strong>
-                                        <span>{new Date(item.created_at).toLocaleString()}</span>
+                                        <span>{formatEasternDate(item.created_at, { dateStyle: 'short', timeStyle: 'short' })}</span>
                                     </div>
                                     <p>{item.description ?? 'No description'}</p>
                                     {item.amount !== null && <small>{item.amount}</small>}

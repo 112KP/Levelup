@@ -15,16 +15,13 @@ import {
 import type { QuestBoardEntry } from '../lib/quests'
 import type { DungeonRow, QuestLogStatus, QuestRow, QuestStatRewardRow } from '../types/database'
 import { RankBadge } from '../components/status/RankBadge'
+import { formatEasternDate, getEasternDateKey } from '../lib/dateTime'
 
 const tabs: Array<{ status: QuestLogStatus; label: string }> = [
     { status: 'pending', label: 'To-Do' },
     { status: 'completed', label: 'Done' },
     { status: 'failed', label: 'Skipped' },
 ]
-
-function todayKey() {
-    return new Date().toISOString().slice(0, 10)
-}
 
 function recurrenceLabel(recurrence: string) {
     if (recurrence === 'one_time') return 'One-time'
@@ -48,13 +45,13 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
     const [busyId, setBusyId] = useState<string | null>(null)
     const [toast, setToast] = useState('')
     const [busyAddId, setBusyAddId] = useState<string | null>(null)
-    const [today, setToday] = useState(todayKey)
+    const [today, setToday] = useState(getEasternDateKey)
     const addQuestDialogRef = useRef<HTMLDialogElement | null>(null)
-    const shortDate = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' }).format(new Date())
+    const shortDate = formatEasternDate(new Date(), { day: 'numeric', month: 'short' }, 'en-GB')
 
     useEffect(() => {
         const timer = window.setInterval(() => {
-            const currentDay = todayKey()
+            const currentDay = getEasternDateKey()
             if (today !== currentDay) {
                 setToday(currentDay)
                 setActiveTab('pending')
