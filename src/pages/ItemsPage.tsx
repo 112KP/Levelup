@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Plus, X } from 'lucide-react'
 import { useAuth } from '../auth/useAuth'
 import {
     buildItemEffectJson,
@@ -38,11 +39,13 @@ export function ItemsPage() {
     const [items, setItems] = useState<ItemRow[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
+    const [formError, setFormError] = useState('')
     const [editingId, setEditingId] = useState<string | null>(null)
     const [filter, setFilter] = useState<'all' | ItemType>('all')
     const [form, setForm] = useState(defaultForm)
     const [busy, setBusy] = useState(false)
     const [busyItemId, setBusyItemId] = useState<string | null>(null)
+    const dialogRef = useRef<HTMLDialogElement | null>(null)
 
     useEffect(() => {
         const previousTitle = document.title
@@ -76,6 +79,13 @@ export function ItemsPage() {
     function resetForm() {
         setForm(defaultForm)
         setEditingId(null)
+        setFormError('')
+    }
+
+    function openCreateForm() {
+        resetForm()
+        setError('')
+        dialogRef.current?.showModal()
     }
 
     function handleEdit(item: ItemRow) {
@@ -89,12 +99,20 @@ export function ItemsPage() {
             is_equipped: item.is_equipped,
             stat_bonus: normalizeItemEffects(item.stat_bonus),
         })
+        setError('')
+        setFormError('')
+        dialogRef.current?.showModal()
+    }
+
+    function closeForm() {
+        dialogRef.current?.close()
+        resetForm()
     }
 
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault()
         setBusy(true)
-        setError('')
+        setFormError('')
 
         const payload = {
             name: form.name.trim(),
@@ -107,7 +125,7 @@ export function ItemsPage() {
         }
 
         if (!payload.name) {
-            setError('Item name is required.')
+            setFormError('Item name is required.')
             setBusy(false)
             return
         }
@@ -116,13 +134,13 @@ export function ItemsPage() {
             ? await updateItem(editingId, payload)
             : await createItem({ ...payload, user_id: userId })
         if (result.error) {
-            setError(result.error.message || 'The item could not be saved.')
+            setFormError(result.error.message || 'The item could not be saved.')
             setBusy(false)
             return
         }
 
         setBusy(false)
-        resetForm()
+        closeForm()
         await loadItems()
     }
 
@@ -163,13 +181,18 @@ export function ItemsPage() {
     }
 
     return (
-        <section className="screen-page">
-            <div className="screen-header">
+        <section className="screen-page manage-screen" aria-labelledby="inventory-title">
+            <header className="screen-header">
                 <div>
                     <p className="eyebrow">INVENTORY</p>
-                    <h2>Inventory</h2>
+                    <h2 id="inventory-title">Inventory</h2>
                 </div>
-            </div>
+                <button type="button" className="primary-button manage-create-button" onClick={openCreateForm}>
+                    <Plus size={17} aria-hidden="true" /> New Item
+                </button>
+            </header>
+
+            {error && <p className="status-error" role="alert">{error}</p>}
 
             <div className="controls-row">
                 <select className="field-input" value={filter} onChange={(event) => setFilter(event.target.value as 'all' | ItemType)}>
@@ -180,130 +203,134 @@ export function ItemsPage() {
                 </select>
             </div>
 
-            <div className="content-grid">
-                <div className="panel-block">
-                    <h3>{editingId ? 'Edit item' : 'Create item'}</h3>
-                    <form className="entity-form" onSubmit={handleSubmit}>
-                        <div className="field-group">
-                            <label htmlFor="inventory-item-name">Name</label>
-                            <input id="inventory-item-name" className="field-input" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
-                        </div>
-                        <div className="field-group">
-                            <label htmlFor="inventory-item-description">Description</label>
-                            <textarea id="inventory-item-description" className="field-input" rows={3} value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} />
-                        </div>
-                        <div className="field-group inline-grid two-up">
-                            <div>
-                                <label htmlFor="inventory-item-type">Type</label>
-                                <select id="inventory-item-type" className="field-input" value={form.item_type} onChange={(event) => setForm({ ...form, item_type: event.target.value as ItemType })}>
-                                    <option value="equipment">Equipment</option>
-                                    <option value="consumable">Consumable</option>
-                                    <option value="material">Material</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label htmlFor="inventory-item-rarity">Rarity</label>
-                                <select id="inventory-item-rarity" className="field-input" value={form.rarity} onChange={(event) => setForm({ ...form, rarity: event.target.value as ItemRow['rarity'] })}>
-                                    <option value="common">Common</option>
-                                    <option value="rare">Rare</option>
-                                    <option value="epic">Epic</option>
-                                    <option value="legendary">Legendary</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div className="field-group inline-grid two-up">
-                            <div>
-                                <label htmlFor="inventory-item-quantity">Quantity</label>
-                                <input id="inventory-item-quantity" className="field-input" type="number" min="0" value={form.quantity} onChange={(event) => setForm({ ...form, quantity: Number(event.target.value) })} />
-                            </div>
-                            <div className="checkbox-row">
-                                <label><input type="checkbox" checked={form.is_equipped} onChange={(event) => setForm({ ...form, is_equipped: event.target.checked })} /> Equipped</label>
-                            </div>
-                        </div>
-                        {form.item_type !== 'material' && (
-                            <EffectBuilder
-                                key={`${editingId ?? 'new'}-${form.item_type}`}
-                                itemType={form.item_type}
-                                effects={form.stat_bonus}
-                                onChange={(stat_bonus) => setForm((current) => ({ ...current, stat_bonus }))}
-                            />
-                        )}
-
-                        {error && <p className="status-error">{error}</p>}
-
-                        <div className="action-row">
-                            <button type="submit" className="primary-button" disabled={busy}>{busy ? 'Saving...' : editingId ? 'Save item' : 'Create item'}</button>
-                            {editingId && <button type="button" className="secondary-button" onClick={resetForm}>Cancel</button>}
-                        </div>
-                    </form>
-                </div>
-
-                <div className="panel-block stretch">
-                    <h3>Inventory</h3>
-                    {loading ? (
-                        <p className="status-empty">Loading inventory...</p>
-                    ) : filteredItems.length === 0 ? (
-                        <p className="status-empty">No items in this category.</p>
-                    ) : (
-                        <div className="grouped-list">
-                            {(['equipment', 'consumable', 'material'] as const).map((groupKey) => {
-                                const groupItems = filteredItems.filter((item) => item.item_type === groupKey)
-                                if (groupItems.length === 0) return null
-                                return (
-                                    <div key={groupKey} className="recurrence-group">
-                                        <h4>{groupKey}</h4>
-                                        <div className="table-shell">
-                                            <table>
-                                                <thead>
-                                                    <tr>
-                                                        <th>Name</th>
-                                                        <th>Rarity</th>
-                                                        <th>Qty</th>
-                                                        <th>State</th>
-                                                        <th>Actions</th>
+            <div className="panel-block stretch">
+                <h3>Inventory</h3>
+                {loading ? (
+                    <p className="status-empty">Loading inventory...</p>
+                ) : filteredItems.length === 0 ? (
+                    <p className="status-empty">No items in this category.</p>
+                ) : (
+                    <div className="grouped-list">
+                        {(['equipment', 'consumable', 'material'] as const).map((groupKey) => {
+                            const groupItems = filteredItems.filter((item) => item.item_type === groupKey)
+                            if (groupItems.length === 0) return null
+                            return (
+                                <div key={groupKey} className="recurrence-group">
+                                    <h4>{groupKey}</h4>
+                                    <div className="table-shell">
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Rarity</th>
+                                                    <th>Qty</th>
+                                                    <th>State</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {groupItems.map((item) => (
+                                                    <tr key={item.id}>
+                                                        <td>
+                                                            <strong>{item.name}</strong>
+                                                            {formatItemEffectSummary(item.stat_bonus) && (
+                                                                <div className="item-effect-summary">{formatItemEffectSummary(item.stat_bonus)}</div>
+                                                            )}
+                                                            {item.description && <div className="muted-copy">{item.description}</div>}
+                                                        </td>
+                                                        <td><span className={`rarity-badge ${rarityColors[item.rarity]}`}>{item.rarity}</span></td>
+                                                        <td>{item.quantity}</td>
+                                                        <td>
+                                                            {item.item_type === 'equipment' ? (
+                                                                <button type="button" className={`toggle-pill ${item.is_equipped ? 'on' : 'off'}`} disabled={busyItemId === item.id} onClick={() => void handleToggle(item)}>
+                                                                    {item.is_equipped ? 'Equipped' : 'Unequipped'}
+                                                                </button>
+                                                            ) : item.item_type === 'consumable' ? (
+                                                                <button type="button" className="primary-button inventory-use-button" disabled={busyItemId === item.id || item.quantity <= 0} onClick={() => void handleUse(item)}>
+                                                                    {busyItemId === item.id ? 'Using...' : 'Use'}
+                                                                </button>
+                                                            ) : <span className="muted-copy">Material</span>}
+                                                        </td>
+                                                        <td>
+                                                            <div className="inline-actions">
+                                                                <button type="button" className="link-button" onClick={() => handleEdit(item)}>Edit</button>
+                                                                <button type="button" className="link-button danger" onClick={() => void handleDelete(item.id)}>Delete</button>
+                                                            </div>
+                                                        </td>
                                                     </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {groupItems.map((item) => (
-                                                        <tr key={item.id}>
-                                                            <td>
-                                                                <strong>{item.name}</strong>
-                                                                {formatItemEffectSummary(item.stat_bonus) && (
-                                                                    <div className="item-effect-summary">{formatItemEffectSummary(item.stat_bonus)}</div>
-                                                                )}
-                                                                {item.description && <div className="muted-copy">{item.description}</div>}
-                                                            </td>
-                                                            <td><span className={`rarity-badge ${rarityColors[item.rarity]}`}>{item.rarity}</span></td>
-                                                            <td>{item.quantity}</td>
-                                                            <td>
-                                                                {item.item_type === 'equipment' ? (
-                                                                    <button type="button" className={`toggle-pill ${item.is_equipped ? 'on' : 'off'}`} disabled={busyItemId === item.id} onClick={() => void handleToggle(item)}>
-                                                                        {item.is_equipped ? 'Equipped' : 'Unequipped'}
-                                                                    </button>
-                                                                ) : item.item_type === 'consumable' ? (
-                                                                    <button type="button" className="primary-button inventory-use-button" disabled={busyItemId === item.id || item.quantity <= 0} onClick={() => void handleUse(item)}>
-                                                                        {busyItemId === item.id ? 'Using...' : 'Use'}
-                                                                    </button>
-                                                                ) : <span className="muted-copy">Material</span>}
-                                                            </td>
-                                                            <td>
-                                                                <div className="inline-actions">
-                                                                    <button type="button" className="link-button" onClick={() => handleEdit(item)}>Edit</button>
-                                                                    <button type="button" className="link-button danger" onClick={() => void handleDelete(item.id)}>Delete</button>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                                ))}
+                                            </tbody>
+                                        </table>
                                     </div>
-                                )
-                            })}
-                        </div>
-                    )}
-                </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+                )}
             </div>
+
+            <dialog className="manage-dialog" ref={dialogRef} aria-labelledby="inventory-form-title" onClose={resetForm}>
+                <form className="manage-form entity-form" onSubmit={handleSubmit}>
+                    <header className="manage-dialog-header">
+                        <div>
+                            <p className="eyebrow">INVENTORY RECORD</p>
+                            <h2 id="inventory-form-title">{editingId ? 'Edit item' : 'New item'}</h2>
+                        </div>
+                        <button type="button" className="dialog-close-button" aria-label="Close item form" onClick={closeForm}><X size={19} aria-hidden="true" /></button>
+                    </header>
+                    <div className="field-group">
+                        <label htmlFor="inventory-item-name">Name</label>
+                        <input id="inventory-item-name" className="field-input" required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
+                    </div>
+                    <div className="field-group">
+                        <label htmlFor="inventory-item-description">Description</label>
+                        <textarea id="inventory-item-description" className="field-input" rows={3} value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} />
+                    </div>
+                    <div className="field-group inline-grid two-up">
+                        <div>
+                            <label htmlFor="inventory-item-type">Type</label>
+                            <select id="inventory-item-type" className="field-input" value={form.item_type} onChange={(event) => setForm({ ...form, item_type: event.target.value as ItemType })}>
+                                <option value="equipment">Equipment</option>
+                                <option value="consumable">Consumable</option>
+                                <option value="material">Material</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label htmlFor="inventory-item-rarity">Rarity</label>
+                            <select id="inventory-item-rarity" className="field-input" value={form.rarity} onChange={(event) => setForm({ ...form, rarity: event.target.value as ItemRow['rarity'] })}>
+                                <option value="common">Common</option>
+                                <option value="rare">Rare</option>
+                                <option value="epic">Epic</option>
+                                <option value="legendary">Legendary</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className="field-group inline-grid two-up">
+                        <div>
+                            <label htmlFor="inventory-item-quantity">Quantity</label>
+                            <input id="inventory-item-quantity" className="field-input" type="number" min="0" value={form.quantity} onChange={(event) => setForm({ ...form, quantity: Number(event.target.value) })} />
+                        </div>
+                        <div className="checkbox-row">
+                            <label><input type="checkbox" checked={form.is_equipped} onChange={(event) => setForm({ ...form, is_equipped: event.target.checked })} /> Equipped</label>
+                        </div>
+                    </div>
+                    {form.item_type !== 'material' && (
+                        <EffectBuilder
+                            key={`${editingId ?? 'new'}-${form.item_type}`}
+                            itemType={form.item_type}
+                            effects={form.stat_bonus}
+                            onChange={(stat_bonus) => setForm((current) => ({ ...current, stat_bonus }))}
+                        />
+                    )}
+
+                    {formError && <p className="status-error" role="alert">{formError}</p>}
+
+                    <footer className="manage-form-actions">
+                        <button type="button" className="secondary-button" onClick={closeForm}>Cancel</button>
+                        <button type="submit" className="primary-button" disabled={busy}>{busy ? 'Saving...' : editingId ? 'Save item' : 'Create item'}</button>
+                    </footer>
+                </form>
+            </dialog>
         </section>
     )
 }

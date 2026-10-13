@@ -12,7 +12,6 @@ import { ItemsPage } from './pages/ItemsPage'
 import { ManageQuestsPage } from './pages/ManageQuestsPage'
 import { SkillsPage } from './pages/SkillsPage'
 import { TitlesPage } from './pages/TitlesPage'
-import { TodayBoardPage } from './pages/TodayBoardPage'
 import {
     signInWithGoogle,
     signInWithPassword,
@@ -22,14 +21,13 @@ import './App.css'
 
 const navItems = [
     { to: '/', label: 'Home' },
-    { to: '/quests/manage', label: 'Manage Quests' },
-    { to: '/today', label: 'Today' },
-    { to: '/titles', label: 'Titles' },
-    { to: '/skills', label: 'Skills' },
+    { to: '/profile', label: 'Profile' },
+    { to: '/quests/manage', label: 'Quests' },
+    { to: '/dungeons/manage', label: 'Dungeons' },
     { to: '/inventory', label: 'Inventory' },
-    { to: '/dungeons/manage', label: 'Manage Dungeons' },
+    { to: '/skills', label: 'Skills' },
+    { to: '/titles', label: 'Title' },
     { to: '/history', label: 'History' },
-    { to: '/profile', label: 'View Profile' },
 ]
 
 type ProfileNavigationMenuProps = {
@@ -302,7 +300,7 @@ function AppShell() {
                         <Route path="/profile" element={<StatusWindow />} />
                         <Route path="/quests" element={<Navigate to="/quests/manage" replace />} />
                         <Route path="/quests/manage" element={<ManageQuestsPage />} />
-                        <Route path="/today" element={<TodayBoardPage />} />
+                        <Route path="/today" element={<Navigate to="/" replace />} />
                         <Route path="/titles" element={<TitlesPage />} />
                         <Route path="/skills" element={<SkillsPage />} />
                         <Route path="/inventory" element={<ItemsPage />} />
