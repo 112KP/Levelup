@@ -280,6 +280,8 @@ export interface Database {
                 Args: Record<string, never>
                 Returns: number
             }
+
+
             fail_expired_quest_logs: {
                 Args: Record<string, never>
                 Returns: number
