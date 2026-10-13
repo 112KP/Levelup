@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { CircleUserRound, RefreshCw, ShieldCheck } from 'lucide-react'
+import { CircleUserRound, LogOut, RefreshCw, ShieldCheck } from 'lucide-react'
 import { BrowserRouter, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuth } from './auth/useAuth'
 import { CornerFrame } from './components/status/CornerFrame'
@@ -39,7 +39,10 @@ type ProfileNavigationMenuProps = {
 }
 
 function ProfileNavigationMenu({ showRefresh, refreshing, onRefresh }: ProfileNavigationMenuProps) {
+    const { logout } = useAuth()
     const [open, setOpen] = useState(false)
+    const [logoutError, setLogoutError] = useState('')
+    const [signingOut, setSigningOut] = useState(false)
     const menuRef = useRef<HTMLDivElement | null>(null)
 
     useEffect(() => {
@@ -57,6 +60,19 @@ function ProfileNavigationMenu({ showRefresh, refreshing, onRefresh }: ProfileNa
             document.removeEventListener('keydown', handleKeyDown)
         }
     }, [open])
+
+    async function handleLogout() {
+        setLogoutError('')
+        setSigningOut(true)
+        try {
+            await logout()
+            setOpen(false)
+        } catch {
+            setLogoutError('Unable to sign out. Please try again.')
+        } finally {
+            setSigningOut(false)
+        }
+    }
 
     return (
         <div className="workspace-header-actions">
@@ -99,6 +115,16 @@ function ProfileNavigationMenu({ showRefresh, refreshing, onRefresh }: ProfileNa
                                     {label}
                                 </NavLink>
                             ))}
+                            <button
+                                className="profile-menu-link profile-menu-logout"
+                                type="button"
+                                disabled={signingOut}
+                                onClick={() => void handleLogout()}
+                            >
+                                <LogOut size={16} aria-hidden="true" />
+                                <span>{signingOut ? 'Signing out...' : 'Sign out'}</span>
+                            </button>
+                            {logoutError && <p className="profile-menu-error" role="alert">{logoutError}</p>}
                         </nav>
                     </>
                 )}

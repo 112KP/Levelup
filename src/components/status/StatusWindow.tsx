@@ -4,7 +4,6 @@ import {
     Dumbbell,
     Eye,
     HeartPulse,
-    LogOut,
     Sparkles,
     Wind,
     X,
@@ -34,7 +33,7 @@ const statDetails: {
 const profileColumns = 'id,user_id,display_name,job,rank,active_title_id,level,hp_current,hp_max,mp_current,mp_max,fatigue,xp,xp_to_next,strength,agility,sense,vitality,intelligence,available_points,gold,created_at,updated_at' as const
 
 export function StatusWindow() {
-    const { session, logout } = useAuth()
+    const { session } = useAuth()
     const userId = session?.user.id
     const [profile, setProfile] = useState<Profile | null>(null)
     const profileRef = useRef<Profile | null>(null)
@@ -180,14 +179,6 @@ export function StatusWindow() {
         setAllocating(false)
     }
 
-    async function handleLogout() {
-        try {
-            await logout()
-        } catch {
-            setError('Unable to sign out. Please try again.')
-        }
-    }
-
     if (loading) {
         return (
             <main className="status-page min-h-screen w-full">
@@ -210,10 +201,6 @@ export function StatusWindow() {
                     <Sparkles size={17} aria-hidden="true" />
                     <span>LEVELUP <i>/</i> SYSTEM</span>
                 </a>
-                <button type="button" className="logout-button" onClick={handleLogout}>
-                    <LogOut size={16} aria-hidden="true" />
-                    <span>Sign out</span>
-                </button>
             </header>
 
             <CornerFrame className="status-frame" id="status-overview" aria-labelledby="status-title">

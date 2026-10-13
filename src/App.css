@@ -419,6 +419,23 @@ button:disabled {
     outline-offset: -2px;
 }
 
+.profile-menu-logout {
+    width: 100%;
+    gap: 10px;
+    margin-top: 4px;
+    border: 0;
+    border-top: 1px solid rgba(168, 110, 255, 0.24);
+    border-radius: 0;
+    background: transparent;
+    text-align: left;
+}
+
+.profile-menu-error {
+    margin: 6px 12px 10px;
+    color: #ffb3b3;
+    font-size: 0.78rem;
+}
+
 .profile-menu-backdrop {
     display: none;
 }
@@ -598,7 +615,6 @@ button:disabled {
 
 .home-quest-card.is-settled {
     grid-template-columns: minmax(0, 1fr) auto;
-    opacity: 0.66;
 }
 
 .home-quest-card.prahar-morning,
@@ -634,9 +650,6 @@ button:disabled {
     background: rgba(76, 166, 255, 0.2);
 }
 
-.home-quest-card.prahar-morning .home-quest-heading h3,
-.home-quest-card.prahar-afternoon .home-quest-heading h3,
-.home-quest-card.prahar-evening .home-quest-heading h3,
 .quest-card.prahar-morning h3,
 .quest-card.prahar-morning h4,
 .quest-card.prahar-afternoon h3,
@@ -650,31 +663,6 @@ button:disabled {
 .quest-card.prahar-morning .meta-row,
 .quest-card.prahar-afternoon .meta-row,
 .quest-card.prahar-evening .meta-row {
-    color: #41464c;
-}
-
-.home-quest-card.prahar-morning .home-quest-recurrence,
-.home-quest-card.prahar-morning .home-quest-description,
-.home-quest-card.prahar-morning .home-quest-progress,
-.home-quest-card.prahar-afternoon .home-quest-recurrence,
-.home-quest-card.prahar-afternoon .home-quest-description,
-.home-quest-card.prahar-afternoon .home-quest-progress,
-.home-quest-card.prahar-evening .home-quest-recurrence,
-.home-quest-card.prahar-evening .home-quest-description,
-.home-quest-card.prahar-evening .home-quest-progress {
-    color: #41464c;
-}
-
-.home-quest-card.prahar-morning .home-quest-rewards,
-.home-quest-card.prahar-afternoon .home-quest-rewards,
-.home-quest-card.prahar-evening .home-quest-rewards {
-    color: #28613e;
-    text-shadow: none;
-}
-
-.home-quest-card.prahar-morning .quest-skip-button,
-.home-quest-card.prahar-afternoon .quest-skip-button,
-.home-quest-card.prahar-evening .quest-skip-button {
     color: #41464c;
 }
 

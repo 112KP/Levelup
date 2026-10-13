@@ -42,8 +42,7 @@
     margin: 0 auto 16px;
 }
 
-.system-mark,
-.logout-button {
+.system-mark {
     display: inline-flex;
     min-height: 42px;
     align-items: center;
@@ -61,20 +60,6 @@
 .system-mark i {
     color: var(--purple-glow);
     font-style: normal;
-}
-
-.logout-button {
-    padding: 0 12px;
-    border: 1px solid rgba(62, 198, 255, 0.38);
-    border-radius: 5px;
-    background: rgba(62, 198, 255, 0.06);
-    font: inherit;
-    font-size: 0.85rem;
-    cursor: pointer;
-}
-
-.logout-button:hover {
-    background: rgba(62, 198, 255, 0.12);
 }
 
 .corner-frame {
@@ -710,7 +695,6 @@
 .stat-add:focus-visible,
 .quest-button:focus-visible,
 .quest-close:focus-visible,
-.logout-button:focus-visible,
 .retry-button:focus-visible,
 .system-mark:focus-visible {
     outline: 2px solid #b083ff;
@@ -792,8 +776,7 @@
         margin-bottom: 6px;
     }
 
-    .system-mark,
-    .logout-button {
+    .system-mark {
         min-height: 30px;
     }
 
