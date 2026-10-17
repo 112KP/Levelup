@@ -1933,6 +1933,28 @@ textarea.field-input {
         margin-bottom: 12px;
     }
 
+    .status-empty,
+    .home-empty-state,
+    .manage-empty {
+        display: grid;
+        width: 100%;
+        min-height: 112px;
+        align-content: center;
+        justify-items: center;
+        gap: 4px;
+        margin: 0;
+        padding: 12px;
+        border: 1px solid rgba(168, 110, 255, 0.25);
+        border-radius: 7px;
+        background: rgba(10, 18, 36, 0.55);
+        text-align: center;
+        overflow-wrap: anywhere;
+    }
+
+    .manage-empty h3 {
+        margin-bottom: 0;
+    }
+
     .home-quest-card {
         gap: 9px;
         min-height: 88px;

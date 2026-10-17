@@ -792,7 +792,7 @@
     .status-heading {
         align-items: center;
         gap: 10px;
-        margin-bottom: 10px;
+        margin-bottom: 18px;
     }
 
     .identity h1 {
@@ -817,31 +817,35 @@
     }
 
     .vitals-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 6px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px 10px;
+    }
+
+    .vital-fatigue {
+        grid-column: 1 / -1;
     }
 
     .vital-heading {
-        gap: 3px;
-        margin-bottom: 3px;
+        gap: 8px;
+        margin-bottom: 5px;
     }
 
     .vital .system-label {
-        font-size: 0.62rem;
+        font-size: 0.68rem;
     }
 
     .vital-value {
-        font-size: 0.64rem;
+        font-size: 0.72rem;
     }
 
     .vital-track {
-        height: 10px;
+        height: 12px;
     }
 
     .xp-block {
         gap: 9px;
-        margin: 9px 0;
-        padding: 8px 0;
+        margin: 16px 0;
+        padding: 12px 0;
     }
 
     .level-number {
@@ -870,24 +874,27 @@
     }
 
     .status-rule {
-        margin: 9px 0;
+        margin: 18px 0 12px;
     }
 
     .stats-grid {
-        gap: 6px;
+        gap: 10px;
     }
 
     .stat-card {
-        min-height: 44px;
-        grid-template-columns: 18px minmax(0, 1fr) auto;
+        min-height: 76px;
+        grid-template-columns: 20px minmax(0, 1fr);
+        grid-template-rows: auto auto;
         align-items: center;
-        gap: 4px 6px;
-        padding: 6px;
+        gap: 7px 8px;
+        padding: 9px;
     }
 
     .stat-card-top {
-        min-height: 0;
-        line-height: 0;
+        min-height: 20px;
+        grid-column: 1;
+        grid-row: 1;
+        line-height: 1;
     }
 
     .stat-card-top svg {
@@ -896,23 +903,28 @@
     }
 
     .stat-card .system-label {
-        font-size: 0.6rem;
-        line-height: 1.1;
+        grid-column: 2;
+        grid-row: 1;
+        font-size: 0.65rem;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
     }
 
     .stat-value-row {
-        min-height: 28px;
-        gap: 4px;
+        min-height: 32px;
+        grid-column: 1 / -1;
+        grid-row: 2;
+        gap: 8px;
     }
 
     .stat-number {
-        font-size: 0.82rem;
+        font-size: 0.9rem;
     }
 
     .stat-add {
-        width: 26px;
-        height: 26px;
-        flex-basis: 26px;
+        width: 32px;
+        height: 32px;
+        flex-basis: 32px;
     }
 
     .allocation-message {
@@ -923,8 +935,8 @@
 
     .status-footer {
         min-height: 38px;
-        margin-top: 6px;
-        padding-top: 6px;
+        margin-top: 14px;
+        padding-top: 10px;
     }
 
     .quest-button {
