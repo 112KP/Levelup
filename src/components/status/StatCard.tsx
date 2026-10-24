@@ -25,7 +25,7 @@ export function StatCard({
             </div>
             <span className="system-label">{label}</span>
             <div className="stat-value-row">
-                <strong className="stat-number" key={value}>{value}</strong>
+                <strong className="stat-number">{value}</strong>
                 {canAllocate && (
                     <button
                         className="stat-add"

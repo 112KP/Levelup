@@ -9,11 +9,12 @@ import {
     Wind,
     X,
 } from 'lucide-react'
+import { Capacitor } from '@capacitor/core'
 import { useAuth } from '../../auth/useAuth'
 import { supabase } from '../../lib/supabaseClient'
 import type { Profile, StatName } from '../../types/database'
-import { RankBadge } from './RankBadge'
 import { CornerFrame } from './CornerFrame'
+import { RankBadge } from './RankBadge'
 import { StatCard } from './StatCard'
 import { VitalsBar } from './VitalsBar'
 import { XPBar } from './XPBar'
@@ -182,29 +183,24 @@ export function StatusWindow() {
 
     if (loading) {
         return (
-            <main className="status-page min-h-screen w-full">
-                <CornerFrame className="status-frame status-skeleton" aria-label="Loading player status">
-                    <div className="skeleton-line skeleton-title" />
-                    <div className="skeleton-line skeleton-short" />
-                    <div className="skeleton-line" />
-                    <div className="skeleton-stats">
-                        {statDetails.map((stat) => <span key={stat.name} />)}
+            <CornerFrame className="status-frame">
+                <section className="screen-page status-page" aria-label="Loading player status">
+                    <div className="status-skeleton">
+                        <div className="skeleton-line skeleton-title" />
+                        <div className="skeleton-line skeleton-short" />
+                        <div className="skeleton-line" />
+                        <div className="skeleton-stats">
+                            {statDetails.map((stat) => <span key={stat.name} />)}
+                        </div>
                     </div>
-                </CornerFrame>
-            </main>
+                </section>
+            </CornerFrame>
         )
     }
 
     return (
-        <main className="status-page min-h-screen w-full">
-            <header className="status-topbar">
-                <a className="system-mark" href="#status-overview" aria-label="Levelup status overview">
-                    <Sparkles size={17} aria-hidden="true" />
-                    <span>LEVELUP <i>/</i> SYSTEM</span>
-                </a>
-            </header>
-
-            <CornerFrame className="status-frame" id="status-overview" aria-labelledby="status-title">
+        <CornerFrame className="status-frame">
+            <section className="screen-page status-page" id="status-overview" aria-labelledby="status-title">
                 {error ? (
                     <div className="status-message" role="alert">
                         <span className="system-label">SYSTEM NOTICE</span>
@@ -223,83 +219,85 @@ export function StatusWindow() {
                     </div>
                 ) : profile ? (
                     <>
-                        <div className="status-heading">
-                            <div className="identity">
-                                <h1 id="status-title">{profile.display_name || 'Unnamed Player'}</h1>
-                                <p className="identity-job">{profile.job || 'Unassigned'}</p>
-                                {activeTitle && (
-                                    <span className="active-title">
-                                        <Sparkles size={14} aria-hidden="true" />
-                                        {activeTitle}
-                                    </span>
-                                )}
-                            </div>
-                            <RankBadge rank={profile.rank} />
+                    <div className="status-heading">
+                        <div className="identity">
+                            <h1 id="status-title">{profile.display_name || 'Unnamed Player'}</h1>
+                            <p className="identity-job">{profile.job || 'Unassigned'}</p>
+                            {activeTitle && (
+                                <span className="active-title">
+                                    <Sparkles size={14} aria-hidden="true" />
+                                    {activeTitle}
+                                </span>
+                            )}
                         </div>
+                        <RankBadge rank={profile.rank} />
+                    </div>
 
-                        <div className="status-rule"><span>VITALS</span></div>
-                        <section className="vitals-grid" aria-label="Player vitals">
-                            <VitalsBar label="HP" current={profile.hp_current} max={profile.hp_max} kind="hp" />
-                            <VitalsBar label="MP" current={profile.mp_current} max={profile.mp_max} kind="mp" />
-                            <VitalsBar label="FATIGUE" current={profile.fatigue} max={100} kind="fatigue" />
-                        </section>
+                    <div className="status-rule"><span>VITALS</span></div>
+                    <section className="vitals-grid" aria-label="Player vitals">
+                        <VitalsBar label="HP" current={profile.hp_current} max={profile.hp_max} kind="hp" />
+                        <VitalsBar label="MP" current={profile.mp_current} max={profile.mp_max} kind="mp" />
+                        <VitalsBar label="FATIGUE" current={profile.fatigue} max={100} kind="fatigue" />
+                    </section>
 
-                        <XPBar
-                            level={profile.level}
-                            xp={profile.xp}
-                            xpToNext={profile.xp_to_next}
-                            levelUp={levelUp}
-                        />
+                    <XPBar
+                        level={profile.level}
+                        xp={profile.xp}
+                        xpToNext={profile.xp_to_next}
+                        levelUp={levelUp}
+                    />
 
-                        {profile.available_points > 0 && (
-                            <div className="points-banner" role="status">
-                                <Sparkles size={17} aria-hidden="true" />
-                                <span>Points ready to allocate</span>
-                                <strong>{profile.available_points}</strong>
-                            </div>
-                        )}
+                    {profile.available_points > 0 && (
+                        <div className="points-banner" role="status">
+                            <Sparkles size={17} aria-hidden="true" />
+                            <span>Points ready to allocate</span>
+                            <strong>{profile.available_points}</strong>
+                        </div>
+                    )}
 
-                        <div className="status-rule"><span>ATTRIBUTES</span></div>
-                        <section className="stats-grid" aria-label="Player attributes">
-                            {statDetails.map((stat) => (
-                                <StatCard
-                                    key={stat.name}
-                                    label={stat.label}
-                                    value={profile[stat.name]}
-                                    icon={stat.icon}
-                                    canAllocate={profile.available_points > 0}
-                                    allocating={allocating}
-                                    onAllocate={() => void allocatePoint(stat.name)}
-                                />
-                            ))}
+                    <div className="status-rule"><span>ATTRIBUTES</span></div>
+                    <section
+                        className={`stats-grid${Capacitor.isNativePlatform() ? ' native-profile-stats' : ''}`}
+                        aria-label="Player attributes"
+                    >
+                        {statDetails.map((stat) => (
                             <StatCard
-                                label="Career Ability"
-                                value={profile.career_ability}
-                                icon={BriefcaseBusiness}
-                                canAllocate={false}
-                                allocating={false}
+                                key={stat.name}
+                                label={stat.label}
+                                value={profile[stat.name]}
+                                icon={stat.icon}
+                                canAllocate={profile.available_points > 0}
+                                allocating={allocating}
+                                onAllocate={() => void allocatePoint(stat.name)}
                             />
-                        </section>
-                        <p className="allocation-message" aria-live="polite">{allocationMessage}</p>
+                        ))}
+                        <StatCard
+                            label="Career Ability"
+                            value={profile.career_ability}
+                            icon={BriefcaseBusiness}
+                            canAllocate={false}
+                            allocating={false}
+                        />
+                    </section>
+                    <p className="allocation-message" aria-live="polite">{allocationMessage}</p>
 
-                        <footer className="status-footer">
-                            <div className="gold-total">
-                                <span className="gold-dot" aria-hidden="true" />
-                                <strong key={profile.gold}>{profile.gold.toLocaleString()}</strong>
-                            </div>
-                            <button
-                                type="button"
-                                className="quest-button"
-                                onClick={() => questDialogRef.current?.showModal()}
-                            >
-                                Quest Log
-                            </button>
-                        </footer>
+                    <footer className="status-footer">
+                        <div className="gold-total">
+                            <span className="gold-dot" aria-hidden="true" />
+                            <strong>{profile.gold.toLocaleString()}</strong>
+                        </div>
+                        <button
+                            type="button"
+                            className="quest-button"
+                            onClick={() => questDialogRef.current?.showModal()}
+                        >
+                            Quest Log
+                        </button>
+                    </footer>
                     </>
                 ) : null}
-            </CornerFrame>
-            <p className="status-footnote">PERSONAL RECORD <span>•</span> LIVE SYNC ENABLED</p>
-            <dialog className="quest-dialog" ref={questDialogRef} aria-labelledby="quest-log-title">
+                <p className="status-footnote">PERSONAL RECORD <span>•</span> LIVE SYNC ENABLED</p>
+                <dialog className="quest-dialog" ref={questDialogRef} aria-labelledby="quest-log-title">
                 <div className="quest-dialog-heading">
                     <div>
                         <span className="system-label">JOURNAL ACCESS</span>
@@ -315,7 +313,8 @@ export function StatusWindow() {
                     </button>
                 </div>
                 <p>Quest records will appear here when your first quest is logged.</p>
-            </dialog>
-        </main>
+                </dialog>
+            </section>
+        </CornerFrame>
     )
 }

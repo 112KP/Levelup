@@ -4,6 +4,7 @@ import { Capacitor, type PluginListenerHandle } from '@capacitor/core'
 import { supabase } from '../lib/supabaseClient'
 
 const nativeOAuthRedirectUrl = 'io.github.keyurpatel.levelup://login-callback'
+const processedCallbacks = new Set<string>()
 
 async function completeNativeOAuth(url: string) {
   const callback = new URL(url)
@@ -17,16 +18,33 @@ async function completeNativeOAuth(url: string) {
     return
   }
 
+  const fragment = new URLSearchParams(callback.hash.replace(/^#/, ''))
   const providerError =
-    callback.searchParams.get('error_description') ?? callback.searchParams.get('error')
+    callback.searchParams.get('error_description') ??
+    callback.searchParams.get('error') ??
+    fragment.get('error_description') ??
+    fragment.get('error')
   if (providerError) throw new Error(providerError)
 
-  const code = callback.searchParams.get('code')
-  if (!code) throw new Error('Google sign-in returned without an authorization code.')
+  const code = callback.searchParams.get('code') ?? fragment.get('code')
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    if (error) throw error
+    await Browser.close()
+    return
+  }
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code)
+  const accessToken = fragment.get('access_token')
+  const refreshToken = fragment.get('refresh_token')
+  if (!accessToken || !refreshToken) {
+    throw new Error('Google sign-in returned without an authorization code or session tokens.')
+  }
+
+  const { error } = await supabase.auth.setSession({
+    access_token: accessToken,
+    refresh_token: refreshToken,
+  })
   if (error) throw error
-
   await Browser.close()
 }
 
@@ -34,6 +52,9 @@ export async function listenForNativeOAuth(onError: (message: string) => void) {
   if (!Capacitor.isNativePlatform()) return () => {}
 
   const processCallback = async (url: string) => {
+    if (processedCallbacks.has(url)) return
+    processedCallbacks.add(url)
+
     try {
       await completeNativeOAuth(url)
     } catch (error) {

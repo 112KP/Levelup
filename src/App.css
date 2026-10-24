@@ -271,8 +271,8 @@ button:disabled {
 }
 
 .workspace-shell {
+    width: 100%;
     max-width: 420px;
-    min-width: 393px;
     min-height: 100dvh;
     margin: 0 auto;
     padding: max(14px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));

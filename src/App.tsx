@@ -292,6 +292,26 @@ function AppShell() {
         }
     }
 
+    const routeContent = (
+        <Routes>
+            <Route path="/" element={<HomePage onRefreshReady={registerHomeRefresh} />} />
+            <Route path="/home" element={<Navigate to="/" replace />} />
+            <Route path="/profile" element={<StatusWindow />} />
+            <Route path="/quests" element={<Navigate to="/quests/manage" replace />} />
+            <Route path="/quests/manage" element={<ManageQuestsPage />} />
+            <Route path="/today" element={<Navigate to="/" replace />} />
+            <Route path="/titles" element={<TitlesPage />} />
+            <Route path="/skills" element={<SkillsPage />} />
+            <Route path="/inventory" element={<ItemsPage />} />
+            <Route path="/items" element={<Navigate to="/inventory" replace />} />
+            <Route path="/dungeons" element={<Navigate to="/dungeons/manage" replace />} />
+            <Route path="/dungeons/manage" element={<ManageDungeonsPage />} />
+            <Route path="/history" element={<HistoryPage />} />
+            <Route path="/delete-account" element={<DeleteAccountPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+    )
+
     return (
         <div className={`workspace-shell${isWideManagementPage ? ' wide-management-shell' : ''}`}>
             <header className="workspace-header">
@@ -304,25 +324,9 @@ function AppShell() {
             </header>
 
             <main className="management-main">
-                <CornerFrame className="management-frame">
-                    <Routes>
-                        <Route path="/" element={<HomePage onRefreshReady={registerHomeRefresh} />} />
-                        <Route path="/home" element={<Navigate to="/" replace />} />
-                        <Route path="/profile" element={<StatusWindow />} />
-                        <Route path="/quests" element={<Navigate to="/quests/manage" replace />} />
-                        <Route path="/quests/manage" element={<ManageQuestsPage />} />
-                        <Route path="/today" element={<Navigate to="/" replace />} />
-                        <Route path="/titles" element={<TitlesPage />} />
-                        <Route path="/skills" element={<SkillsPage />} />
-                        <Route path="/inventory" element={<ItemsPage />} />
-                        <Route path="/items" element={<Navigate to="/inventory" replace />} />
-                        <Route path="/dungeons" element={<Navigate to="/dungeons/manage" replace />} />
-                        <Route path="/dungeons/manage" element={<ManageDungeonsPage />} />
-                        <Route path="/history" element={<HistoryPage />} />
-                        <Route path="/delete-account" element={<DeleteAccountPage />} />
-                        <Route path="*" element={<Navigate to="/" replace />} />
-                    </Routes>
-                </CornerFrame>
+                {location.pathname === '/profile'
+                    ? routeContent
+                    : <CornerFrame className="management-frame">{routeContent}</CornerFrame>}
             </main>
         </div>
     )

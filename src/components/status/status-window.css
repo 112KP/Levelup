@@ -4,62 +4,19 @@
     --blue-accent: #3ec6ff;
     --parrot: #c7ffe0;
     --dim: #7f93b8;
-    --panel: rgba(10, 18, 36, 0.86);
+    --panel: #0a1224;
     --strong-green-glow: 0 0 8px #17b866, 0 0 20px rgba(23, 184, 102, 0.9), 0 0 38px rgba(23, 184, 102, 0.55);
     --small-green-glow: 0 0 8px #17b866, 0 0 14px rgba(23, 184, 102, 0.85);
     position: relative;
-    isolation: isolate;
-    display: flex;
-    min-height: 100dvh;
-    flex-direction: column;
-    align-items: center;
-    padding: max(20px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(22px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
-    overflow-x: clip;
+    display: block;
+    width: 100%;
     color: #bfe6ff;
-    background-color: #070a12;
-    background-image: radial-gradient(ellipse at top left, rgba(168, 110, 255, 0.09), transparent 48%), radial-gradient(ellipse at bottom right, rgba(62, 198, 255, 0.08), transparent 48%);
     font-family: 'Rajdhani', sans-serif;
+    text-align: left;
 }
 
 .status-page * {
     box-sizing: border-box;
-}
-
-.status-page::before {
-    position: fixed;
-    z-index: -1;
-    inset: 0;
-    background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 0, rgba(255, 255, 255, 0.06) 1px, transparent 1px, transparent 3px);
-    content: '';
-    pointer-events: none;
-}
-
-.status-topbar {
-    display: flex;
-    width: min(100%, 420px);
-    align-items: center;
-    justify-content: space-between;
-    margin: 0 auto 16px;
-}
-
-.system-mark {
-    display: inline-flex;
-    min-height: 42px;
-    align-items: center;
-    gap: 8px;
-    color: var(--blue-accent);
-    text-decoration: none;
-}
-
-.system-mark {
-    font-size: 0.82rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-}
-
-.system-mark i {
-    color: var(--purple-glow);
-    font-style: normal;
 }
 
 .corner-frame {
@@ -67,24 +24,12 @@
     width: min(100%, 420px);
     border: 1px solid rgba(168, 110, 255, 0.38);
     border-radius: 8px;
-    background: var(--panel);
+    background: #0a1224;
     box-shadow: 0 0 36px rgba(168, 110, 255, 0.14);
-    backdrop-filter: blur(6px);
-    animation: frame-arrive 500ms ease-out both;
 }
 
 .status-frame {
     padding: clamp(20px, 5vw, 34px);
-}
-
-.corner-frame::before {
-    position: absolute;
-    z-index: 0;
-    inset: 0;
-    border-radius: inherit;
-    background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 0, rgba(255, 255, 255, 0.06) 1px, transparent 1px, transparent 3px);
-    content: '';
-    pointer-events: none;
 }
 
 .hud-corner {
@@ -453,6 +398,10 @@
     color: var(--purple-glow);
 }
 
+.native-profile-stats .stat-card-top {
+    display: none;
+}
+
 .stat-card .system-label {
     font-size: 0.68rem;
     overflow-wrap: anywhere;
@@ -728,12 +677,10 @@
 @keyframes number-change {
     0% {
         opacity: 0.5;
-        transform: translateY(3px) scale(0.97);
     }
 
     100% {
         opacity: 1;
-        transform: translateY(0) scale(1);
     }
 }
 
@@ -766,9 +713,9 @@
 
 @media (max-width: 520px) {
     .status-page {
-        min-height: 100svh;
-        padding: max(6px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
-        overflow-x: hidden;
+        min-height: auto;
+        padding: 0;
+        overflow-x: visible;
     }
 
     .status-topbar {
@@ -883,37 +830,37 @@
 
     .stat-card {
         min-height: 76px;
-        grid-template-columns: 20px minmax(0, 1fr);
-        grid-template-rows: auto auto;
-        align-items: center;
-        gap: 7px 8px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 6px;
         padding: 9px;
     }
 
     .stat-card-top {
+        display: flex;
+        align-items: center;
+        gap: 6px;
         min-height: 20px;
-        grid-column: 1;
-        grid-row: 1;
-        line-height: 1;
     }
 
     .stat-card-top svg {
         width: 16px;
         height: 16px;
+        flex: 0 0 16px;
     }
 
     .stat-card .system-label {
-        grid-column: 2;
-        grid-row: 1;
         font-size: 0.65rem;
         line-height: 1.2;
         overflow-wrap: anywhere;
     }
 
     .stat-value-row {
+        display: flex;
         min-height: 32px;
-        grid-column: 1 / -1;
-        grid-row: 2;
+        align-items: center;
+        justify-content: space-between;
         gap: 8px;
     }
 
