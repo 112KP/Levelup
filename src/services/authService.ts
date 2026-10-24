@@ -1,4 +1,8 @@
+import { Browser } from '@capacitor/browser'
+import { Capacitor } from '@capacitor/core'
 import { supabase } from '../lib/supabaseClient'
+
+const nativeOAuthRedirectUrl = 'io.github.keyurpatel.levelup://login-callback'
 
 export function signInWithPassword(email: string, password: string) {
   return supabase.auth.signInWithPassword({ email, password })
@@ -9,12 +13,40 @@ export function signUpWithPassword(email: string, password: string) {
 }
 
 export function signInWithGoogle() {
+  if (Capacitor.isNativePlatform()) {
+    return signInWithGoogleNative()
+  }
+
   const redirectTo = new URL(import.meta.env.BASE_URL, window.location.origin).toString()
 
   return supabase.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo },
   })
+}
+
+async function signInWithGoogleNative() {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: nativeOAuthRedirectUrl,
+      skipBrowserRedirect: true,
+    },
+  })
+
+  if (error) return { error }
+  if (!data.url) return { error: new Error('Supabase did not return an OAuth URL.') }
+
+  try {
+    await Browser.open({ url: data.url })
+    return { error: null }
+  } catch (openError) {
+    return {
+      error: openError instanceof Error
+        ? openError
+        : new Error('Unable to open the Google sign-in page.'),
+    }
+  }
 }
 
 export function signOut() {

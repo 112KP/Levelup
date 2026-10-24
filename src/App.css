@@ -213,6 +213,20 @@ button:disabled {
     font-size: 0.82rem;
 }
 
+.auth-legal-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 18px;
+    color: var(--muted);
+    font-size: 0.76rem;
+}
+
+.auth-legal-links a {
+    color: var(--accent-dark);
+}
+
 .text-button {
     min-height: 44px;
     padding: 0;
@@ -457,6 +471,68 @@ body:has(.workspace-shell) {
     margin: 6px 12px 10px;
     color: #ffb3b3;
     font-size: 0.78rem;
+}
+
+.delete-account-page {
+    display: grid;
+    gap: 18px;
+    color: #dfefff;
+    text-align: left;
+}
+
+.delete-account-page .eyebrow {
+    margin: 0;
+}
+
+.delete-account-page h1 {
+    margin: 0;
+    color: #ffb3b3;
+    font-size: clamp(1.8rem, 8vw, 2.5rem);
+}
+
+.delete-account-page p {
+    color: #aebbd1;
+}
+
+.delete-account-page a:not(.secondary-button) {
+    color: #3ec6ff;
+}
+
+.delete-account-page label {
+    color: #dfefff;
+    font-size: 0.9rem;
+}
+
+.delete-account-page input {
+    width: 100%;
+    min-height: 48px;
+    padding: 10px 12px;
+    border: 1px solid rgba(168, 110, 255, 0.45);
+    color: #dfefff;
+    background: #080d1b;
+}
+
+.delete-account-actions {
+    display: grid;
+    gap: 10px;
+}
+
+.delete-account-actions .secondary-button {
+    color: #dfefff;
+    text-decoration: none;
+}
+
+.danger-button {
+    min-height: 48px;
+    padding: 10px 14px;
+    border: 1px solid #ff7b86;
+    color: #ffe4e6;
+    background: #481b27;
+    font-weight: 700;
+}
+
+.danger-button:hover:not(:disabled) {
+    background: #632331;
 }
 
 .profile-menu-backdrop {

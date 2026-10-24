@@ -12,6 +12,7 @@ import { ItemsPage } from './pages/ItemsPage'
 import { ManageQuestsPage } from './pages/ManageQuestsPage'
 import { SkillsPage } from './pages/SkillsPage'
 import { TitlesPage } from './pages/TitlesPage'
+import { DeleteAccountPage } from './pages/DeleteAccountPage'
 import {
     signInWithGoogle,
     signInWithPassword,
@@ -28,6 +29,7 @@ const navItems = [
     { to: '/skills', label: 'Skills' },
     { to: '/titles', label: 'Title' },
     { to: '/history', label: 'History' },
+    { to: '/delete-account', label: 'Delete account' },
 ]
 
 type ProfileNavigationMenuProps = {
@@ -123,6 +125,9 @@ function ProfileNavigationMenu({ showRefresh, refreshing, onRefresh }: ProfileNa
                                 <span>{signingOut ? 'Signing out...' : 'Sign out'}</span>
                             </button>
                             {logoutError && <p className="profile-menu-error" role="alert">{logoutError}</p>}
+                            <a className="profile-menu-link" href={`${import.meta.env.BASE_URL}privacy-policy.html`}>
+                                Privacy policy
+                            </a>
                         </nav>
                     </>
                 )}
@@ -258,6 +263,11 @@ function AuthScreen() {
                         {mode === 'sign-in' ? 'Create an account' : 'Sign in'}
                     </button>
                 </p>
+                <p className="auth-legal-links">
+                    <a href={`${import.meta.env.BASE_URL}privacy-policy.html`}>Privacy policy</a>
+                    <span aria-hidden="true">·</span>
+                    <a href={`${import.meta.env.BASE_URL}delete-account.html`}>Request account deletion</a>
+                </p>
             </section>
         </main>
     )
@@ -309,6 +319,7 @@ function AppShell() {
                         <Route path="/dungeons" element={<Navigate to="/dungeons/manage" replace />} />
                         <Route path="/dungeons/manage" element={<ManageDungeonsPage />} />
                         <Route path="/history" element={<HistoryPage />} />
+                        <Route path="/delete-account" element={<DeleteAccountPage />} />
                         <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                 </CornerFrame>

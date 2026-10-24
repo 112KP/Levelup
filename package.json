@@ -6,20 +6,28 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:mobile": "tsc -b && vite build --mode mobile",
+    "cap:sync": "npm run build:mobile && cap sync android",
+    "cap:open": "cap open android",
     "lint": "eslint .",
     "preview": "vite preview",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/browser": "^8.0.5",
+    "@capacitor/core": "^8.5.3",
     "@supabase/supabase-js": "^2.116.0",
     "lucide-react": "^1.47.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.4",
-    "zod": "^4.6.5"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.3",
     "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.13.3",

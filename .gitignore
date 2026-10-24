@@ -15,4 +15,11 @@ npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
 .idea/
-
+android/.gradle/
+android/local.properties
+android/app/build/
+android/build/
+android/key.properties
+*.jks
+*.keystore
+supabase/.temp/
