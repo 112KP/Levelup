@@ -129,8 +129,10 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
             const stat = rewards.length
                 ? `, ${rewards.map((reward) => `+${reward.amount} ${reward.stat_name}`).join(', ')}`
                 : ''
+            const hpReward = quest.hp_reward > 0 ? `, +${quest.hp_reward} HP` : ''
+            const mpReward = quest.mp_reward > 0 ? `, +${quest.mp_reward} MP` : ''
             const careerReward = quest.career_ability_reward ? `, +${quest.career_ability_reward} Career Ability` : ''
-            setToast(`${quest.name}: +${quest.xp_reward} XP, +${quest.gold_reward} gold${stat}${careerReward}.`)
+            setToast(`${quest.name}: +${quest.xp_reward} XP, +${quest.gold_reward} gold${hpReward}${mpReward}${stat}${careerReward}.`)
         } else if (quest) {
             const penalties = [
                 quest.penalty_hp ? `-${quest.penalty_hp} HP` : '',
@@ -310,6 +312,8 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
                                     <div className="home-quest-rewards">
                                         <span>+{quest.xp_reward} XP</span>
                                         <span>+{quest.gold_reward} gold</span>
+                                        {quest.hp_reward > 0 && <span>+{quest.hp_reward} HP</span>}
+                                        {quest.mp_reward > 0 && <span>+{quest.mp_reward} MP</span>}
                                         {rewards.map((reward) => <span key={reward.stat_name}>+{reward.amount} {reward.stat_name}</span>)}
                                         {quest.career_ability_reward > 0 && <span>+{quest.career_ability_reward} Career Ability</span>}
                                     </div>

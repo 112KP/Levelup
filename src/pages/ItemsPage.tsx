@@ -42,6 +42,7 @@ export function ItemsPage() {
     const [formError, setFormError] = useState('')
     const [editingId, setEditingId] = useState<string | null>(null)
     const [filter, setFilter] = useState<'all' | ItemType>('all')
+    const [effectFilter, setEffectFilter] = useState<'all' | 'hp' | 'mp' | 'fatigue'>('all')
     const [form, setForm] = useState(defaultForm)
     const [busy, setBusy] = useState(false)
     const [busyItemId, setBusyItemId] = useState<string | null>(null)
@@ -74,7 +75,10 @@ export function ItemsPage() {
         void loadItems()
     }, [loadItems])
 
-    const filteredItems = filter === 'all' ? items : items.filter((item) => item.item_type === filter)
+    const filteredItems = items.filter((item) =>
+        (filter === 'all' || item.item_type === filter)
+        && (effectFilter === 'all' || normalizeItemEffects(item.stat_bonus)[effectFilter] !== undefined),
+    )
 
     function resetForm() {
         setForm(defaultForm)
@@ -195,11 +199,17 @@ export function ItemsPage() {
             {error && <p className="status-error" role="alert">{error}</p>}
 
             <div className="controls-row">
-                <select className="field-input" value={filter} onChange={(event) => setFilter(event.target.value as 'all' | ItemType)}>
+                <select aria-label="Filter by item type" className="field-input" value={filter} onChange={(event) => setFilter(event.target.value as 'all' | ItemType)}>
                     <option value="all">All item types</option>
                     <option value="equipment">Equipment</option>
                     <option value="consumable">Consumable</option>
                     <option value="material">Material</option>
+                </select>
+                <select aria-label="Filter by effect" className="field-input" value={effectFilter} onChange={(event) => setEffectFilter(event.target.value as typeof effectFilter)}>
+                    <option value="all">All effects</option>
+                    <option value="hp">HP</option>
+                    <option value="mp">MP</option>
+                    <option value="fatigue">Fatigue</option>
                 </select>
             </div>
 
@@ -208,7 +218,11 @@ export function ItemsPage() {
                 {loading ? (
                     <p className="status-empty">Loading inventory...</p>
                 ) : filteredItems.length === 0 ? (
-                    <p className="status-empty">No items in this category.</p>
+                    <p className="status-empty">
+                        {effectFilter === 'all'
+                            ? 'No items in this category.'
+                            : `No items with a ${effectFilter.toUpperCase()} effect match these filters.`}
+                    </p>
                 ) : (
                     <div className="grouped-list">
                         {(['equipment', 'consumable', 'material'] as const).map((groupKey) => {
