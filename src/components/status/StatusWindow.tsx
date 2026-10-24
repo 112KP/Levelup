@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import {
     BrainCircuit,
+    BriefcaseBusiness,
     Dumbbell,
     Eye,
     HeartPulse,
@@ -30,7 +31,7 @@ const statDetails: {
         { name: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
     ]
 
-const profileColumns = 'id,user_id,display_name,job,rank,active_title_id,level,hp_current,hp_max,mp_current,mp_max,fatigue,xp,xp_to_next,strength,agility,sense,vitality,intelligence,available_points,gold,created_at,updated_at' as const
+const profileColumns = 'id,user_id,display_name,job,rank,active_title_id,level,hp_current,hp_max,mp_current,mp_max,fatigue,xp,xp_to_next,strength,agility,sense,vitality,intelligence,career_ability,available_points,gold,created_at,updated_at' as const
 
 export function StatusWindow() {
     const { session } = useAuth()
@@ -263,15 +264,21 @@ export function StatusWindow() {
                             {statDetails.map((stat) => (
                                 <StatCard
                                     key={stat.name}
-                                    name={stat.name}
                                     label={stat.label}
                                     value={profile[stat.name]}
                                     icon={stat.icon}
                                     canAllocate={profile.available_points > 0}
                                     allocating={allocating}
-                                    onAllocate={allocatePoint}
+                                    onAllocate={() => void allocatePoint(stat.name)}
                                 />
                             ))}
+                            <StatCard
+                                label="Career Ability"
+                                value={profile.career_ability}
+                                icon={BriefcaseBusiness}
+                                canAllocate={false}
+                                allocating={false}
+                            />
                         </section>
                         <p className="allocation-message" aria-live="polite">{allocationMessage}</p>
 

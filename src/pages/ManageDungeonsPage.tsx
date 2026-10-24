@@ -14,6 +14,7 @@ const defaultForm = {
     dungeon_rank: 'E' as Rank,
     xp_reward: 0,
     gold_reward: 0,
+    career_ability_reward: 0,
     deadline: '',
 }
 
@@ -93,6 +94,7 @@ export function ManageDungeonsPage() {
             dungeon_rank: dungeon.dungeon_rank,
             xp_reward: dungeon.xp_reward,
             gold_reward: dungeon.gold_reward,
+            career_ability_reward: dungeon.career_ability_reward,
             deadline: dungeon.deadline ?? '',
         })
         setError('')
@@ -120,6 +122,7 @@ export function ManageDungeonsPage() {
             dungeon_rank: form.dungeon_rank,
             xp_reward: Math.max(0, Number(form.xp_reward) || 0),
             gold_reward: Math.max(0, Number(form.gold_reward) || 0),
+            career_ability_reward: Math.max(0, Number(form.career_ability_reward) || 0),
             deadline: form.deadline || null,
         }
         const result = editingId
@@ -175,7 +178,7 @@ export function ManageDungeonsPage() {
             return
         }
         setDungeons((current) => current.map((item) => item.id === dungeon.id ? { ...item, status: 'cleared' } : item))
-        setToast(`${dungeon.name} cleared: +${dungeon.xp_reward} XP, +${dungeon.gold_reward} gold.`)
+        setToast(`${dungeon.name} cleared: +${dungeon.xp_reward} XP, +${dungeon.gold_reward} gold${dungeon.career_ability_reward ? `, +${dungeon.career_ability_reward} Career Ability` : ''}.`)
         setBusyId(null)
     }
 
@@ -222,6 +225,7 @@ export function ManageDungeonsPage() {
                                             <span>{deadlineLabel(dungeon.deadline)}</span>
                                             <span className="reward-text">+{dungeon.xp_reward} XP</span>
                                             <span className="reward-text">+{dungeon.gold_reward} gold</span>
+                                            {dungeon.career_ability_reward > 0 && <span className="reward-text">+{dungeon.career_ability_reward} Career</span>}
                                             {dungeon.deadline && (
                                                 <span className={`dungeon-days${remaining !== null && remaining < 0 ? ' overdue' : ''}`}>
                                                     {remaining !== null && remaining < 0 ? 'Overdue' : `${remaining} ${remaining === 1 ? 'day' : 'days'} left`}
@@ -263,6 +267,7 @@ export function ManageDungeonsPage() {
                         <label className="field-group">XP reward<input className="field-input" type="number" min="0" step="1" value={form.xp_reward} onChange={(event) => setForm({ ...form, xp_reward: Number(event.target.value) })} /></label>
                         <label className="field-group">Gold reward<input className="field-input" type="number" min="0" step="1" value={form.gold_reward} onChange={(event) => setForm({ ...form, gold_reward: Number(event.target.value) })} /></label>
                     </div>
+                    <label className="field-group">Career ability points<input className="field-input" type="number" min="0" step="1" value={form.career_ability_reward} onChange={(event) => setForm({ ...form, career_ability_reward: Number(event.target.value) })} /></label>
                     {error && <p className="status-error" role="alert">{error}</p>}
                     <footer className="manage-form-actions">
                         <button type="button" className="secondary-button" onClick={closeForm}>Cancel</button>

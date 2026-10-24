@@ -43,6 +43,9 @@ const defaultForm = {
     unit: '',
     xp_reward: '',
     gold_reward: '',
+    hp_reward: '',
+    mp_reward: '',
+    career_ability_reward: '',
     stat_rewards: [] as StatName[],
     stat_reward_amount: '',
     penalty_hp: '',
@@ -139,6 +142,9 @@ export function ManageQuestsPage() {
             unit: quest.unit ?? '',
             xp_reward: String(quest.xp_reward),
             gold_reward: String(quest.gold_reward),
+            hp_reward: String(quest.hp_reward),
+            mp_reward: String(quest.mp_reward),
+            career_ability_reward: String(quest.career_ability_reward),
             stat_rewards: statRewardsByQuestId[quest.id] ?? (quest.stat_reward ? [quest.stat_reward] : []),
             stat_reward_amount: String(statRewardAmountsByQuestId[quest.id] ?? quest.stat_reward_amount),
             penalty_hp: String(quest.penalty_hp),
@@ -175,6 +181,9 @@ export function ManageQuestsPage() {
             unit: form.unit.trim() || null,
             xp_reward: Math.max(0, Number(form.xp_reward) || 0),
             gold_reward: Math.max(0, Number(form.gold_reward) || 0),
+            hp_reward: Math.max(0, Number(form.hp_reward) || 0),
+            mp_reward: Math.max(0, Number(form.mp_reward) || 0),
+            career_ability_reward: Math.max(0, Number(form.career_ability_reward) || 0),
             stat_reward: null,
             stat_reward_amount: Math.max(0, Number(form.stat_reward_amount) || 0),
             penalty_hp: Math.max(0, Number(form.penalty_hp) || 0),
@@ -302,6 +311,9 @@ export function ManageQuestsPage() {
                                         <span className={`difficulty-tag ${quest.difficulty}`}>{quest.difficulty}</span>
                                         <span className="reward-text">+{quest.xp_reward} XP</span>
                                         <span className="reward-text">+{quest.gold_reward} gold</span>
+                                        {quest.hp_reward > 0 && <span className="reward-text">+{quest.hp_reward} HP</span>}
+                                        {quest.mp_reward > 0 && <span className="reward-text">+{quest.mp_reward} MP</span>}
+                                        {quest.career_ability_reward > 0 && <span className="reward-text">+{quest.career_ability_reward} Career</span>}
                                     </div>
                                 </div>
                                 <div className="manage-row-actions">
@@ -350,6 +362,11 @@ export function ManageQuestsPage() {
                         <label className="field-group">XP reward<input className="field-input" type="number" min="0" step="1" value={form.xp_reward} onChange={(event) => setForm({ ...form, xp_reward: event.target.value })} /></label>
                     </div>
                     <label className="field-group">Gold reward<input className="field-input" type="number" min="0" step="1" value={form.gold_reward} onChange={(event) => setForm({ ...form, gold_reward: event.target.value })} /></label>
+                    <div className="inline-grid two-up">
+                        <label className="field-group">HP increase<input className="field-input" type="number" min="0" step="1" value={form.hp_reward} onChange={(event) => setForm({ ...form, hp_reward: event.target.value })} /></label>
+                        <label className="field-group">MP increase<input className="field-input" type="number" min="0" step="1" value={form.mp_reward} onChange={(event) => setForm({ ...form, mp_reward: event.target.value })} /></label>
+                    </div>
+                    <label className="field-group">Career ability points<input className="field-input" type="number" min="0" step="1" value={form.career_ability_reward} onChange={(event) => setForm({ ...form, career_ability_reward: event.target.value })} /></label>
                     <fieldset className="stat-reward-fieldset">
                         <legend>Stat rewards</legend>
                         <div className="stat-reward-options">

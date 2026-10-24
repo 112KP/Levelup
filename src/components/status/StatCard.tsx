@@ -1,19 +1,16 @@
 import type { LucideIcon } from 'lucide-react'
 import { Plus } from 'lucide-react'
-import type { StatName } from '../../types/database'
 
 type StatCardProps = {
-    name: StatName
     label: string
     value: number
     icon: LucideIcon
     canAllocate: boolean
     allocating: boolean
-    onAllocate: (stat: StatName) => void
+    onAllocate?: () => void
 }
 
 export function StatCard({
-    name,
     label,
     value,
     icon: Icon,
@@ -36,7 +33,7 @@ export function StatCard({
                         aria-label={`Allocate one point to ${label}`}
                         title={`Add 1 ${label} point`}
                         disabled={allocating}
-                        onClick={() => onAllocate(name)}
+                        onClick={onAllocate}
                     >
                         <Plus size={17} aria-hidden="true" />
                     </button>

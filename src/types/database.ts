@@ -51,6 +51,7 @@ export type ProfileRow = {
     sense: number
     vitality: number
     intelligence: number
+    career_ability: number
     available_points: number
     gold: number
     created_at: string
@@ -83,6 +84,9 @@ export type QuestRow = {
     unit: string | null
     xp_reward: number
     gold_reward: number
+    hp_reward: number
+    mp_reward: number
+    career_ability_reward: number
     stat_reward: StatName | null
     stat_reward_amount: number
     penalty_hp: number
@@ -150,6 +154,7 @@ export type DungeonRow = {
     status: DungeonStatus
     xp_reward: number
     gold_reward: number
+    career_ability_reward: number
     deadline: string | null
     cleared_at: string | null
     created_at: string
@@ -195,6 +200,9 @@ export interface Database {
                     unit?: string | null
                     xp_reward?: number
                     gold_reward?: number
+                    hp_reward?: number
+                    mp_reward?: number
+                    career_ability_reward?: number
                     stat_reward?: StatName | null
                     stat_reward_amount?: number
                     penalty_hp?: number
@@ -258,6 +266,7 @@ export interface Database {
                     dungeon_rank?: Rank
                     xp_reward?: number
                     gold_reward?: number
+                    career_ability_reward?: number
                     deadline?: string | null
                 }
                 Update: Partial<Omit<Database['public']['Tables']['dungeons']['Insert'], 'id' | 'user_id'>>
