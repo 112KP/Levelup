@@ -265,6 +265,7 @@ function AuthScreen() {
 
 function AppShell() {
     const location = useLocation()
+    const isWideManagementPage = ['/quests/manage', '/inventory', '/dungeons/manage'].includes(location.pathname)
     const [homeRefresh, setHomeRefresh] = useState<(() => Promise<void>) | null>(null)
     const [refreshing, setRefreshing] = useState(false)
     const registerHomeRefresh = useCallback((refresh: (() => Promise<void>) | null) => {
@@ -282,7 +283,7 @@ function AppShell() {
     }
 
     return (
-        <div className="workspace-shell">
+        <div className={`workspace-shell${isWideManagementPage ? ' wide-management-shell' : ''}`}>
             <header className="workspace-header">
                 <NavLink to="/" className="workspace-brand">LEVELUP <i>/</i> SYSTEM</NavLink>
                 <ProfileNavigationMenu

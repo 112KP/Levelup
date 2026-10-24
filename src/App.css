@@ -258,11 +258,34 @@ button:disabled {
 
 .workspace-shell {
     max-width: 420px;
+    min-width: 393px;
     min-height: 100dvh;
     margin: 0 auto;
     padding: max(14px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
     background: #070a12;
     color: #dfefff;
+}
+
+body:has(.workspace-shell) {
+    overflow-x: auto;
+}
+
+.wide-management-shell {
+    width: min(100%, 1126px);
+    max-width: none;
+}
+
+.wide-management-shell .workspace-header,
+.wide-management-shell .management-main {
+    max-width: 100%;
+}
+
+.wide-management-shell .management-frame {
+    width: 100%;
+}
+
+.wide-management-shell .screen-page.manage-screen {
+    max-width: 100%;
 }
 
 .workspace-header {
@@ -1991,7 +2014,7 @@ textarea.field-input {
     }
 
     .management-frame {
-        padding: 12px 0 0;
+        padding: 12px;
     }
 
     .manage-row {
