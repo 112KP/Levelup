@@ -22,6 +22,7 @@ const defaultForm = {
     stat_reward_amount: 0,
     penalty_hp: 0,
     penalty_gold: 0,
+    fatigue_restore: 0,
     is_active: true,
 }
 
@@ -101,6 +102,7 @@ export function QuestsPage() {
             stat_reward_amount: quest.stat_reward_amount,
             penalty_hp: quest.penalty_hp,
             penalty_gold: quest.penalty_gold,
+            fatigue_restore: quest.fatigue_restore,
             is_active: quest.is_active,
         })
     }
@@ -122,6 +124,7 @@ export function QuestsPage() {
             stat_reward_amount: Number(form.stat_reward_amount) || 0,
             penalty_hp: Number(form.penalty_hp) || 0,
             penalty_gold: Number(form.penalty_gold) || 0,
+            fatigue_restore: Number(form.fatigue_restore) || 0,
             is_active: form.is_active,
         }
 
@@ -274,6 +277,12 @@ export function QuestsPage() {
                                 <label>Penalty gold</label>
                                 <input className="field-input" type="number" value={form.penalty_gold} onChange={(event) => setForm({ ...form, penalty_gold: Number(event.target.value) })} />
                             </div>
+                            <div>
+                                <label>Fatigue restored on completion</label>
+                                <input className="field-input" type="number" min="0" max="100" step="1" value={form.fatigue_restore} onChange={(event) => setForm({ ...form, fatigue_restore: Number(event.target.value) })} />
+                            </div>
+                        </div>
+                        <div className="field-group inline-grid two-up">
                             <div className="checkbox-row">
                                 <label><input type="checkbox" checked={form.is_active} onChange={(event) => setForm({ ...form, is_active: event.target.checked })} /> Active</label>
                             </div>
@@ -322,7 +331,10 @@ export function QuestsPage() {
                                                                 {quest.description && <div className="muted-copy">{quest.description}</div>}
                                                             </td>
                                                             <td>{quest.target_value} {quest.unit || 'x'}</td>
-                                                            <td>{quest.xp_reward} XP / {quest.gold_reward} gold</td>
+                                                            <td>
+                                                                {quest.xp_reward} XP / {quest.gold_reward} gold
+                                                                {quest.fatigue_restore > 0 && <div className="muted-copy">−{quest.fatigue_restore} Fatigue on completion</div>}
+                                                            </td>
                                                             <td>
                                                                 <button type="button" className={`toggle-pill ${quest.is_active ? 'on' : 'off'}`} onClick={() => void toggleQuestActive(quest)}>
                                                                     {quest.is_active ? 'Active' : 'Inactive'}

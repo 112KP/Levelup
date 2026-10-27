@@ -13,7 +13,7 @@ import {
     generateDailyQuestLogs,
 } from '../lib/quests'
 import type { QuestBoardEntry } from '../lib/quests'
-import type { DungeonRow, QuestLogStatus, QuestRow, QuestStatRewardRow } from '../types/database'
+import type { DungeonRow, QuestLogStatus, QuestPrahar, QuestRow, QuestStatRewardRow } from '../types/database'
 import { RankBadge } from '../components/status/RankBadge'
 import { formatEasternDate, getEasternDateKey } from '../lib/dateTime'
 
@@ -22,6 +22,13 @@ const tabs: Array<{ status: QuestLogStatus; label: string }> = [
     { status: 'completed', label: 'Done' },
     { status: 'failed', label: 'Skipped' },
 ]
+
+const praharOrder: Record<QuestPrahar, number> = {
+    Morning: 0,
+    Afternoon: 1,
+    Evening: 2,
+    Night: 3,
+}
 
 function recurrenceLabel(recurrence: string) {
     if (recurrence === 'one_time') return 'One-time'
@@ -160,12 +167,20 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
         await loadHome()
     }
 
-    const visibleEntries = entries.filter((entry) => entry.status === activeTab)
-    const availableQuests = quests.filter((quest) =>
-        quest.is_active
-        && quest.recurrence !== 'daily'
-        && !entries.some((entry) => entry.quest_id === quest.id),
-    )
+    const visibleEntries = entries
+        .filter((entry) => entry.status === activeTab)
+        .sort((a, b) => {
+            const aOrder = a.quests ? praharOrder[a.quests.prahar] : Number.MAX_SAFE_INTEGER
+            const bOrder = b.quests ? praharOrder[b.quests.prahar] : Number.MAX_SAFE_INTEGER
+            return aOrder - bOrder
+        })
+    const availableQuests = quests
+        .filter((quest) =>
+            quest.is_active
+            && quest.recurrence !== 'daily'
+            && !entries.some((entry) => entry.quest_id === quest.id),
+        )
+        .sort((a, b) => praharOrder[a.prahar] - praharOrder[b.prahar])
     const activeDungeons = dungeons.filter((dungeon) => dungeon.status === 'open' || dungeon.status === 'in_progress')
 
     return (

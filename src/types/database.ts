@@ -91,6 +91,7 @@ export type QuestRow = {
     stat_reward_amount: number
     penalty_hp: number
     penalty_gold: number
+    fatigue_restore: number
     is_active: boolean
     created_at: string
     updated_at: string
@@ -207,6 +208,7 @@ export interface Database {
                     stat_reward_amount?: number
                     penalty_hp?: number
                     penalty_gold?: number
+                    fatigue_restore?: number
                     is_active?: boolean
                 }
                 Update: Partial<Database['public']['Tables']['quests']['Insert']>
