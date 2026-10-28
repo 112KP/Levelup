@@ -139,7 +139,8 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
             const hpReward = quest.hp_reward > 0 ? `, +${quest.hp_reward} HP` : ''
             const mpReward = quest.mp_reward > 0 ? `, +${quest.mp_reward} MP` : ''
             const careerReward = quest.career_ability_reward ? `, +${quest.career_ability_reward} Career Ability` : ''
-            setToast(`${quest.name}: +${quest.xp_reward} XP, +${quest.gold_reward} gold${hpReward}${mpReward}${stat}${careerReward}.`)
+            const fatigueRestore = quest.fatigue_restore > 0 ? `, −${quest.fatigue_restore} Fatigue` : ''
+            setToast(`${quest.name}: +${quest.xp_reward} XP, +${quest.gold_reward} gold${hpReward}${mpReward}${stat}${careerReward}${fatigueRestore}.`)
         } else if (quest) {
             const penalties = [
                 quest.penalty_hp ? `-${quest.penalty_hp} HP` : '',
@@ -331,6 +332,7 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
                                         {quest.mp_reward > 0 && <span>+{quest.mp_reward} MP</span>}
                                         {rewards.map((reward) => <span key={reward.stat_name}>+{reward.amount} {reward.stat_name}</span>)}
                                         {quest.career_ability_reward > 0 && <span>+{quest.career_ability_reward} Career Ability</span>}
+                                        {quest.fatigue_restore > 0 && <span>−{quest.fatigue_restore} Fatigue</span>}
                                     </div>
                                 </div>
                                 {pending ? (

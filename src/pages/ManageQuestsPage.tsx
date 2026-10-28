@@ -50,6 +50,7 @@ const defaultForm = {
     stat_reward_amount: '',
     penalty_hp: '',
     penalty_gold: '',
+    fatigue_restore: '0',
     is_active: true,
 }
 
@@ -149,6 +150,7 @@ export function ManageQuestsPage() {
             stat_reward_amount: String(statRewardAmountsByQuestId[quest.id] ?? quest.stat_reward_amount),
             penalty_hp: String(quest.penalty_hp),
             penalty_gold: String(quest.penalty_gold),
+            fatigue_restore: String(quest.fatigue_restore),
             is_active: quest.is_active,
         })
         setError('')
@@ -188,6 +190,7 @@ export function ManageQuestsPage() {
             stat_reward_amount: Math.max(0, Number(form.stat_reward_amount) || 0),
             penalty_hp: Math.max(0, Number(form.penalty_hp) || 0),
             penalty_gold: Math.max(0, Number(form.penalty_gold) || 0),
+            fatigue_restore: Math.min(100, Math.max(0, Math.trunc(Number(form.fatigue_restore) || 0))),
             is_active: form.is_active,
         }
         const wasEditing = Boolean(editingId)
@@ -314,6 +317,7 @@ export function ManageQuestsPage() {
                                         {quest.hp_reward > 0 && <span className="reward-text">+{quest.hp_reward} HP</span>}
                                         {quest.mp_reward > 0 && <span className="reward-text">+{quest.mp_reward} MP</span>}
                                         {quest.career_ability_reward > 0 && <span className="reward-text">+{quest.career_ability_reward} Career</span>}
+                                        {quest.fatigue_restore > 0 && <span className="reward-text">−{quest.fatigue_restore} Fatigue</span>}
                                     </div>
                                 </div>
                                 <div className="manage-row-actions">
@@ -392,6 +396,7 @@ export function ManageQuestsPage() {
                         <label className="field-group">HP penalty<input className="field-input" type="number" min="0" step="1" value={form.penalty_hp} onChange={(event) => setForm({ ...form, penalty_hp: event.target.value })} /></label>
                         <label className="field-group">Gold penalty<input className="field-input" type="number" min="0" step="1" value={form.penalty_gold} onChange={(event) => setForm({ ...form, penalty_gold: event.target.value })} /></label>
                     </div>
+                    <label className="field-group">Fatigue restored on completion<input className="field-input" type="number" min="0" max="100" step="1" value={form.fatigue_restore} onChange={(event) => setForm({ ...form, fatigue_restore: event.target.value })} /></label>
                     <label className="manage-checkbox"><input type="checkbox" checked={form.is_active} onChange={(event) => setForm({ ...form, is_active: event.target.checked })} /> Enrolled and active</label>
                     {error && <p className="status-error" role="alert">{error}</p>}
                     <footer className="manage-form-actions">
