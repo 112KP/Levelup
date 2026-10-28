@@ -4,6 +4,33 @@ import { useTimezone } from '../auth/useTimezone'
 
 const timeZones = ['UTC', ...Intl.supportedValuesOf('timeZone')]
 
+function formatTimeZoneOption(timeZone: string) {
+    const now = new Date()
+    const formatter = new Intl.DateTimeFormat('en', {
+        timeZone,
+        timeZoneName: 'long',
+    })
+    const zoneName = formatter.formatToParts(now).find((part) => part.type === 'timeZoneName')?.value
+    const offsetName = new Intl.DateTimeFormat('en', {
+        timeZone,
+        timeZoneName: 'longOffset',
+    }).formatToParts(now).find((part) => part.type === 'timeZoneName')?.value ?? 'GMT'
+    const offsetMatch = /^GMT([+-])(\d{1,2})(?::(\d{2}))?$/.exec(offsetName)
+    const offset = offsetMatch
+        ? `GMT${offsetMatch[1]}${offsetMatch[2].padStart(2, '0')}:${offsetMatch[3] ?? '00'}`
+        : 'GMT+00:00'
+    const location = timeZone === 'UTC'
+        ? 'UTC'
+        : timeZone.split('/').slice(1).join(', ').replaceAll('_', ' ')
+
+    return `${offset} — ${zoneName ?? location} (${location})`
+}
+
+const timeZoneOptions = timeZones.map((zone) => ({
+    value: zone,
+    label: formatTimeZoneOption(zone),
+}))
+
 export function SettingsPage() {
     const { timeZone, loading, error, updateTimeZone } = useTimezone()
     const [saving, setSaving] = useState(false)
@@ -39,9 +66,9 @@ export function SettingsPage() {
                     disabled={loading || saving}
                     onChange={(event) => void handleTimeZoneChange(event.target.value)}
                 >
-                    {timeZones.map((zone) => (
-                        <option key={zone} value={zone}>
-                            {zone.replaceAll('_', ' ')}
+                    {timeZoneOptions.map(({ value, label }) => (
+                        <option key={value} value={value}>
+                            {label}
                         </option>
                     ))}
                 </select>
