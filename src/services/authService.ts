@@ -9,7 +9,17 @@ export function signInWithPassword(email: string, password: string) {
 }
 
 export function signUpWithPassword(email: string, password: string) {
-  return supabase.auth.signUp({ email, password })
+  if (Capacitor.isNativePlatform()) {
+    return supabase.auth.signUp({ email, password })
+  }
+
+  const emailRedirectTo = getWebRedirectUrl()
+
+  return supabase.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo },
+  })
 }
 
 export function signInWithGoogle() {
@@ -17,12 +27,16 @@ export function signInWithGoogle() {
     return signInWithGoogleNative()
   }
 
-  const redirectTo = new URL(import.meta.env.BASE_URL, window.location.origin).toString()
+  const redirectTo = getWebRedirectUrl()
 
   return supabase.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo },
   })
+}
+
+function getWebRedirectUrl() {
+  return new URL(import.meta.env.BASE_URL, window.location.origin).toString()
 }
 
 async function signInWithGoogleNative() {
