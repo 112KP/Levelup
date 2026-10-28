@@ -39,9 +39,28 @@ const timeZoneOptions = timeZones.map((zone) => ({
     value,
     offsetMinutes,
     label: formatTimeZoneOption(value, offsetMinutes),
-})).sort((left, right) =>
-    left.offsetMinutes - right.offsetMinutes || left.label.localeCompare(right.label),
-)
+})).reduce<Array<{ offsetMinutes: number; options: Array<{ value: string; label: string }> }>>(
+    (groups, option) => {
+        let group = groups.find((candidate) => candidate.offsetMinutes === option.offsetMinutes)
+        if (!group) {
+            group = { offsetMinutes: option.offsetMinutes, options: [] }
+            groups.push(group)
+        }
+        group.options.push({ value: option.value, label: option.label })
+        return groups
+    },
+    [],
+).sort((left, right) => left.offsetMinutes - right.offsetMinutes)
+
+for (const group of timeZoneOptions) {
+    group.options.sort((left, right) => left.label.localeCompare(right.label))
+}
+
+function formatOffset(offsetMinutes: number) {
+    const sign = offsetMinutes < 0 ? '-' : '+'
+    const absoluteOffset = Math.abs(offsetMinutes)
+    return `GMT${sign}${String(Math.floor(absoluteOffset / 60)).padStart(2, '0')}:${String(absoluteOffset % 60).padStart(2, '0')}`
+}
 
 export function SettingsPage() {
     const { timeZone, loading, error, updateTimeZone } = useTimezone()
@@ -78,10 +97,14 @@ export function SettingsPage() {
                     disabled={loading || saving}
                     onChange={(event) => void handleTimeZoneChange(event.target.value)}
                 >
-                    {timeZoneOptions.map(({ value, label }) => (
-                        <option key={value} value={value}>
-                            {label}
-                        </option>
+                    {timeZoneOptions.map(({ offsetMinutes, options }) => (
+                        <optgroup key={offsetMinutes} label={formatOffset(offsetMinutes)}>
+                            {options.map(({ value, label }) => (
+                                <option key={value} value={value}>
+                                    {label}
+                                </option>
+                            ))}
+                        </optgroup>
                     ))}
                 </select>
                 {loading && <p className="settings-message">Loading your settings...</p>}
