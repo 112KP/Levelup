@@ -4,21 +4,27 @@ import { useTimezone } from '../auth/useTimezone'
 
 const timeZones = ['UTC', ...Intl.supportedValuesOf('timeZone')]
 
-function formatTimeZoneOption(timeZone: string) {
+function getTimeZoneOffsetMinutes(timeZone: string) {
     const now = new Date()
-    const formatter = new Intl.DateTimeFormat('en', {
-        timeZone,
-        timeZoneName: 'long',
-    })
-    const zoneName = formatter.formatToParts(now).find((part) => part.type === 'timeZoneName')?.value
     const offsetName = new Intl.DateTimeFormat('en', {
         timeZone,
         timeZoneName: 'longOffset',
     }).formatToParts(now).find((part) => part.type === 'timeZoneName')?.value ?? 'GMT'
     const offsetMatch = /^GMT([+-])(\d{1,2})(?::(\d{2}))?$/.exec(offsetName)
-    const offset = offsetMatch
-        ? `GMT${offsetMatch[1]}${offsetMatch[2].padStart(2, '0')}:${offsetMatch[3] ?? '00'}`
-        : 'GMT+00:00'
+    if (!offsetMatch) return 0
+
+    const minutes = Number(offsetMatch[2]) * 60 + Number(offsetMatch[3] ?? 0)
+    return offsetMatch[1] === '-' ? -minutes : minutes
+}
+
+function formatTimeZoneOption(timeZone: string, offsetMinutes: number) {
+    const zoneName = new Intl.DateTimeFormat('en', {
+        timeZone,
+        timeZoneName: 'long',
+    }).formatToParts(new Date()).find((part) => part.type === 'timeZoneName')?.value
+    const sign = offsetMinutes < 0 ? '-' : '+'
+    const absoluteOffset = Math.abs(offsetMinutes)
+    const offset = `GMT${sign}${String(Math.floor(absoluteOffset / 60)).padStart(2, '0')}:${String(absoluteOffset % 60).padStart(2, '0')}`
     const location = timeZone === 'UTC'
         ? 'UTC'
         : timeZone.split('/').slice(1).join(', ').replaceAll('_', ' ')
@@ -28,8 +34,14 @@ function formatTimeZoneOption(timeZone: string) {
 
 const timeZoneOptions = timeZones.map((zone) => ({
     value: zone,
-    label: formatTimeZoneOption(zone),
-}))
+    offsetMinutes: getTimeZoneOffsetMinutes(zone),
+})).map(({ value, offsetMinutes }) => ({
+    value,
+    offsetMinutes,
+    label: formatTimeZoneOption(value, offsetMinutes),
+})).sort((left, right) =>
+    left.offsetMinutes - right.offsetMinutes || left.label.localeCompare(right.label),
+)
 
 export function SettingsPage() {
     const { timeZone, loading, error, updateTimeZone } = useTimezone()
