@@ -1,8 +1,8 @@
-const EASTERN_TIME_ZONE = 'America/New_York'
+export const DEFAULT_TIME_ZONE = 'America/New_York'
 
-export function getEasternDateKey(date = new Date()) {
+export function getDateKey(date = new Date(), timeZone = DEFAULT_TIME_ZONE) {
     const parts = new Intl.DateTimeFormat('en-US', {
-        timeZone: EASTERN_TIME_ZONE,
+        timeZone,
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
@@ -12,16 +12,17 @@ export function getEasternDateKey(date = new Date()) {
     return `${value('year')}-${value('month')}-${value('day')}`
 }
 
-export function formatEasternDate(
+export function formatDateInTimeZone(
     value: string | Date,
     options: Intl.DateTimeFormatOptions = {},
     locale?: string,
+    timeZone = DEFAULT_TIME_ZONE,
 ) {
-    const date = value instanceof Date
-        ? value
-        : /^\d{4}-\d{2}-\d{2}$/.test(value)
-            ? new Date(`${value}T12:00:00.000Z`)
-            : new Date(value)
+    const isDateOnly = typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
+    const date = value instanceof Date ? value : new Date(isDateOnly ? `${value}T12:00:00.000Z` : value)
 
-    return new Intl.DateTimeFormat(locale, { ...options, timeZone: EASTERN_TIME_ZONE }).format(date)
+    return new Intl.DateTimeFormat(locale, {
+        ...options,
+        timeZone: isDateOnly ? 'UTC' : timeZone,
+    }).format(date)
 }

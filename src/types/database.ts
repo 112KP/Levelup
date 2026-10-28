@@ -35,6 +35,7 @@ export type ProfileRow = {
     id: string
     user_id: string
     display_name: string | null
+    timezone: string
     job: string
     rank: Rank
     active_title_id: string | null
@@ -178,7 +179,7 @@ export interface Database {
             profiles: {
                 Row: ProfileRow
                 Insert: never
-                Update: { display_name?: string | null; job?: string }
+                Update: { display_name?: string | null; job?: string; timezone?: string }
                 Relationships: []
             }
             titles: {

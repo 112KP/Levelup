@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../auth/useAuth'
 import { completeQuest, failQuest, fetchTodayQuestLogs, generateDailyQuestLogs } from '../lib/quests'
 import type { QuestBoardEntry } from '../lib/quests'
-import { getEasternDateKey } from '../lib/dateTime'
+import { getDateKey } from '../lib/dateTime'
+import { useTimezone } from '../auth/useTimezone'
 
 function formatOutcomeLabel(status: string, data: { questName?: string; xp?: number; gold?: number; hp?: number; mp?: number; careerAbility?: number; penaltyHp?: number; penaltyGold?: number; fatigueRestore?: number }) {
     if (status === 'complete') {
@@ -15,6 +16,7 @@ function formatOutcomeLabel(status: string, data: { questName?: string; xp?: num
 
 export function TodayBoardPage() {
     const { session } = useAuth()
+    const { timeZone, loading: timezoneLoading } = useTimezone()
     const userId = session?.user.id ?? ''
     const [entries, setEntries] = useState<QuestBoardEntry[]>([])
     const [loading, setLoading] = useState(true)
@@ -22,18 +24,16 @@ export function TodayBoardPage() {
     const [busyId, setBusyId] = useState<string | null>(null)
     const [toast, setToast] = useState('')
 
-    const [today, setToday] = useState(getEasternDateKey)
+    const [clock, setClock] = useState(() => Date.now())
+    const today = getDateKey(new Date(clock), timeZone)
 
     useEffect(() => {
-        const timer = window.setInterval(() => {
-            const currentDay = getEasternDateKey()
-            if (today !== currentDay) setToday(currentDay)
-        }, 60_000)
+        const timer = window.setInterval(() => setClock(Date.now()), 60_000)
         return () => window.clearInterval(timer)
-    }, [today])
+    }, [])
 
     const loadTodayBoard = useCallback(async () => {
-        if (!userId) return
+        if (!userId || timezoneLoading) return
         setLoading(true)
         const { error: generateError } = await generateDailyQuestLogs()
         if (generateError) {
@@ -52,7 +52,7 @@ export function TodayBoardPage() {
         setEntries((data ?? []) as QuestBoardEntry[])
         setError('')
         setLoading(false)
-    }, [today, userId])
+    }, [today, timezoneLoading, userId])
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect

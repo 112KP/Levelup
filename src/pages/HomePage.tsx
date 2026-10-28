@@ -15,7 +15,8 @@ import {
 import type { QuestBoardEntry } from '../lib/quests'
 import type { DungeonRow, QuestLogStatus, QuestPrahar, QuestRow, QuestStatRewardRow } from '../types/database'
 import { RankBadge } from '../components/status/RankBadge'
-import { formatEasternDate, getEasternDateKey } from '../lib/dateTime'
+import { formatDateInTimeZone, getDateKey } from '../lib/dateTime'
+import { useTimezone } from '../auth/useTimezone'
 
 const tabs: Array<{ status: QuestLogStatus; label: string }> = [
     { status: 'pending', label: 'To-Do' },
@@ -41,34 +42,34 @@ type HomePageProps = {
 
 export function HomePage({ onRefreshReady }: HomePageProps) {
     const { session } = useAuth()
+    const { timeZone, loading: timezoneLoading } = useTimezone()
     const userId = session?.user.id ?? ''
     const [entries, setEntries] = useState<QuestBoardEntry[]>([])
     const [quests, setQuests] = useState<QuestRow[]>([])
     const [dungeons, setDungeons] = useState<DungeonRow[]>([])
     const [statRewardsByQuestId, setStatRewardsByQuestId] = useState<Record<string, QuestStatRewardRow[]>>({})
-    const [activeTab, setActiveTab] = useState<QuestLogStatus>('pending')
+    const [selectedTab, setSelectedTab] = useState<{ day: string; status: QuestLogStatus }>(() => ({
+        day: getDateKey(new Date(), timeZone),
+        status: 'pending',
+    }))
+    const [clock, setClock] = useState(() => Date.now())
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [busyId, setBusyId] = useState<string | null>(null)
     const [toast, setToast] = useState('')
     const [busyAddId, setBusyAddId] = useState<string | null>(null)
-    const [today, setToday] = useState(getEasternDateKey)
+    const today = getDateKey(new Date(clock), timeZone)
+    const activeTab = selectedTab.day === today ? selectedTab.status : 'pending'
     const addQuestDialogRef = useRef<HTMLDialogElement | null>(null)
-    const shortDate = formatEasternDate(new Date(), { day: 'numeric', month: 'short' }, 'en-GB')
+    const shortDate = formatDateInTimeZone(new Date(), { day: 'numeric', month: 'short' }, 'en-GB', timeZone)
 
     useEffect(() => {
-        const timer = window.setInterval(() => {
-            const currentDay = getEasternDateKey()
-            if (today !== currentDay) {
-                setToday(currentDay)
-                setActiveTab('pending')
-            }
-        }, 60_000)
+        const timer = window.setInterval(() => setClock(Date.now()), 60_000)
         return () => window.clearInterval(timer)
-    }, [today])
+    }, [])
 
     const loadHome = useCallback(async () => {
-        if (!userId) return
+        if (!userId || timezoneLoading) return
         setLoading(true)
         setError('')
         const { error: generationError } = await generateDailyQuestLogs()
@@ -96,7 +97,7 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
         setStatRewardsByQuestId(rewardsByQuestId)
         setError(generationError?.message ? `Daily quests could not be generated: ${generationError.message}` : '')
         setLoading(false)
-    }, [today, userId])
+    }, [today, timezoneLoading, userId])
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -246,7 +247,7 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
             {activeDungeons.length > 0 && (
                 <section className="active-dungeon-strip" aria-label="Active dungeons">
                     {activeDungeons.map((dungeon) => {
-                        const remaining = getDaysRemaining(dungeon.deadline)
+                        const remaining = getDaysRemaining(dungeon.deadline, timeZone)
                         return (
                             <Link
                                 className="active-dungeon-card"
@@ -276,7 +277,7 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
                             role="tab"
                             aria-selected={activeTab === status}
                             className={`quest-tab${activeTab === status ? ' is-active' : ''}`}
-                            onClick={() => setActiveTab(status)}
+                            onClick={() => setSelectedTab({ day: today, status })}
                         >
                             {label}<span className="quest-tab-count">{count}</span>
                         </button>

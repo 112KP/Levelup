@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../auth/useAuth'
 import { fetchActivityHistory } from '../lib/history'
 import type { ActivityLogRow } from '../types/database'
-import { formatEasternDate } from '../lib/dateTime'
+import { formatDateInTimeZone } from '../lib/dateTime'
+import { useTimezone } from '../auth/useTimezone'
 
 const icons: Record<string, string> = {
     xp_gain: '✦',
@@ -16,6 +17,7 @@ const icons: Record<string, string> = {
 
 export function HistoryPage() {
     const { session } = useAuth()
+    const { timeZone } = useTimezone()
     const userId = session?.user.id ?? ''
     const [items, setItems] = useState<ActivityLogRow[]>([])
     const [loading, setLoading] = useState(true)
@@ -69,7 +71,7 @@ export function HistoryPage() {
                                 <div>
                                     <div className="history-heading">
                                         <strong>{item.event_type.replaceAll('_', ' ')}</strong>
-                                        <span>{formatEasternDate(item.created_at, { dateStyle: 'short', timeStyle: 'short' })}</span>
+                                        <span>{formatDateInTimeZone(item.created_at, { dateStyle: 'short', timeStyle: 'short' }, undefined, timeZone)}</span>
                                     </div>
                                     <p>{item.description ?? 'No description'}</p>
                                     {item.amount !== null && <small>{item.amount}</small>}

@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../auth/useAuth'
 import { createDungeon, deleteDungeon, fetchDungeons, updateDungeon } from '../lib/dungeons'
 import type { DungeonRow, Rank } from '../types/database'
-import { formatEasternDate } from '../lib/dateTime'
+import { formatDateInTimeZone } from '../lib/dateTime'
+import { useTimezone } from '../auth/useTimezone'
 
 const rankOptions: Rank[] = ['E', 'D', 'C', 'B', 'A', 'S']
 
@@ -16,6 +17,7 @@ const defaultForm = {
 
 export function DungeonsPage() {
     const { session } = useAuth()
+    const { timeZone } = useTimezone()
     const userId = session?.user.id ?? ''
     const [dungeons, setDungeons] = useState<DungeonRow[]>([])
     const [loading, setLoading] = useState(true)
@@ -184,7 +186,7 @@ export function DungeonsPage() {
                                             <td>{dungeon.dungeon_rank}</td>
                                             <td><span className={`status-pill ${dungeon.status}`}>{dungeon.status}</span></td>
                                             <td>{dungeon.xp_reward} XP / {dungeon.gold_reward} gold</td>
-                                            <td>{dungeon.deadline ? formatEasternDate(dungeon.deadline) : '—'}</td>
+                                            <td>{dungeon.deadline ? formatDateInTimeZone(dungeon.deadline, {}, undefined, timeZone) : '—'}</td>
                                             <td>
                                                 <div className="inline-actions">
                                                     <button type="button" className="link-button" onClick={() => handleEdit(dungeon)}>Edit</button>

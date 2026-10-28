@@ -1,10 +1,10 @@
 import { supabase } from './supabaseClient'
-import { getEasternDateKey } from './dateTime'
+import { getDateKey, DEFAULT_TIME_ZONE } from './dateTime'
 import type { Database, DungeonStatus } from '../types/database'
 
-export function getDaysRemaining(deadline: string | null) {
+export function getDaysRemaining(deadline: string | null, timeZone = DEFAULT_TIME_ZONE) {
     if (!deadline) return null
-    const [todayYear, todayMonth, todayDay] = getEasternDateKey().split('-').map(Number)
+    const [todayYear, todayMonth, todayDay] = getDateKey(new Date(), timeZone).split('-').map(Number)
     const todayValue = Date.UTC(todayYear, todayMonth - 1, todayDay)
     const [year, month, day] = deadline.split('-').map(Number)
     const dueValue = Date.UTC(year, month - 1, day)

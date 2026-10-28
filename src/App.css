@@ -473,6 +473,97 @@ body:has(.workspace-shell) {
     font-size: 0.78rem;
 }
 
+.settings-page {
+    display: grid;
+    gap: 20px;
+    color: #dfefff;
+}
+
+.settings-page > .eyebrow,
+.settings-page h1,
+.settings-section h2,
+.settings-section p {
+    margin: 0;
+}
+
+.settings-page h1 {
+    color: #c7ffe0;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 2rem;
+}
+
+.settings-section {
+    display: grid;
+    gap: 10px;
+    padding: 16px;
+    border: 1px solid rgba(168, 110, 255, 0.38);
+    background: rgba(10, 18, 36, 0.72);
+}
+
+.settings-section label,
+.settings-section h2 {
+    color: #c7ffe0;
+    font-weight: 700;
+}
+
+.settings-section p {
+    color: #aebbd1;
+    font-size: 0.9rem;
+}
+
+.settings-section select {
+    width: 100%;
+    min-height: 46px;
+    padding: 8px 12px;
+    border: 1px solid rgba(62, 198, 255, 0.48);
+    border-radius: 0;
+    color: #dfefff;
+    background: #0a1224;
+    font: inherit;
+}
+
+.settings-section select:focus-visible {
+    outline: 2px solid #3ec6ff;
+    outline-offset: 2px;
+}
+
+.settings-section select:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+.settings-message {
+    font-size: 0.82rem !important;
+}
+
+.settings-success {
+    color: #8dcc96 !important;
+}
+
+.settings-error {
+    color: #ff9696 !important;
+}
+
+.settings-danger-zone {
+    border-color: rgba(255, 150, 150, 0.35);
+}
+
+.settings-delete-link {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 14px;
+    border: 1px solid #a35464;
+    color: #ffb3b3;
+    text-decoration: none;
+}
+
+.settings-delete-link:hover,
+.settings-delete-link:focus-visible {
+    background: rgba(163, 84, 100, 0.16);
+}
+
 .delete-account-page {
     display: grid;
     gap: 18px;

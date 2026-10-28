@@ -5,7 +5,8 @@ import { clearDungeon, createDungeon, deleteDungeon, fetchDungeons, getDaysRemai
 import type { DungeonRow, DungeonStatus, Rank } from '../types/database'
 import { RankBadge } from '../components/status/RankBadge'
 import { useSearchParams } from 'react-router-dom'
-import { formatEasternDate } from '../lib/dateTime'
+import { formatDateInTimeZone } from '../lib/dateTime'
+import { useTimezone } from '../auth/useTimezone'
 
 const rankOptions: Rank[] = ['E', 'D', 'C', 'B', 'A', 'S']
 
@@ -22,13 +23,14 @@ function statusLabel(status: DungeonStatus) {
     return status.replace('_', ' ')
 }
 
-function deadlineLabel(deadline: string | null) {
+function deadlineLabel(deadline: string | null, timeZone: string) {
     if (!deadline) return 'No deadline'
-    return formatEasternDate(deadline, { day: 'numeric', month: 'short', year: 'numeric' }, 'en-GB')
+    return formatDateInTimeZone(deadline, { day: 'numeric', month: 'short', year: 'numeric' }, 'en-GB', timeZone)
 }
 
 export function ManageDungeonsPage() {
     const { session } = useAuth()
+    const { timeZone } = useTimezone()
     const userId = session?.user.id ?? ''
     const [searchParams] = useSearchParams()
     const focusedId = searchParams.get('focus')
@@ -205,7 +207,7 @@ export function ManageDungeonsPage() {
                 ) : (
                     <div className="manage-list">
                         {sortedDungeons.map((dungeon) => {
-                            const remaining = getDaysRemaining(dungeon.deadline)
+                            const remaining = getDaysRemaining(dungeon.deadline, timeZone)
                             const busyThisDungeon = busyId === dungeon.id
                             return (
                                 <article
@@ -222,7 +224,7 @@ export function ManageDungeonsPage() {
                                             <span className={`dungeon-status-badge ${dungeon.status}`}>{statusLabel(dungeon.status)}</span>
                                         </div>
                                         <div className="manage-row-tags">
-                                            <span>{deadlineLabel(dungeon.deadline)}</span>
+                                            <span>{deadlineLabel(dungeon.deadline, timeZone)}</span>
                                             <span className="reward-text">+{dungeon.xp_reward} XP</span>
                                             <span className="reward-text">+{dungeon.gold_reward} gold</span>
                                             {dungeon.career_ability_reward > 0 && <span className="reward-text">+{dungeon.career_ability_reward} Career</span>}

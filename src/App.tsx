@@ -13,6 +13,8 @@ import { ManageQuestsPage } from './pages/ManageQuestsPage'
 import { SkillsPage } from './pages/SkillsPage'
 import { TitlesPage } from './pages/TitlesPage'
 import { DeleteAccountPage } from './pages/DeleteAccountPage'
+import { SettingsPage } from './pages/SettingsPage'
+import { TimezoneProvider } from './auth/TimezoneProvider'
 import {
     signInWithGoogle,
     signInWithPassword,
@@ -29,7 +31,7 @@ const navItems = [
     { to: '/skills', label: 'Skills' },
     { to: '/titles', label: 'Title' },
     { to: '/history', label: 'History' },
-    { to: '/delete-account', label: 'Delete account' },
+    { to: '/settings', label: 'Settings' },
 ]
 
 type ProfileNavigationMenuProps = {
@@ -307,6 +309,7 @@ function AppShell() {
             <Route path="/dungeons" element={<Navigate to="/dungeons/manage" replace />} />
             <Route path="/dungeons/manage" element={<ManageDungeonsPage />} />
             <Route path="/history" element={<HistoryPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
             <Route path="/delete-account" element={<DeleteAccountPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
@@ -354,7 +357,9 @@ function App() {
 
     return (
         <BrowserRouter basename={import.meta.env.BASE_URL}>
-            <AppShell />
+            <TimezoneProvider>
+                <AppShell />
+            </TimezoneProvider>
         </BrowserRouter>
     )
 }
