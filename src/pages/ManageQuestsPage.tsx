@@ -362,7 +362,17 @@ export function ManageQuestsPage() {
                         <label className="field-group">Target value<input className="field-input" type="number" min="1" step="1" value={form.target_value} onChange={(event) => setForm({ ...form, target_value: Number(event.target.value) })} /></label>
                     </div>
                     <div className="inline-grid two-up">
-                        <label className="field-group">Unit<input className="field-input" value={form.unit} onChange={(event) => setForm({ ...form, unit: event.target.value })} /></label>
+                        <label className="field-group">
+                            Unit
+                            <input
+                                className="field-input"
+                                value={form.unit}
+                                placeholder="e.g. L, pages, sessions"
+                                aria-describedby="quest-unit-help"
+                                onChange={(event) => setForm({ ...form, unit: event.target.value })}
+                            />
+                            <small id="quest-unit-help">Optional — leave blank for simple pass/fail quests.</small>
+                        </label>
                         <label className="field-group">XP reward<input className="field-input" type="number" min="0" step="1" value={form.xp_reward} onChange={(event) => setForm({ ...form, xp_reward: event.target.value })} /></label>
                     </div>
                     <label className="field-group">Gold reward<input className="field-input" type="number" min="0" step="1" value={form.gold_reward} onChange={(event) => setForm({ ...form, gold_reward: event.target.value })} /></label>

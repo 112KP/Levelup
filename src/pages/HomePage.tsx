@@ -36,6 +36,18 @@ function recurrenceLabel(recurrence: string) {
     return recurrence.charAt(0).toUpperCase() + recurrence.slice(1)
 }
 
+function getQuestGoalLabel(targetValue: number | null, unitValue: string | null) {
+    const target = targetValue ?? 1
+    const unit = unitValue?.trim() ?? ''
+    const duplicatedNumericUnit = /^\d+(?:\.\d+)?$/.test(unit) && Number(unit) === target
+    const displayUnit = duplicatedNumericUnit ? '' : unit
+
+    if (target <= 1 && !displayUnit) return null
+
+    const separator = /^[A-Za-z]{1,2}$/.test(displayUnit) ? '' : ' '
+    return `Goal: ${target}${displayUnit ? `${separator}${displayUnit}` : ''}`
+}
+
 type HomePageProps = {
     onRefreshReady: (refresh: (() => Promise<void>) | null) => void
 }
@@ -299,6 +311,7 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
                         const quest = entry.quests
                         if (!quest) return null
                         const pending = entry.status === 'pending'
+                        const goalLabel = getQuestGoalLabel(quest.target_value, quest.unit)
                         const savedRewards = statRewardsByQuestId[quest.id]
                         const rewards = savedRewards?.length
                             ? savedRewards
@@ -325,7 +338,7 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
                                     </div>
                                     <p className="home-quest-recurrence">{recurrenceLabel(quest.recurrence)}</p>
                                     {quest.description && <p className="home-quest-description">{quest.description}</p>}
-                                    {quest.unit && <p className="home-quest-progress">0 / {quest.target_value} {quest.unit}</p>}
+                                    {goalLabel && <p className="home-quest-goal">{goalLabel}</p>}
                                     <div className="home-quest-rewards">
                                         <span>+{quest.xp_reward} XP</span>
                                         <span>+{quest.gold_reward} gold</span>

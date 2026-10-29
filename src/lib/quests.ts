@@ -52,7 +52,7 @@ export async function fetchTodayQuestLogs(userId: string, day: string) {
     return supabase
         .from('quest_logs')
         .select(
-            'id, user_id, quest_id, quest_date, progress_value, status, completed_at, penalty_applied, created_at, updated_at, quests:quest_id (id, name, description, xp_reward, gold_reward, hp_reward, mp_reward, career_ability_reward, penalty_hp, penalty_gold, fatigue_restore, stat_reward, stat_reward_amount, recurrence, prahar, difficulty, target_value, unit)',
+            'id, user_id, quest_id, quest_date, status, completed_at, penalty_applied, created_at, updated_at, quests:quest_id (id, name, description, xp_reward, gold_reward, hp_reward, mp_reward, career_ability_reward, penalty_hp, penalty_gold, fatigue_restore, stat_reward, stat_reward_amount, recurrence, prahar, difficulty, target_value, unit)',
         )
         .eq('user_id', userId)
         .eq('quest_date', day)
@@ -67,7 +67,7 @@ export async function failQuest(pLogId: string) {
     return supabase.rpc('fail_quest', { p_log_id: pLogId })
 }
 
-export type QuestBoardEntry = QuestLogRow & {
+export type QuestBoardEntry = Omit<QuestLogRow, 'progress_value'> & {
     quests: {
         id: string
         name: string

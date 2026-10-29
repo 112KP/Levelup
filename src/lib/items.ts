@@ -44,7 +44,8 @@ export function buildItemEffectJson(effects: ItemEffects): Json {
     for (const key of itemEffectKeys) {
         const amount = effects[key]
         if (typeof amount === 'number' && Number.isFinite(amount)) {
-            const normalizedAmount = Math.max(-100, Math.min(100, Math.trunc(amount)))
+            const minimum = itemAttributeKeys.some((attributeKey) => attributeKey === key) ? 0 : -100
+            const normalizedAmount = Math.max(minimum, Math.min(100, Math.trunc(amount)))
             if (normalizedAmount !== 0) result[key] = normalizedAmount
         }
     }
@@ -67,12 +68,12 @@ export function formatItemEffectSummary(value: unknown) {
         }
     }
 
-    const attributeValues = itemAttributeKeys.map((key) => effects[key] ?? 0)
+    const attributeValues = itemAttributeKeys.map((key) => Math.max(0, effects[key] ?? 0))
     if (attributeValues.every((amount) => amount === attributeValues[0]) && attributeValues[0] !== 0) {
-        summary.push(`${formatEffectAmount(attributeValues[0])} all stats`)
+        summary.push(`${formatEffectAmount(attributeValues[0])} all attributes`)
     } else {
         for (const key of itemAttributeKeys) {
-            const amount = effects[key]
+            const amount = Math.max(0, effects[key] ?? 0)
             if (amount) {
                 summary.push(`${formatEffectAmount(amount)} ${key[0].toUpperCase()}${key.slice(1)}`)
             }

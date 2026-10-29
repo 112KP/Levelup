@@ -931,7 +931,7 @@ body:has(.workspace-shell) {
     color: #a9bad4;
 }
 
-.home-quest-progress {
+.home-quest-goal {
     margin: 6px 0 0;
     color: var(--home-blue);
     font-family: 'JetBrains Mono', monospace;

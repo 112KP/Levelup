@@ -45,12 +45,15 @@ function Stepper({
     label,
     value,
     onChange,
+    allowNegative = true,
 }: {
     label: string
     value: number
     onChange: (value: number) => void
+    allowNegative?: boolean
 }) {
-    const amount = Math.max(-100, Math.min(100, Math.trunc(value)))
+    const minimum = allowNegative ? -100 : 0
+    const amount = Math.max(minimum, Math.min(100, Math.trunc(value)))
     return (
         <div className="effect-stepper" role="group" aria-label={`${label} effect`}>
             <span className="effect-stepper-label">{label}</span>
@@ -59,8 +62,8 @@ function Stepper({
                     type="button"
                     className="effect-stepper-button"
                     aria-label={`Decrease ${label}; current value ${amount}`}
-                    disabled={amount <= -100}
-                    onClick={() => onChange(Math.max(-100, amount - 1))}
+                    disabled={amount <= minimum}
+                    onClick={() => onChange(Math.max(minimum, amount - 1))}
                 >
                     <Minus size={15} aria-hidden="true" />
                 </button>
@@ -167,6 +170,7 @@ export function EffectBuilder({ itemType, effects, onChange }: EffectBuilderProp
                             label="All Attributes"
                             value={effects.strength ?? 0}
                             onChange={changeAllAttributes}
+                            allowNegative={false}
                         />
                         <p className="effect-mode-note">
                             Applies to Strength, Agility, Sense, Vitality, and Intelligence equally.
@@ -181,6 +185,7 @@ export function EffectBuilder({ itemType, effects, onChange }: EffectBuilderProp
                                     label={label}
                                     value={effects[key] ?? 0}
                                     onChange={(value) => changeAttribute(key, value)}
+                                    allowNegative={false}
                                 />
                             </div>
                         ))}
