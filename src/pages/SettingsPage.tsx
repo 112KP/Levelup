@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
+import { useAuth } from '../auth/useAuth'
+import { supabase } from '../lib/supabaseClient'
 import { useTimezone } from '../auth/useTimezone'
 
 const timeZones = ['UTC', ...Intl.supportedValuesOf('timeZone')]
@@ -63,9 +65,85 @@ function formatOffset(offsetMinutes: number) {
 }
 
 export function SettingsPage() {
+    const { session } = useAuth()
     const { timeZone, loading, error, updateTimeZone } = useTimezone()
     const [saving, setSaving] = useState(false)
     const [saved, setSaved] = useState(false)
+    const [profile, setProfile] = useState<{
+        userId: string
+        displayName: string
+        error: string
+    } | null>(null)
+    const [profileNameSaving, setProfileNameSaving] = useState(false)
+    const [profileNameSaved, setProfileNameSaved] = useState(false)
+    const userId = session?.user.id
+    const currentProfile = profile && profile.userId === userId ? profile : null
+    const profileNameLoading = Boolean(userId) && !currentProfile
+    const profileName = currentProfile?.displayName ?? ''
+    const profileNameError = !userId
+        ? 'You must be signed in to edit your profile name.'
+        : currentProfile?.error ?? ''
+
+    useEffect(() => {
+        let active = true
+
+        async function loadProfileName() {
+            if (!userId) return
+
+            const { data, error: queryError } = await supabase
+                .from('profiles')
+                .select('display_name')
+                .eq('user_id', userId)
+                .maybeSingle()
+
+            if (!active) return
+            setProfile({
+                userId,
+                displayName: data?.display_name ?? '',
+                error: queryError?.message ?? (data ? '' : 'Your profile could not be found.'),
+            })
+        }
+
+        void loadProfileName()
+
+        return () => {
+            active = false
+        }
+    }, [userId])
+
+    async function handleProfileNameSubmit(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault()
+        if (!userId || profileNameSaving) return
+
+        setProfileNameSaving(true)
+        setProfileNameSaved(false)
+        setProfile((current) => current?.userId === userId
+            ? { ...current, error: '' }
+            : current)
+        try {
+            const displayName = profileName.trim()
+            const { data, error: updateError } = await supabase
+                .from('profiles')
+                .update({ display_name: displayName || null })
+                .eq('user_id', userId)
+                .select('user_id')
+                .maybeSingle()
+
+            if (updateError) throw updateError
+            if (!data) throw new Error('Your profile could not be found.')
+
+            setProfile({ userId, displayName, error: '' })
+            setProfileNameSaved(true)
+        } catch (saveError) {
+            const message =
+                saveError instanceof Error ? saveError.message : 'Unable to save your profile name.'
+            setProfile((current) => current?.userId === userId
+                ? { ...current, error: message }
+                : { userId, displayName: profileName, error: message })
+        } finally {
+            setProfileNameSaving(false)
+        }
+    }
 
     async function handleTimeZoneChange(nextTimeZone: string) {
         setSaving(true)
@@ -84,6 +162,39 @@ export function SettingsPage() {
         <section className="settings-page" aria-labelledby="settings-title">
             <p className="eyebrow">PREFERENCES</p>
             <h1 id="settings-title">Settings</h1>
+
+            <div className="settings-section">
+                <h2>Profile</h2>
+                <p id="profile-name-help">Choose the name shown on your profile page.</p>
+                <form className="settings-profile-form" onSubmit={(event) => void handleProfileNameSubmit(event)}>
+                    <label htmlFor="profile-name">Profile name</label>
+                    <input
+                        id="profile-name"
+                        aria-describedby="profile-name-help"
+                        autoComplete="nickname"
+                        maxLength={50}
+                        value={profileName}
+                        disabled={!userId || profileNameLoading || profileNameSaving}
+                        onChange={(event) => {
+                            const displayName = event.target.value
+                            setProfile((current) => userId && current?.userId === userId
+                                ? { ...current, displayName, error: '' }
+                                : current)
+                            setProfileNameSaved(false)
+                        }}
+                    />
+                    <button
+                        className="primary-button settings-save-button"
+                        type="submit"
+                        disabled={!userId || profileNameLoading || profileNameSaving}
+                    >
+                        {profileNameSaving ? 'Saving...' : 'Save profile name'}
+                    </button>
+                </form>
+                {profileNameLoading && <p className="settings-message">Loading your profile...</p>}
+                {profileNameSaved && <p className="settings-message settings-success" role="status">Profile name saved.</p>}
+                {profileNameError && <p className="settings-message settings-error" role="alert">{profileNameError}</p>}
+            </div>
 
             <div className="settings-section">
                 <label htmlFor="timezone-select">Timezone</label>

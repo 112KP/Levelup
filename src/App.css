@@ -511,6 +511,12 @@ body:has(.workspace-shell) {
     font-size: 0.9rem;
 }
 
+.settings-profile-form {
+    display: grid;
+    gap: 10px;
+}
+
+.settings-section input,
 .settings-section select {
     width: 100%;
     min-height: 46px;
@@ -522,14 +528,21 @@ body:has(.workspace-shell) {
     font: inherit;
 }
 
+.settings-section input:focus-visible,
 .settings-section select:focus-visible {
     outline: 2px solid #3ec6ff;
     outline-offset: 2px;
 }
 
+.settings-section input:disabled,
 .settings-section select:disabled {
     cursor: wait;
     opacity: 0.65;
+}
+
+.settings-save-button {
+    justify-self: start;
+    margin-top: 0;
 }
 
 .settings-message {
