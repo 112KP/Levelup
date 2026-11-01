@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Plus, Search, X } from 'lucide-react'
+import { ValueStepper } from '../components/ValueStepper'
 import { useAuth } from '../auth/useAuth'
 import {
     createQuest,
     deleteQuest,
     fetchQuests,
+    getQuestVitalPenalties,
+    getQuestVitalRewards,
     updateQuest,
 } from '../lib/quests'
 import { ABILITY_OPTIONS, MAX_ABILITIES_PER_QUEST, getAbilityLabel } from '../lib/abilities'
+import { VITAL_LABELS } from '../lib/vitals'
 import type { AbilityName, QuestDifficulty, QuestPrahar, QuestRecurrence, QuestRow } from '../types/database.types'
 
 const recurrenceOptions: Array<{ value: QuestRecurrence | 'all'; label: string }> = [
@@ -36,8 +40,13 @@ const defaultForm = {
     gold_reward: '',
     hp_reward: '',
     mp_reward: '',
+    emotion_reward: '',
+    energy_reward: '',
     abilities: [] as AbilityName[],
     penalty_hp: '',
+    penalty_mp: '',
+    penalty_emotion: '',
+    penalty_energy: '',
     penalty_gold: '',
     fatigue_restore: '0',
     is_active: true,
@@ -117,8 +126,13 @@ export function ManageQuestsPage() {
             gold_reward: String(quest.gold_reward),
             hp_reward: String(quest.hp_reward),
             mp_reward: String(quest.mp_reward),
+            emotion_reward: String(quest.emotion_reward),
+            energy_reward: String(quest.energy_reward),
             abilities: quest.abilities ?? [],
             penalty_hp: String(quest.penalty_hp),
+            penalty_mp: String(quest.penalty_mp),
+            penalty_emotion: String(quest.penalty_emotion),
+            penalty_energy: String(quest.penalty_energy),
             penalty_gold: String(quest.penalty_gold),
             fatigue_restore: String(quest.fatigue_restore),
             is_active: quest.is_active,
@@ -158,9 +172,14 @@ export function ManageQuestsPage() {
             unit: form.unit.trim() || null,
             xp_reward: Math.max(0, Number(form.xp_reward) || 0),
             gold_reward: Math.max(0, Number(form.gold_reward) || 0),
-            hp_reward: Math.max(0, Number(form.hp_reward) || 0),
-            mp_reward: Math.max(0, Number(form.mp_reward) || 0),
-            penalty_hp: Math.max(0, Number(form.penalty_hp) || 0),
+            hp_reward: Math.max(0, Math.trunc(Number(form.hp_reward) || 0)),
+            mp_reward: Math.max(0, Math.trunc(Number(form.mp_reward) || 0)),
+            emotion_reward: Math.max(0, Math.trunc(Number(form.emotion_reward) || 0)),
+            energy_reward: Math.max(0, Math.trunc(Number(form.energy_reward) || 0)),
+            penalty_hp: Math.max(0, Math.trunc(Number(form.penalty_hp) || 0)),
+            penalty_mp: Math.max(0, Math.trunc(Number(form.penalty_mp) || 0)),
+            penalty_emotion: Math.max(0, Math.trunc(Number(form.penalty_emotion) || 0)),
+            penalty_energy: Math.max(0, Math.trunc(Number(form.penalty_energy) || 0)),
             penalty_gold: Math.max(0, Number(form.penalty_gold) || 0),
             fatigue_restore: Math.min(100, Math.max(0, Math.trunc(Number(form.fatigue_restore) || 0))),
             is_active: form.is_active,
@@ -217,7 +236,16 @@ export function ManageQuestsPage() {
         } else {
             setQuests((current) => current.map((item) => item.id === quest.id ? { ...item, is_active: !item.is_active } : item))
         }
+
         setBusyToggleId(null)
+    }
+
+    function setVitalAmount(
+        field: 'hp_reward' | 'mp_reward' | 'emotion_reward' | 'energy_reward'
+            | 'penalty_hp' | 'penalty_mp' | 'penalty_emotion' | 'penalty_energy' | 'fatigue_restore',
+        value: number,
+    ) {
+        setForm((current) => ({ ...current, [field]: String(value) }))
     }
 
     return (
@@ -277,9 +305,8 @@ export function ManageQuestsPage() {
                                             : <span className="ability-chip no-ability">No ability</span>}
                                         <span className="reward-text">+{quest.xp_reward} XP</span>
                                         <span className="reward-text">+{quest.gold_reward} gold</span>
-                                        {quest.hp_reward > 0 && <span className="reward-text">+{quest.hp_reward} HP</span>}
-                                        {quest.mp_reward > 0 && <span className="reward-text">+{quest.mp_reward} MP</span>}
-                                        {quest.fatigue_restore > 0 && <span className="reward-text">−{quest.fatigue_restore} Fatigue</span>}
+                                        {getQuestVitalRewards(quest).map((reward) => <span className="reward-text" key={reward}>{reward}</span>)}
+                                        {getQuestVitalPenalties(quest).map((penalty) => <span className="reward-text" key={`penalty-${penalty}`}>On skip: {penalty}</span>)}
                                     </div>
                                 </div>
                                 <div className="manage-row-actions">
@@ -364,15 +391,25 @@ export function ManageQuestsPage() {
                         <label className="field-group">XP reward<input className="field-input" type="number" min="0" step="1" value={form.xp_reward} onChange={(event) => setForm({ ...form, xp_reward: event.target.value })} /></label>
                     </div>
                     <label className="field-group">Gold reward<input className="field-input" type="number" min="0" step="1" value={form.gold_reward} onChange={(event) => setForm({ ...form, gold_reward: event.target.value })} /></label>
-                    <div className="inline-grid two-up">
-                        <label className="field-group">HP increase<input className="field-input" type="number" min="0" step="1" value={form.hp_reward} onChange={(event) => setForm({ ...form, hp_reward: event.target.value })} /></label>
-                        <label className="field-group">MP increase<input className="field-input" type="number" min="0" step="1" value={form.mp_reward} onChange={(event) => setForm({ ...form, mp_reward: event.target.value })} /></label>
+                    <div className="effect-vitals-grid">
+                        <ValueStepper label={VITAL_LABELS.body} value={Number(form.hp_reward) || 0} onChange={(value) => setVitalAmount('hp_reward', value)} />
+                        <ValueStepper label={VITAL_LABELS.mind} value={Number(form.mp_reward) || 0} onChange={(value) => setVitalAmount('mp_reward', value)} />
+                        <ValueStepper label={VITAL_LABELS.emotion} value={Number(form.emotion_reward) || 0} onChange={(value) => setVitalAmount('emotion_reward', value)} />
+                        <ValueStepper label={VITAL_LABELS.energy} value={Number(form.energy_reward) || 0} onChange={(value) => setVitalAmount('energy_reward', value)} />
                     </div>
                     <div className="inline-grid two-up">
-                        <label className="field-group">HP penalty<input className="field-input" type="number" min="0" step="1" value={form.penalty_hp} onChange={(event) => setForm({ ...form, penalty_hp: event.target.value })} /></label>
+                        <ValueStepper label={`${VITAL_LABELS.body} penalty`} value={Number(form.penalty_hp) || 0} onChange={(value) => setVitalAmount('penalty_hp', value)} />
+                        <ValueStepper label={`${VITAL_LABELS.mind} penalty`} value={Number(form.penalty_mp) || 0} onChange={(value) => setVitalAmount('penalty_mp', value)} />
+                        <ValueStepper label={`${VITAL_LABELS.emotion} penalty`} value={Number(form.penalty_emotion) || 0} onChange={(value) => setVitalAmount('penalty_emotion', value)} />
+                        <ValueStepper label={`${VITAL_LABELS.energy} penalty`} value={Number(form.penalty_energy) || 0} onChange={(value) => setVitalAmount('penalty_energy', value)} />
                         <label className="field-group">Gold penalty<input className="field-input" type="number" min="0" step="1" value={form.penalty_gold} onChange={(event) => setForm({ ...form, penalty_gold: event.target.value })} /></label>
                     </div>
-                    <label className="field-group">Fatigue restored on completion<input className="field-input" type="number" min="0" max="100" step="1" value={form.fatigue_restore} onChange={(event) => setForm({ ...form, fatigue_restore: event.target.value })} /></label>
+                    <ValueStepper
+                        label={`${VITAL_LABELS.fatigue} restored on completion`}
+                        value={Number(form.fatigue_restore) || 0}
+                        onChange={(value) => setVitalAmount('fatigue_restore', value)}
+                        max={100}
+                    />
                     <label className="manage-checkbox"><input type="checkbox" checked={form.is_active} onChange={(event) => setForm({ ...form, is_active: event.target.checked })} /> Enrolled and active</label>
                     {error && <p className="status-error" role="alert">{error}</p>}
                     <footer className="manage-form-actions">

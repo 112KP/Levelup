@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../auth/useAuth'
 import { createQuest, deleteQuest, fetchQuests, updateQuest } from '../lib/quests'
+import { VITAL_LABELS } from '../lib/vitals'
 import type { QuestRecurrence, QuestRow, StatName } from '../types/database.types'
 
 const recurrenceOptions: Array<{ value: QuestRecurrence | 'all'; label: string }> = [
@@ -268,7 +269,7 @@ export function QuestsPage() {
                                 <input className="field-input" type="number" value={form.stat_reward_amount} onChange={(event) => setForm({ ...form, stat_reward_amount: Number(event.target.value) })} />
                             </div>
                             <div>
-                                <label>Penalty HP</label>
+                                <label>{VITAL_LABELS.body} penalty</label>
                                 <input className="field-input" type="number" value={form.penalty_hp} onChange={(event) => setForm({ ...form, penalty_hp: Number(event.target.value) })} />
                             </div>
                         </div>

@@ -1,9 +1,12 @@
 import { supabase } from './supabaseClient'
 import type { Database, Json } from '../types/database.types'
+import { formatVitalEffect } from './vitals'
 
 export const itemEffectKeys = [
     'hp',
     'mp',
+    'emotion',
+    'energy',
     'fatigue',
     'gold',
     'strength',
@@ -11,6 +14,7 @@ export const itemEffectKeys = [
     'sense',
     'vitality',
     'intelligence',
+    'career',
 ] as const
 
 export const itemAttributeKeys = [
@@ -19,6 +23,7 @@ export const itemAttributeKeys = [
     'sense',
     'vitality',
     'intelligence',
+    'career',
 ] as const
 
 export type ItemEffectKey = typeof itemEffectKeys[number]
@@ -60,11 +65,21 @@ export function formatItemEffectSummary(value: unknown) {
     const effects = normalizeItemEffects(value)
     const summary: string[] = []
 
-    for (const key of ['hp', 'mp', 'fatigue', 'gold'] as const) {
+    for (const key of ['hp', 'mp', 'emotion', 'energy', 'fatigue', 'gold'] as const) {
         const amount = effects[key]
         if (amount) {
-            const label = key === 'hp' ? 'HP' : key === 'mp' ? 'MP' : key === 'gold' ? 'Gold' : 'Fatigue'
-            summary.push(`${formatEffectAmount(amount)} ${label}`)
+            const label = key === 'hp'
+                ? formatVitalEffect('body', amount)
+                : key === 'mp'
+                    ? formatVitalEffect('mind', amount)
+                    : key === 'emotion'
+                        ? formatVitalEffect('emotion', amount)
+                        : key === 'energy'
+                            ? formatVitalEffect('energy', amount)
+                            : key === 'fatigue'
+                                ? formatVitalEffect('fatigue', amount)
+                                : `${formatEffectAmount(amount)} Gold`
+            summary.push(label)
         }
     }
 

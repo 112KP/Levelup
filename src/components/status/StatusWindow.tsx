@@ -20,6 +20,7 @@ import { StatCard } from './StatCard'
 import { VitalsBar } from './VitalsBar'
 import { XPBar } from './XPBar'
 import './status-window.css'
+import { VITAL_LABELS } from '../../lib/vitals'
 
 const statDetails: {
     name: StatName
@@ -34,7 +35,7 @@ const statDetails: {
         { name: 'career', label: 'Career', icon: BriefcaseBusiness },
     ]
 
-const profileColumns = 'id,user_id,display_name,timezone,job,rank,active_title_id,level,hp_current,hp_max,mp_current,mp_max,fatigue,xp,xp_to_next,strength,agility,sense,vitality,intelligence,career,career_ability,available_points,gold,created_at,updated_at' as const
+const profileColumns = 'id,user_id,display_name,timezone,job,rank,active_title_id,level,hp_current,hp_max,mp_current,mp_max,emotion_current,emotion_max,energy_current,energy_max,fatigue,xp,xp_to_next,strength,agility,sense,vitality,intelligence,career,career_ability,available_points,gold,created_at,updated_at' as const
 
 export function StatusWindow() {
     const { session } = useAuth()
@@ -241,9 +242,11 @@ export function StatusWindow() {
 
                     <div className="status-rule"><span>VITALS</span></div>
                     <section className="vitals-grid" aria-label="Player vitals">
-                        <VitalsBar label="HP" current={profile.hp_current} max={profile.hp_max} kind="hp" />
-                        <VitalsBar label="MP" current={profile.mp_current} max={profile.mp_max} kind="mp" />
-                        <VitalsBar label="FATIGUE" current={profile.fatigue} max={100} kind="fatigue" />
+                        <VitalsBar label={VITAL_LABELS.body} current={profile.hp_current} max={profile.hp_max} kind="body" />
+                        <VitalsBar label={VITAL_LABELS.mind} current={profile.mp_current} max={profile.mp_max} kind="mind" />
+                        <VitalsBar label={VITAL_LABELS.emotion} current={profile.emotion_current} max={profile.emotion_max} kind="emotion" />
+                        <VitalsBar label={VITAL_LABELS.energy} current={profile.energy_current} max={profile.energy_max} kind="energy" />
+                        <VitalsBar label={VITAL_LABELS.fatigue} current={profile.fatigue} max={100} kind="fatigue" />
                     </section>
 
                     <XPBar

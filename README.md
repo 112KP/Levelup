@@ -27,11 +27,30 @@ npm run build
 npm run build:mobile
 ```
 
-### Ability streaks
+### Vitals
 
-Review and run [the ability streak migration](./supabase/migrations/20261031190000_ability_streaks.sql)
-manually in the Supabase SQL editor before deploying the matching frontend. The app expects the
-new migration's RPCs and tables; this repository change does not apply schema changes remotely.
+The ability-streak migration must already be applied before this migration. Review and run
+[the vitals migration](./supabase/migrations/20261031203000_rework_vitals.sql) manually in the
+Supabase SQL editor before deploying the matching frontend. This repository does not apply schema
+changes remotely.
+
+After applying it, verify with a disposable profile whose six abilities and four current/max vital
+values start at 10 and 100/100:
+
+- Add 21 Strength: Body and Mind ceilings each rise by 21; current values do not rise.
+- Reset, then add 21 Strength and 21 Agility on the same day: Body and Mind ceilings each rise by
+  42.
+- Add 21 Intelligence or Career: only Mind rises. Add 21 Sense: only Emotion rises. Add 21 Vitality:
+  only Energy rises.
+- On the migration backfill, confirm Mind current rises by 50 and Body current is only clamped if
+  needed; Emotion and Energy current start at their new ceilings.
+- Raise a ceiling from 100 to 121, then apply a +5 Body effect: Body current becomes 105.
+- Apply negative item/dungeon effects below zero and positive effects above max: values clamp to 0
+  and their ceiling. Check Fatigue clamps to 0–100.
+- Attempt authenticated client writes to the new current/max columns and any profile max; they must
+  be denied. Confirm a newly created profile starts all four vitals at 100/100.
+- Run the migration a second time and confirm current values are preserved apart from clamping.
+- Grant XP sufficient for a level-up; no current or max vital value should change.
 
 ## Android app
 

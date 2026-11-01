@@ -9,9 +9,12 @@ import {
     failQuest,
     fetchQuests,
     fetchTodayQuestLogs,
+    getQuestVitalPenalties,
+    getQuestVitalRewards,
     generateDailyQuestLogs,
 } from '../lib/quests'
 import { getAbilityLabel } from '../lib/abilities'
+import { fetchStreakMilestones, getStreakMilestoneMessages } from '../lib/streaks'
 import { useAbilityStreaks } from '../auth/useAbilityStreaks'
 import type { QuestBoardEntry } from '../lib/quests'
 import type {
@@ -169,13 +172,23 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
                         .join(', ')
                     : 'No ability streak credited'
 
-                if (previousStreaks.size > 0) {
-                    for (const streak of updatedStreaks) {
-                        if (streak.highest_milestone_paid > (previousStreaks.get(streak.ability)?.highest_milestone_paid ?? 0)) {
-                            milestoneMessages.push(
-                                `+${streak.highest_milestone_paid} ${getAbilityLabel(streak.ability)}, ${streak.highest_milestone_paid}-day streak`,
-                            )
-                        }
+                const newlyPaid = previousStreaks.size > 0
+                    ? updatedStreaks.filter((streak) =>
+                        streak.highest_milestone_paid
+                        > (previousStreaks.get(streak.ability)?.highest_milestone_paid ?? 0),
+                    )
+                    : []
+
+                if (newlyPaid.length > 0) {
+                    const milestonesResult = await fetchStreakMilestones()
+                    if (milestonesResult.error) {
+                        setError(`Quest completed, but milestone details could not be loaded: ${milestonesResult.error.message}`)
+                    } else {
+                        milestoneMessages.push(...getStreakMilestoneMessages(
+                            [...previousStreaks.values()],
+                            updatedStreaks,
+                            milestonesResult.data ?? [],
+                        ))
                     }
                 }
             }
@@ -184,15 +197,13 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
             const rewards = [
                 `+${quest.xp_reward} XP`,
                 `+${quest.gold_reward} gold`,
-                ...(quest.hp_reward > 0 ? [`+${quest.hp_reward} HP`] : []),
-                ...(quest.mp_reward > 0 ? [`+${quest.mp_reward} MP`] : []),
-                ...(quest.fatigue_restore > 0 ? [`−${quest.fatigue_restore} Fatigue`] : []),
+                ...getQuestVitalRewards(quest),
             ]
             setToast(`${quest.name}: ${rewards.join(', ')}. ${streakSummary}.`)
         } else if (quest) {
             setMilestoneToasts([])
             const penalties = [
-                quest.penalty_hp ? `-${quest.penalty_hp} HP` : '',
+                ...getQuestVitalPenalties(quest),
                 quest.penalty_gold ? `-${quest.penalty_gold} gold` : '',
             ].filter(Boolean)
             setToast(`${quest.name} skipped${penalties.length ? `: ${penalties.join(', ')}` : ' with no penalty'}.`)
@@ -382,9 +393,8 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
                                     <div className="home-quest-rewards">
                                         <span>+{quest.xp_reward} XP</span>
                                         <span>+{quest.gold_reward} gold</span>
-                                        {quest.hp_reward > 0 && <span>+{quest.hp_reward} HP</span>}
-                                        {quest.mp_reward > 0 && <span>+{quest.mp_reward} MP</span>}
-                                        {quest.fatigue_restore > 0 && <span>−{quest.fatigue_restore} Fatigue</span>}
+                                        {getQuestVitalRewards(quest).map((reward) => <span key={reward}>{reward}</span>)}
+                                        {getQuestVitalPenalties(quest).map((penalty) => <span key={`penalty-${penalty}`}>On skip: {penalty}</span>)}
                                     </div>
                                 </div>
                                 {pending ? (

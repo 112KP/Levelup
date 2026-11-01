@@ -1,21 +1,38 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../auth/useAuth'
-import { completeQuest, failQuest, fetchTodayQuestLogs, generateDailyQuestLogs } from '../lib/quests'
+import { useAbilityStreaks } from '../auth/useAbilityStreaks'
+import {
+    completeQuest,
+    failQuest,
+    fetchTodayQuestLogs,
+    generateDailyQuestLogs,
+    getQuestVitalPenalties,
+    getQuestVitalRewards,
+} from '../lib/quests'
+import { fetchStreakMilestones, getStreakMilestoneMessages } from '../lib/streaks'
 import type { QuestBoardEntry } from '../lib/quests'
 import { getDateKey } from '../lib/dateTime'
 import { useTimezone } from '../auth/useTimezone'
 
-function formatOutcomeLabel(status: string, data: { questName?: string; xp?: number; gold?: number; hp?: number; mp?: number; penaltyHp?: number; penaltyGold?: number; fatigueRestore?: number }) {
+function formatOutcomeLabel(status: string, data: {
+    questName?: string
+    xp?: number
+    gold?: number
+    vitalRewards?: string[]
+    vitalPenalties?: string[]
+    penaltyGold?: number
+}) {
     if (status === 'complete') {
-        const otherRewards = [data.hp ? `+${data.hp} HP` : '', data.mp ? `+${data.mp} MP` : '', data.fatigueRestore ? `−${data.fatigueRestore} Fatigue` : ''].filter(Boolean)
-        const rewards = [`${data.xp ?? 0} XP`, `${data.gold ?? 0} gold`, ...otherRewards].join(', ')
+        const rewards = [`${data.xp ?? 0} XP`, `${data.gold ?? 0} gold`, ...(data.vitalRewards ?? [])].join(', ')
         return `Completed ${data.questName ?? 'quest'} for ${rewards}.`
     }
-    return `Failed ${data.questName ?? 'quest'} for ${data.penaltyHp ?? 0} HP and ${data.penaltyGold ?? 0} gold.`
+    const penalties = [...(data.vitalPenalties ?? []), data.penaltyGold ? `−${data.penaltyGold} gold` : ''].filter(Boolean)
+    return `Failed ${data.questName ?? 'quest'}${penalties.length ? `: ${penalties.join(', ')}` : ' with no penalty'}.`
 }
 
 export function TodayBoardPage() {
     const { session } = useAuth()
+    const { streaks, refresh: refreshStreaks } = useAbilityStreaks()
     const { timeZone, loading: timezoneLoading } = useTimezone()
     const userId = session?.user.id ?? ''
     const [entries, setEntries] = useState<QuestBoardEntry[]>([])
@@ -65,27 +82,63 @@ export function TodayBoardPage() {
         return () => window.clearTimeout(timer)
     }, [toast])
 
-    async function handleQuest(action: 'complete' | 'fail', logId: string, questName: string, xpReward: number, goldReward: number, hpReward: number, mpReward: number, penaltyHp: number, penaltyGold: number, fatigueRestore: number) {
-        setBusyId(logId)
+    async function handleQuest(action: 'complete' | 'fail', entry: QuestBoardEntry) {
+        const quest = entry.quests
+        if (!quest) return
+        setBusyId(entry.id)
         setError('')
 
-        const result = action === 'complete' ? await completeQuest(logId) : await failQuest(logId)
+        let previousStreaks = streaks
+        if (action === 'complete' && previousStreaks.length === 0) {
+            const previousResult = await refreshStreaks()
+            if (previousResult.error) {
+                setError(`Quest completion may succeed, but streak history could not be loaded: ${previousResult.error.message}`)
+            } else {
+                previousStreaks = previousResult.data ?? []
+            }
+        }
+
+        const result = action === 'complete' ? await completeQuest(entry.id) : await failQuest(entry.id)
         if (result.error) {
             setError(result.error.message || `The quest could not be marked as ${action}.`)
             setBusyId(null)
             return
         }
 
+        let milestoneMessages: string[] = []
+        if (action === 'complete') {
+            const streaksResult = await refreshStreaks()
+            if (streaksResult.error) {
+                setError(`Quest completed, but streaks could not be refreshed: ${streaksResult.error.message}`)
+            } else {
+                const updatedStreaks = streaksResult.data ?? []
+                const newlyPaid = updatedStreaks.some((streak) =>
+                    streak.highest_milestone_paid
+                    > (previousStreaks.find((previous) => previous.ability === streak.ability)?.highest_milestone_paid ?? 0),
+                )
+                if (newlyPaid && previousStreaks.length > 0) {
+                    const milestonesResult = await fetchStreakMilestones()
+                    if (milestonesResult.error) {
+                        setError(`Quest completed, but milestone details could not be loaded: ${milestonesResult.error.message}`)
+                    } else {
+                        milestoneMessages = getStreakMilestoneMessages(
+                            previousStreaks,
+                            updatedStreaks,
+                            milestonesResult.data ?? [],
+                        )
+                    }
+                }
+            }
+        }
+
         setToast(formatOutcomeLabel(action === 'complete' ? 'complete' : 'fail', {
-            questName,
-            xp: xpReward,
-            gold: goldReward,
-            hp: hpReward,
-            mp: mpReward,
-            penaltyHp,
-            penaltyGold,
-            fatigueRestore,
-        }))
+            questName: quest.name,
+            xp: quest.xp_reward,
+            gold: quest.gold_reward,
+            vitalRewards: getQuestVitalRewards(quest),
+            vitalPenalties: getQuestVitalPenalties(quest),
+            penaltyGold: quest.penalty_gold,
+        }) + (milestoneMessages.length ? ` ${milestoneMessages.join('. ')}.` : ''))
         setBusyId(null)
         await loadTodayBoard()
     }
@@ -124,17 +177,16 @@ export function TodayBoardPage() {
                                             <div className="meta-row">
                                                 <span>{quest.xp_reward} XP</span>
                                                 <span>{quest.gold_reward} gold</span>
-                                                {quest.hp_reward > 0 && <span>+{quest.hp_reward} HP</span>}
-                                                {quest.mp_reward > 0 && <span>+{quest.mp_reward} MP</span>}
-                                                {quest.fatigue_restore > 0 && <span>−{quest.fatigue_restore} Fatigue</span>}
+                                                {getQuestVitalRewards(quest).map((reward) => <span key={reward}>{reward}</span>)}
+                                                {getQuestVitalPenalties(quest).map((penalty) => <span key={`penalty-${penalty}`}>On skip: {penalty}</span>)}
                                                 <span>{quest.target_value} {quest.unit || 'goal'}</span>
                                             </div>
                                         </div>
                                         <div className="action-row compact">
-                                            <button type="button" className="primary-button" disabled={busyId === entry.id} onClick={() => void handleQuest('complete', entry.id, quest.name, quest.xp_reward, quest.gold_reward, quest.hp_reward, quest.mp_reward, quest.penalty_hp, quest.penalty_gold, quest.fatigue_restore)}>
+                                            <button type="button" className="primary-button" disabled={busyId === entry.id} onClick={() => void handleQuest('complete', entry)}>
                                                 {busyId === entry.id ? 'Working...' : 'Complete'}
                                             </button>
-                                            <button type="button" className="secondary-button" disabled={busyId === entry.id} onClick={() => void handleQuest('fail', entry.id, quest.name, quest.xp_reward, quest.gold_reward, quest.hp_reward, quest.mp_reward, quest.penalty_hp, quest.penalty_gold, quest.fatigue_restore)}>
+                                            <button type="button" className="secondary-button" disabled={busyId === entry.id} onClick={() => void handleQuest('fail', entry)}>
                                                 Fail
                                             </button>
                                         </div>

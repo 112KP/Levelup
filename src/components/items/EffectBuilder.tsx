@@ -1,19 +1,20 @@
 import { useState } from 'react'
 import {
     BrainCircuit,
+    BriefcaseBusiness,
     Dumbbell,
     Eye,
     HeartPulse,
-    Minus,
-    Plus,
     Wind,
 } from 'lucide-react'
+import { ValueStepper } from '../ValueStepper'
 import {
     formatItemEffectSummary,
     itemAttributeKeys,
 } from '../../lib/items'
 import type { ItemAttributeKey, ItemEffects } from '../../lib/items'
 import type { ItemType } from '../../types/database.types'
+import { VITAL_LABELS } from '../../lib/vitals'
 
 const attributes: Array<{ key: ItemAttributeKey; label: string; icon: typeof Dumbbell }> = [
     { key: 'strength', label: 'Strength', icon: Dumbbell },
@@ -21,13 +22,16 @@ const attributes: Array<{ key: ItemAttributeKey; label: string; icon: typeof Dum
     { key: 'sense', label: 'Sense', icon: Eye },
     { key: 'vitality', label: 'Vitality', icon: HeartPulse },
     { key: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
+    { key: 'career', label: 'Career', icon: BriefcaseBusiness },
 ]
 
 const effectSteppers = [
-    { key: 'hp', label: 'HP' },
-    { key: 'fatigue', label: 'Fatigue' },
+    { key: 'hp', label: VITAL_LABELS.body },
+    { key: 'mp', label: VITAL_LABELS.mind },
+    { key: 'emotion', label: VITAL_LABELS.emotion },
+    { key: 'energy', label: VITAL_LABELS.energy },
+    { key: 'fatigue', label: VITAL_LABELS.fatigue },
     { key: 'gold', label: 'Gold' },
-    { key: 'mp', label: 'MP' },
 ] as const
 
 type EffectBuilderProps = {
@@ -39,47 +43,6 @@ type EffectBuilderProps = {
 function initialAttributeMode(effects: ItemEffects): 'same' | 'individual' {
     const values = itemAttributeKeys.map((key) => effects[key] ?? 0)
     return values.every((value) => value === values[0]) ? 'same' : 'individual'
-}
-
-function Stepper({
-    label,
-    value,
-    onChange,
-    allowNegative = true,
-}: {
-    label: string
-    value: number
-    onChange: (value: number) => void
-    allowNegative?: boolean
-}) {
-    const minimum = allowNegative ? -100 : 0
-    const amount = Math.max(minimum, Math.min(100, Math.trunc(value)))
-    return (
-        <div className="effect-stepper" role="group" aria-label={`${label} effect`}>
-            <span className="effect-stepper-label">{label}</span>
-            <div className="effect-stepper-controls">
-                <button
-                    type="button"
-                    className="effect-stepper-button"
-                    aria-label={`Decrease ${label}; current value ${amount}`}
-                    disabled={amount <= minimum}
-                    onClick={() => onChange(Math.max(minimum, amount - 1))}
-                >
-                    <Minus size={15} aria-hidden="true" />
-                </button>
-                <output className="effect-stepper-value" aria-live="polite">{amount}</output>
-                <button
-                    type="button"
-                    className="effect-stepper-button"
-                    aria-label={`Increase ${label}; current value ${amount}`}
-                    disabled={amount >= 100}
-                    onClick={() => onChange(Math.min(100, amount + 1))}
-                >
-                    <Plus size={15} aria-hidden="true" />
-                </button>
-            </div>
-        </div>
-    )
 }
 
 export function EffectBuilder({ itemType, effects, onChange }: EffectBuilderProps) {
@@ -99,6 +62,7 @@ export function EffectBuilder({ itemType, effects, onChange }: EffectBuilderProp
             sense: 0,
             vitality: 0,
             intelligence: 0,
+            career: 0,
         })
     }
 
@@ -110,6 +74,7 @@ export function EffectBuilder({ itemType, effects, onChange }: EffectBuilderProp
             sense: value,
             vitality: value,
             intelligence: value,
+            career: value,
         })
     }
 
@@ -131,11 +96,13 @@ export function EffectBuilder({ itemType, effects, onChange }: EffectBuilderProp
             {itemType === 'consumable' && (
                 <div className="effect-vitals-grid">
                     {effectSteppers.map(({ key, label }) => (
-                        <Stepper
+                        <ValueStepper
                             key={key}
                             label={label}
                             value={effects[key] ?? 0}
                             onChange={(value) => changeVital(key, value)}
+                            min={-100}
+                            max={100}
                         />
                     ))}
                 </div>
@@ -166,14 +133,15 @@ export function EffectBuilder({ itemType, effects, onChange }: EffectBuilderProp
 
                 {attributeMode === 'same' ? (
                     <>
-                        <Stepper
+                        <ValueStepper
                             label="All Attributes"
                             value={effects.strength ?? 0}
                             onChange={changeAllAttributes}
-                            allowNegative={false}
+                            min={0}
+                            max={100}
                         />
                         <p className="effect-mode-note">
-                            Applies to Strength, Agility, Sense, Vitality, and Intelligence equally.
+                            Applies equally to all six abilities.
                         </p>
                     </>
                 ) : (
@@ -181,11 +149,12 @@ export function EffectBuilder({ itemType, effects, onChange }: EffectBuilderProp
                         {attributes.map(({ key, label, icon: Icon }) => (
                             <div className="effect-attribute-item" key={key}>
                                 <Icon size={17} aria-hidden="true" />
-                                <Stepper
+                                <ValueStepper
                                     label={label}
                                     value={effects[key] ?? 0}
                                     onChange={(value) => changeAttribute(key, value)}
-                                    allowNegative={false}
+                                    min={0}
+                                    max={100}
                                 />
                             </div>
                         ))}

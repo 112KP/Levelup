@@ -15,6 +15,7 @@ import {
 import type { ItemEffects } from '../lib/items'
 import { EffectBuilder } from '../components/items/EffectBuilder'
 import type { ItemRow, ItemType } from '../types/database.types'
+import { VITAL_LABELS } from '../lib/vitals'
 
 const rarityColors: Record<string, string> = {
     common: 'gray',
@@ -42,7 +43,7 @@ export function ItemsPage() {
     const [formError, setFormError] = useState('')
     const [editingId, setEditingId] = useState<string | null>(null)
     const [filter, setFilter] = useState<'all' | ItemType>('all')
-    const [effectFilter, setEffectFilter] = useState<'all' | 'hp' | 'mp' | 'fatigue'>('all')
+    const [effectFilter, setEffectFilter] = useState<'all' | 'hp' | 'mp' | 'emotion' | 'energy' | 'fatigue'>('all')
     const [form, setForm] = useState(defaultForm)
     const [busy, setBusy] = useState(false)
     const [busyItemId, setBusyItemId] = useState<string | null>(null)
@@ -207,9 +208,11 @@ export function ItemsPage() {
                 </select>
                 <select aria-label="Filter by effect" className="field-input" value={effectFilter} onChange={(event) => setEffectFilter(event.target.value as typeof effectFilter)}>
                     <option value="all">All effects</option>
-                    <option value="hp">HP</option>
-                    <option value="mp">MP</option>
-                    <option value="fatigue">Fatigue</option>
+                    <option value="hp">{VITAL_LABELS.body}</option>
+                    <option value="mp">{VITAL_LABELS.mind}</option>
+                    <option value="emotion">{VITAL_LABELS.emotion}</option>
+                    <option value="energy">{VITAL_LABELS.energy}</option>
+                    <option value="fatigue">{VITAL_LABELS.fatigue}</option>
                 </select>
             </div>
 
@@ -221,7 +224,14 @@ export function ItemsPage() {
                     <p className="status-empty">
                         {effectFilter === 'all'
                             ? 'No items in this category.'
-                            : `No items with a ${effectFilter.toUpperCase()} effect match these filters.`}
+                            : `No items with a ${effectFilter === 'hp'
+                                ? VITAL_LABELS.body
+                                : effectFilter === 'mp'
+                                    ? VITAL_LABELS.mind
+                                    : effectFilter === 'fatigue'
+                                        ? VITAL_LABELS.fatigue
+                                        : VITAL_LABELS[effectFilter]
+                            } effect match these filters.`}
                     </p>
                 ) : (
                     <div className="grouped-list">

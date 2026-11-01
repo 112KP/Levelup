@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Plus, X } from 'lucide-react'
+import { ValueStepper } from '../components/ValueStepper'
 import { useAuth } from '../auth/useAuth'
-import { clearDungeon, createDungeon, deleteDungeon, fetchDungeons, getDaysRemaining, setDungeonStatus, updateDungeon } from '../lib/dungeons'
+import { clearDungeon, createDungeon, deleteDungeon, fetchDungeons, getDaysRemaining, getDungeonVitalEffects, setDungeonStatus, updateDungeon } from '../lib/dungeons'
 import type { DungeonRow, DungeonStatus, Rank } from '../types/database.types'
 import { RankBadge } from '../components/status/RankBadge'
 import { useSearchParams } from 'react-router-dom'
 import { formatDateInTimeZone } from '../lib/dateTime'
 import { useTimezone } from '../auth/useTimezone'
+import { VITAL_LABELS } from '../lib/vitals'
 
 const rankOptions: Rank[] = ['E', 'D', 'C', 'B', 'A', 'S']
 
@@ -15,7 +17,11 @@ const defaultForm = {
     dungeon_rank: 'E' as Rank,
     xp_reward: 0,
     gold_reward: 0,
-    career_ability_reward: 0,
+    body_effect: 0,
+    mind_effect: 0,
+    emotion_effect: 0,
+    energy_effect: 0,
+    fatigue_effect: 0,
     deadline: '',
 }
 
@@ -96,7 +102,11 @@ export function ManageDungeonsPage() {
             dungeon_rank: dungeon.dungeon_rank,
             xp_reward: dungeon.xp_reward,
             gold_reward: dungeon.gold_reward,
-            career_ability_reward: dungeon.career_ability_reward,
+            body_effect: dungeon.body_effect,
+            mind_effect: dungeon.mind_effect,
+            emotion_effect: dungeon.emotion_effect,
+            energy_effect: dungeon.energy_effect,
+            fatigue_effect: dungeon.fatigue_effect,
             deadline: dungeon.deadline ?? '',
         })
         setError('')
@@ -124,7 +134,11 @@ export function ManageDungeonsPage() {
             dungeon_rank: form.dungeon_rank,
             xp_reward: Math.max(0, Number(form.xp_reward) || 0),
             gold_reward: Math.max(0, Number(form.gold_reward) || 0),
-            career_ability_reward: Math.max(0, Number(form.career_ability_reward) || 0),
+            body_effect: Math.trunc(Number(form.body_effect) || 0),
+            mind_effect: Math.trunc(Number(form.mind_effect) || 0),
+            emotion_effect: Math.trunc(Number(form.emotion_effect) || 0),
+            energy_effect: Math.trunc(Number(form.energy_effect) || 0),
+            fatigue_effect: Math.trunc(Number(form.fatigue_effect) || 0),
             deadline: form.deadline || null,
         }
         const result = editingId
@@ -180,8 +194,16 @@ export function ManageDungeonsPage() {
             return
         }
         setDungeons((current) => current.map((item) => item.id === dungeon.id ? { ...item, status: 'cleared' } : item))
-        setToast(`${dungeon.name} cleared: +${dungeon.xp_reward} XP, +${dungeon.gold_reward} gold${dungeon.career_ability_reward ? `, +${dungeon.career_ability_reward} Career Ability` : ''}.`)
+        const vitalEffects = getDungeonVitalEffects(dungeon)
+        setToast(`${dungeon.name} cleared: +${dungeon.xp_reward} XP, +${dungeon.gold_reward} gold${vitalEffects ? `, ${vitalEffects}` : ''}.`)
         setBusyId(null)
+    }
+
+    function setVitalEffect(
+        field: 'body_effect' | 'mind_effect' | 'emotion_effect' | 'energy_effect' | 'fatigue_effect',
+        value: number,
+    ) {
+        setForm((current) => ({ ...current, [field]: value }))
     }
 
     return (
@@ -209,6 +231,7 @@ export function ManageDungeonsPage() {
                         {sortedDungeons.map((dungeon) => {
                             const remaining = getDaysRemaining(dungeon.deadline, timeZone)
                             const busyThisDungeon = busyId === dungeon.id
+                            const vitalEffects = getDungeonVitalEffects(dungeon)
                             return (
                                 <article
                                     className={`manage-row dungeon-manage-row${focusedId === dungeon.id ? ' is-focused' : ''}`}
@@ -227,7 +250,7 @@ export function ManageDungeonsPage() {
                                             <span>{deadlineLabel(dungeon.deadline, timeZone)}</span>
                                             <span className="reward-text">+{dungeon.xp_reward} XP</span>
                                             <span className="reward-text">+{dungeon.gold_reward} gold</span>
-                                            {dungeon.career_ability_reward > 0 && <span className="reward-text">+{dungeon.career_ability_reward} Career</span>}
+                                            {vitalEffects && <span className="reward-text">{vitalEffects}</span>}
                                             {dungeon.deadline && (
                                                 <span className={`dungeon-days${remaining !== null && remaining < 0 ? ' overdue' : ''}`}>
                                                     {remaining !== null && remaining < 0 ? 'Overdue' : `${remaining} ${remaining === 1 ? 'day' : 'days'} left`}
@@ -269,7 +292,17 @@ export function ManageDungeonsPage() {
                         <label className="field-group">XP reward<input className="field-input" type="number" min="0" step="1" value={form.xp_reward} onChange={(event) => setForm({ ...form, xp_reward: Number(event.target.value) })} /></label>
                         <label className="field-group">Gold reward<input className="field-input" type="number" min="0" step="1" value={form.gold_reward} onChange={(event) => setForm({ ...form, gold_reward: Number(event.target.value) })} /></label>
                     </div>
-                    <label className="field-group">Career ability points<input className="field-input" type="number" min="0" step="1" value={form.career_ability_reward} onChange={(event) => setForm({ ...form, career_ability_reward: Number(event.target.value) })} /></label>
+                    <fieldset className="ability-fieldset">
+                        <legend>Effects on clear</legend>
+                        <p className="field-help">Positive values restore or add; negative values reduce.</p>
+                        <div className="effect-vitals-grid">
+                            <ValueStepper label={VITAL_LABELS.body} value={form.body_effect} onChange={(value) => setVitalEffect('body_effect', value)} min={-2_147_483_648} />
+                            <ValueStepper label={VITAL_LABELS.mind} value={form.mind_effect} onChange={(value) => setVitalEffect('mind_effect', value)} min={-2_147_483_648} />
+                            <ValueStepper label={VITAL_LABELS.emotion} value={form.emotion_effect} onChange={(value) => setVitalEffect('emotion_effect', value)} min={-2_147_483_648} />
+                            <ValueStepper label={VITAL_LABELS.energy} value={form.energy_effect} onChange={(value) => setVitalEffect('energy_effect', value)} min={-2_147_483_648} />
+                            <ValueStepper label={VITAL_LABELS.fatigue} value={form.fatigue_effect} onChange={(value) => setVitalEffect('fatigue_effect', value)} min={-2_147_483_648} />
+                        </div>
+                    </fieldset>
                     {error && <p className="status-error" role="alert">{error}</p>}
                     <footer className="manage-form-actions">
                         <button type="button" className="secondary-button" onClick={closeForm}>Cancel</button>

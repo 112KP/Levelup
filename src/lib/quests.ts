@@ -1,5 +1,31 @@
 import { supabase } from './supabaseClient'
 import type { Database, QuestLogRow, QuestRow } from '../types/database.types'
+import { formatVitalEffect } from './vitals'
+
+export function getQuestVitalRewards(quest: Pick<
+    QuestRow,
+    'hp_reward' | 'mp_reward' | 'emotion_reward' | 'energy_reward' | 'fatigue_restore'
+>) {
+    return [
+        quest.hp_reward > 0 ? formatVitalEffect('body', quest.hp_reward) : '',
+        quest.mp_reward > 0 ? formatVitalEffect('mind', quest.mp_reward) : '',
+        quest.emotion_reward > 0 ? formatVitalEffect('emotion', quest.emotion_reward) : '',
+        quest.energy_reward > 0 ? formatVitalEffect('energy', quest.energy_reward) : '',
+        quest.fatigue_restore > 0 ? formatVitalEffect('fatigue', -quest.fatigue_restore) : '',
+    ].filter(Boolean)
+}
+
+export function getQuestVitalPenalties(quest: Pick<
+    QuestRow,
+    'penalty_hp' | 'penalty_mp' | 'penalty_emotion' | 'penalty_energy'
+>) {
+    return [
+        quest.penalty_hp > 0 ? formatVitalEffect('body', -quest.penalty_hp) : '',
+        quest.penalty_mp > 0 ? formatVitalEffect('mind', -quest.penalty_mp) : '',
+        quest.penalty_emotion > 0 ? formatVitalEffect('emotion', -quest.penalty_emotion) : '',
+        quest.penalty_energy > 0 ? formatVitalEffect('energy', -quest.penalty_energy) : '',
+    ].filter(Boolean)
+}
 
 export async function fetchQuests(userId: string) {
     return supabase
@@ -35,7 +61,7 @@ export async function fetchTodayQuestLogs(userId: string, day: string) {
     return supabase
         .from('quest_logs')
         .select(
-            'id, user_id, quest_id, quest_date, status, completed_at, penalty_applied, created_at, updated_at, quests:quest_id (id, name, description, abilities, xp_reward, gold_reward, hp_reward, mp_reward, penalty_hp, penalty_gold, fatigue_restore, recurrence, prahar, difficulty, target_value, unit)',
+            'id, user_id, quest_id, quest_date, status, completed_at, penalty_applied, created_at, updated_at, quests:quest_id (id, name, description, abilities, xp_reward, gold_reward, hp_reward, mp_reward, emotion_reward, energy_reward, penalty_hp, penalty_mp, penalty_emotion, penalty_energy, penalty_gold, fatigue_restore, recurrence, prahar, difficulty, target_value, unit)',
         )
         .eq('user_id', userId)
         .eq('quest_date', day)
@@ -60,7 +86,12 @@ export type QuestBoardEntry = Omit<QuestLogRow, 'progress_value'> & {
         gold_reward: number
         hp_reward: number
         mp_reward: number
+        emotion_reward: number
+        energy_reward: number
         penalty_hp: number
+        penalty_mp: number
+        penalty_emotion: number
+        penalty_energy: number
         penalty_gold: number
         fatigue_restore: number
         recurrence: string

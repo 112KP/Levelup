@@ -48,6 +48,10 @@ export type ProfileRow = {
     hp_max: number
     mp_current: number
     mp_max: number
+    emotion_current: number
+    emotion_max: number
+    energy_current: number
+    energy_max: number
     fatigue: number
     xp: number
     xp_to_next: number
@@ -93,10 +97,15 @@ export type QuestRow = {
     gold_reward: number
     hp_reward: number
     mp_reward: number
+    emotion_reward: number
+    energy_reward: number
     career_ability_reward: number
     stat_reward: StatName | null
     stat_reward_amount: number
     penalty_hp: number
+    penalty_mp: number
+    penalty_emotion: number
+    penalty_energy: number
     penalty_gold: number
     fatigue_restore: number
     is_active: boolean
@@ -181,7 +190,11 @@ export type DungeonRow = {
     status: DungeonStatus
     xp_reward: number
     gold_reward: number
-    career_ability_reward: number
+    body_effect: number
+    mind_effect: number
+    emotion_effect: number
+    energy_effect: number
+    fatigue_effect: number
     deadline: string | null
     cleared_at: string | null
     created_at: string
@@ -242,10 +255,15 @@ export interface Database {
                     gold_reward?: number
                     hp_reward?: number
                     mp_reward?: number
+                    emotion_reward?: number
+                    energy_reward?: number
                     career_ability_reward?: number
                     stat_reward?: StatName | null
                     stat_reward_amount?: number
                     penalty_hp?: number
+                    penalty_mp?: number
+                    penalty_emotion?: number
+                    penalty_energy?: number
                     penalty_gold?: number
                     fatigue_restore?: number
                     is_active?: boolean
@@ -307,7 +325,11 @@ export interface Database {
                     dungeon_rank?: Rank
                     xp_reward?: number
                     gold_reward?: number
-                    career_ability_reward?: number
+                    body_effect?: number
+                    mind_effect?: number
+                    emotion_effect?: number
+                    energy_effect?: number
+                    fatigue_effect?: number
                     deadline?: string | null
                 }
                 Update: Partial<Omit<Database['public']['Tables']['dungeons']['Insert'], 'id' | 'user_id'>>
@@ -322,6 +344,22 @@ export interface Database {
         }
         Views: Record<string, never>
         Functions: {
+            vital_caps: {
+                Args: {
+                    p_strength: number
+                    p_agility: number
+                    p_sense: number
+                    p_vitality: number
+                    p_intelligence: number
+                    p_career: number
+                }
+                Returns: Array<{
+                    body_max: number
+                    mind_max: number
+                    emotion_max: number
+                    energy_max: number
+                }>
+            }
             allocate_points: {
                 Args: { p_stat: StatName; p_points?: number }
                 Returns: void
@@ -366,7 +404,7 @@ export interface Database {
             }
             clear_dungeon: {
                 Args: { p_dungeon_id: string }
-                Returns: Json
+                Returns: void
             }
             use_item: {
                 Args: { p_item_id: string }

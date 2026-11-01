@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Plus, X } from 'lucide-react'
 import { useAuth } from '../auth/useAuth'
+import { VITAL_LABELS } from '../lib/vitals'
 import { createSkill, deleteSkill, fetchSkills, updateSkill } from '../lib/skills'
 import type { SkillRow, SkillType, StatName } from '../types/database.types'
 
@@ -166,7 +167,7 @@ export function SkillsPage() {
                                     <th>Type</th>
                                     <th>Level</th>
                                     <th>Linked stat</th>
-                                    <th>MP / CD</th>
+                                    <th>{VITAL_LABELS.mind} / CD</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -222,7 +223,7 @@ export function SkillsPage() {
                             <option value="intelligence">Intelligence</option>
                             <option value="career">Career</option>
                         </select></label>
-                        <label className="field-group" htmlFor="skill-mp-cost">MP cost<input id="skill-mp-cost" className="field-input" type="number" min="0" value={form.mp_cost} onChange={(event) => setForm({ ...form, mp_cost: Number(event.target.value) })} /></label>
+                        <label className="field-group" htmlFor="skill-mp-cost">{VITAL_LABELS.mind} cost<input id="skill-mp-cost" className="field-input" type="number" min="0" value={form.mp_cost} onChange={(event) => setForm({ ...form, mp_cost: Number(event.target.value) })} /></label>
                     </div>
                     <label className="field-group" htmlFor="skill-cooldown">Cooldown (minutes)<input id="skill-cooldown" className="field-input" type="number" min="0" value={form.cooldown_minutes} onChange={(event) => setForm({ ...form, cooldown_minutes: Number(event.target.value) })} /></label>
                     {formError && <p className="status-error" role="alert">{formError}</p>}

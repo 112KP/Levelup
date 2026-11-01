@@ -4,6 +4,7 @@ import { fetchActivityHistory } from '../lib/history'
 import type { ActivityLogRow } from '../types/database.types'
 import { formatDateInTimeZone } from '../lib/dateTime'
 import { useTimezone } from '../auth/useTimezone'
+import { replaceLegacyVitalLabels } from '../lib/vitals'
 
 const icons: Record<string, string> = {
     xp_gain: '✦',
@@ -74,7 +75,7 @@ export function HistoryPage() {
                                         <strong>{item.event_type.replaceAll('_', ' ')}</strong>
                                         <span>{formatDateInTimeZone(item.created_at, { dateStyle: 'short', timeStyle: 'short' }, undefined, timeZone)}</span>
                                     </div>
-                                    <p>{item.description ?? 'No description'}</p>
+                                    <p>{replaceLegacyVitalLabels(item.description ?? 'No description')}</p>
                                     {item.amount !== null && <small>{item.amount}</small>}
                                 </div>
                             </div>

@@ -2,7 +2,7 @@ type VitalsBarProps = {
     label: string
     current: number
     max: number
-    kind: 'hp' | 'mp' | 'fatigue'
+    kind: 'body' | 'mind' | 'emotion' | 'energy' | 'fatigue'
 }
 
 export function VitalsBar({ label, current, max, kind }: VitalsBarProps) {

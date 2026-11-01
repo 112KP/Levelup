@@ -231,14 +231,24 @@
     transition: width 700ms cubic-bezier(0.2, 0.75, 0.2, 1);
 }
 
-.vital-hp .vital-fill {
+.vital-body .vital-fill {
     background: linear-gradient(90deg, #b3102f, #ff4d6d);
     box-shadow: 0 0 12px rgba(255, 77, 109, 0.5);
 }
 
-.vital-mp .vital-fill {
+.vital-mind .vital-fill {
     background: linear-gradient(90deg, #1a6fa8, #b083ff);
     box-shadow: 0 0 12px rgba(176, 131, 255, 0.55);
+}
+
+.vital-emotion .vital-fill {
+    background: linear-gradient(90deg, #a21caf, #f472b6);
+    box-shadow: 0 0 12px rgba(244, 114, 182, 0.5);
+}
+
+.vital-energy .vital-fill {
+    background: linear-gradient(90deg, #0f766e, #4ade80);
+    box-shadow: 0 0 12px rgba(74, 222, 128, 0.5);
 }
 
 .vital-fatigue .vital-track {

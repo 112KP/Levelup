@@ -1,6 +1,7 @@
 import { supabase } from './supabaseClient'
 import { getDateKey, DEFAULT_TIME_ZONE } from './dateTime'
 import type { Database, DungeonStatus } from '../types/database.types'
+import { formatVitalEffects } from './vitals'
 
 export function getDaysRemaining(deadline: string | null, timeZone = DEFAULT_TIME_ZONE) {
     if (!deadline) return null
@@ -17,6 +18,19 @@ export async function fetchDungeons(userId: string) {
         .select('*')
         .eq('user_id', userId)
         .order('deadline', { ascending: true, nullsFirst: false })
+}
+
+export function getDungeonVitalEffects(dungeon: Pick<
+    Database['public']['Tables']['dungeons']['Row'],
+    'body_effect' | 'mind_effect' | 'emotion_effect' | 'energy_effect' | 'fatigue_effect'
+>) {
+    return formatVitalEffects({
+        body: dungeon.body_effect,
+        mind: dungeon.mind_effect,
+        emotion: dungeon.emotion_effect,
+        energy: dungeon.energy_effect,
+        fatigue: dungeon.fatigue_effect,
+    })
 }
 
 export async function createDungeon(payload: Database['public']['Tables']['dungeons']['Insert']) {
