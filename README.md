@@ -29,10 +29,9 @@ npm run build:mobile
 
 ### Vitals
 
-The ability-streak migration must already be applied before this migration. Review and run
-[the vitals migration](./supabase/migrations/20261031203000_rework_vitals.sql) manually in the
-Supabase SQL editor before deploying the matching frontend. This repository does not apply schema
-changes remotely.
+The ability-streak and vitals migrations must already be applied before deploying the matching
+frontend. The vitals migration was run manually and its SQL file is intentionally not retained in
+this repository. This repository does not apply schema changes remotely.
 
 After applying it, verify with a disposable profile whose six abilities and four current/max vital
 values start at 10 and 100/100:
@@ -51,6 +50,15 @@ values start at 10 and 100/100:
   be denied. Confirm a newly created profile starts all four vitals at 100/100.
 - Run the migration a second time and confirm current values are preserved apart from clamping.
 - Grant XP sufficient for a level-up; no current or max vital value should change.
+
+### Account progress reset
+
+Review and run [the account reset migration](./supabase/migrations/20261031220600_add_reset_my_progress.sql)
+manually in the Supabase SQL editor before deploying the matching frontend. From **Settings >
+Account Reset**, type `RESET` to return progress to the initial level, stats, vital values, fatigue,
+gold, rank, streaks, and history. Quest templates, skills, items, dungeons, unlocked titles, account,
+profile name, and timezone are preserved. Test with a disposable account before using it on a
+personal account.
 
 ## Android app
 

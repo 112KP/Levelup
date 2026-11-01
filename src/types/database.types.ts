@@ -422,6 +422,10 @@ export interface Database {
                 Args: Record<string, never>
                 Returns: void
             }
+            reset_my_progress: {
+                Args: Record<string, never>
+                Returns: void
+            }
         }
         Enums: Record<string, never>
         CompositeTypes: Record<string, never>

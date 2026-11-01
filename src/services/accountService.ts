@@ -19,3 +19,8 @@ export async function deleteAccount() {
   const { error: signOutError } = await supabase.auth.signOut({ scope: 'local' })
   if (signOutError) throw signOutError
 }
+
+export async function resetMyProgress() {
+  const { error } = await supabase.rpc('reset_my_progress')
+  if (error) throw error
+}

@@ -231,6 +231,14 @@ export function SettingsPage() {
                     Delete account
                 </Link>
             </div>
+
+            <div className="settings-section settings-danger-zone">
+                <h2>Account Reset</h2>
+                <p>Reset your progress and metrics while keeping your quests, skills, items, dungeons, and unlocked titles.</p>
+                <Link className="settings-delete-link" to="/reset-account">
+                    Reset account progress
+                </Link>
+            </div>
         </section>
     )
 }
