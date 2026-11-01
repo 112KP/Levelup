@@ -962,6 +962,46 @@ body:has(.workspace-shell) {
     text-shadow: 0 0 8px rgba(23, 184, 102, 0.56);
 }
 
+.home-quest-abilities {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 8px;
+}
+
+.ability-chip {
+    display: inline-flex;
+    min-height: 22px;
+    align-items: center;
+    padding: 2px 8px;
+    border: 1px solid rgba(62, 198, 255, 0.34);
+    border-radius: 999px;
+    color: #bfe6ff;
+    background: rgba(62, 198, 255, 0.08);
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.ability-chip.no-ability {
+    border-color: rgba(127, 147, 184, 0.36);
+    color: #9aaac3;
+    background: rgba(127, 147, 184, 0.08);
+}
+
+.streak-milestone-highlight {
+    margin: -5px 0 12px;
+    padding: 10px 14px;
+    border: 1px solid rgba(23, 184, 102, 0.58);
+    border-radius: 8px;
+    color: #dfffe7;
+    background: rgba(23, 184, 102, 0.16);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(23, 184, 102, 0.56);
+}
+
 .quest-skip-button {
     display: inline-flex;
     min-width: 44px;
@@ -1136,6 +1176,10 @@ body:has(.workspace-shell) {
     margin-top: 7px;
     color: #9fb1cc;
     font-size: 0.78rem;
+}
+
+.manage-row-tags .ability-chip {
+    font-size: 0.68rem;
 }
 
 .reward-text {
@@ -1338,6 +1382,58 @@ body:has(.workspace-shell) {
     height: 18px;
     flex: 0 0 18px;
     accent-color: #3ec6ff;
+}
+
+.ability-fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 10px;
+    border: 1px solid rgba(155, 92, 240, 0.32);
+    border-radius: 6px;
+    background: rgba(7, 10, 18, 0.45);
+}
+
+.ability-fieldset legend {
+    padding: 0 5px;
+    color: #9fb8d8;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.ability-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 8px;
+}
+
+.ability-option {
+    display: flex;
+    min-width: 0;
+    min-height: 44px;
+    align-items: center;
+    gap: 9px;
+    color: #dfefff;
+    font-size: 0.88rem;
+}
+
+.ability-option input {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    accent-color: #3ec6ff;
+}
+
+.ability-option input:disabled {
+    opacity: 0.45;
+}
+
+.manage-form .field-help {
+    margin: -7px 0 0;
+    color: #8297b6;
+    font-size: 0.75rem;
+    line-height: 1.4;
 }
 
 .manage-checkbox {

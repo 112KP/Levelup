@@ -4,12 +4,11 @@ import { useAuth } from '../auth/useAuth'
 import {
     createQuest,
     deleteQuest,
-    fetchQuestStatRewards,
     fetchQuests,
-    setQuestStatRewards,
     updateQuest,
 } from '../lib/quests'
-import type { QuestDifficulty, QuestPrahar, QuestRecurrence, QuestRow, StatName } from '../types/database'
+import { ABILITY_OPTIONS, MAX_ABILITIES_PER_QUEST, getAbilityLabel } from '../lib/abilities'
+import type { AbilityName, QuestDifficulty, QuestPrahar, QuestRecurrence, QuestRow } from '../types/database.types'
 
 const recurrenceOptions: Array<{ value: QuestRecurrence | 'all'; label: string }> = [
     { value: 'all', label: 'All recurrences' },
@@ -25,14 +24,6 @@ const difficultyOptions: Array<{ value: QuestDifficulty | 'all'; label: string }
     { value: 'hard', label: 'Hard' },
 ]
 
-const statOptions: Array<{ value: StatName; label: string }> = [
-    { value: 'strength', label: 'Strength' },
-    { value: 'agility', label: 'Agility' },
-    { value: 'sense', label: 'Sense' },
-    { value: 'vitality', label: 'Vitality' },
-    { value: 'intelligence', label: 'Intelligence' },
-]
-
 const defaultForm = {
     name: '',
     description: '',
@@ -45,9 +36,7 @@ const defaultForm = {
     gold_reward: '',
     hp_reward: '',
     mp_reward: '',
-    career_ability_reward: '',
-    stat_rewards: [] as StatName[],
-    stat_reward_amount: '',
+    abilities: [] as AbilityName[],
     penalty_hp: '',
     penalty_gold: '',
     fatigue_restore: '0',
@@ -62,8 +51,6 @@ export function ManageQuestsPage() {
     const { session } = useAuth()
     const userId = session?.user.id ?? ''
     const [quests, setQuests] = useState<QuestRow[]>([])
-    const [statRewardsByQuestId, setStatRewardsByQuestId] = useState<Record<string, StatName[]>>({})
-    const [statRewardAmountsByQuestId, setStatRewardAmountsByQuestId] = useState<Record<string, number>>({})
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [search, setSearch] = useState('')
@@ -79,29 +66,14 @@ export function ManageQuestsPage() {
     const loadQuests = useCallback(async () => {
         if (!userId) return
         setLoading(true)
-        const [questsResult, rewardsResult] = await Promise.all([
-            fetchQuests(userId),
-            fetchQuestStatRewards(userId),
-        ])
-        if (questsResult.error || rewardsResult.error) {
-            setError(questsResult.error?.message || rewardsResult.error?.message || 'Unable to load quests.')
+        const questsResult = await fetchQuests(userId)
+        if (questsResult.error) {
+            setError(questsResult.error.message || 'Unable to load quests.')
             setLoading(false)
             return
         }
         const loadedQuests = questsResult.data ?? []
-        const rewardsByQuest: Record<string, StatName[]> = {}
-        const amountsByQuest: Record<string, number> = {}
-        for (const quest of loadedQuests) {
-            const questRewards = (rewardsResult.data ?? []).filter((reward) => reward.quest_id === quest.id)
-            rewardsByQuest[quest.id] = questRewards.map((reward) => reward.stat_name)
-            amountsByQuest[quest.id] = questRewards[0]?.amount ?? quest.stat_reward_amount
-            if (rewardsByQuest[quest.id].length === 0 && quest.stat_reward) {
-                rewardsByQuest[quest.id] = [quest.stat_reward]
-            }
-        }
         setQuests(loadedQuests)
-        setStatRewardsByQuestId(rewardsByQuest)
-        setStatRewardAmountsByQuestId(amountsByQuest)
         setError('')
         setLoading(false)
     }, [userId])
@@ -145,9 +117,7 @@ export function ManageQuestsPage() {
             gold_reward: String(quest.gold_reward),
             hp_reward: String(quest.hp_reward),
             mp_reward: String(quest.mp_reward),
-            career_ability_reward: String(quest.career_ability_reward),
-            stat_rewards: statRewardsByQuestId[quest.id] ?? (quest.stat_reward ? [quest.stat_reward] : []),
-            stat_reward_amount: String(statRewardAmountsByQuestId[quest.id] ?? quest.stat_reward_amount),
+            abilities: quest.abilities ?? [],
             penalty_hp: String(quest.penalty_hp),
             penalty_gold: String(quest.penalty_gold),
             fatigue_restore: String(quest.fatigue_restore),
@@ -170,6 +140,10 @@ export function ManageQuestsPage() {
             setError('Quest name is required.')
             return
         }
+        if (form.abilities.length < 1 || form.abilities.length > MAX_ABILITIES_PER_QUEST) {
+            setError('Choose at least one ability for this quest.')
+            return
+        }
 
         setBusy(true)
         setError('')
@@ -177,6 +151,7 @@ export function ManageQuestsPage() {
             name,
             description: form.description.trim() || null,
             recurrence: form.recurrence,
+            abilities: form.abilities,
             prahar: form.prahar,
             difficulty: form.difficulty,
             target_value: Math.max(1, Number(form.target_value) || 1),
@@ -185,9 +160,6 @@ export function ManageQuestsPage() {
             gold_reward: Math.max(0, Number(form.gold_reward) || 0),
             hp_reward: Math.max(0, Number(form.hp_reward) || 0),
             mp_reward: Math.max(0, Number(form.mp_reward) || 0),
-            career_ability_reward: Math.max(0, Number(form.career_ability_reward) || 0),
-            stat_reward: null,
-            stat_reward_amount: Math.max(0, Number(form.stat_reward_amount) || 0),
             penalty_hp: Math.max(0, Number(form.penalty_hp) || 0),
             penalty_gold: Math.max(0, Number(form.penalty_gold) || 0),
             fatigue_restore: Math.min(100, Math.max(0, Math.trunc(Number(form.fatigue_restore) || 0))),
@@ -214,22 +186,8 @@ export function ManageQuestsPage() {
         }
 
         if (!savedQuestId) {
-            setError('The saved quest ID could not be resolved for its stat rewards.')
+            setError('The saved quest ID could not be resolved.')
             setBusy(false)
-            return
-        }
-
-        const { error: rewardError } = await setQuestStatRewards(
-            savedQuestId,
-            form.stat_rewards.map((stat_name) => ({
-                stat_name,
-                amount: Math.max(0, Number(form.stat_reward_amount) || 0),
-            })),
-        )
-        if (rewardError) {
-            setError(`Quest saved, but stat rewards could not be saved: ${rewardError.message}`)
-            setBusy(false)
-            await loadQuests()
             return
         }
 
@@ -312,11 +270,15 @@ export function ManageQuestsPage() {
                                     <div className="manage-row-tags">
                                         <span>{recurrenceLabel(quest.recurrence)}</span>
                                         <span className={`difficulty-tag ${quest.difficulty}`}>{quest.difficulty}</span>
+                                        {quest.abilities.length > 0
+                                            ? quest.abilities.map((ability) => (
+                                                <span className="ability-chip" key={ability}>{getAbilityLabel(ability)}</span>
+                                            ))
+                                            : <span className="ability-chip no-ability">No ability</span>}
                                         <span className="reward-text">+{quest.xp_reward} XP</span>
                                         <span className="reward-text">+{quest.gold_reward} gold</span>
                                         {quest.hp_reward > 0 && <span className="reward-text">+{quest.hp_reward} HP</span>}
                                         {quest.mp_reward > 0 && <span className="reward-text">+{quest.mp_reward} MP</span>}
-                                        {quest.career_ability_reward > 0 && <span className="reward-text">+{quest.career_ability_reward} Career</span>}
                                         {quest.fatigue_restore > 0 && <span className="reward-text">−{quest.fatigue_restore} Fatigue</span>}
                                     </div>
                                 </div>
@@ -357,10 +319,36 @@ export function ManageQuestsPage() {
                         <label className="field-group">Recurrence<select className="field-input" value={form.recurrence} onChange={(event) => setForm({ ...form, recurrence: event.target.value as QuestRecurrence })}><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="one_time">One-time</option></select></label>
                         <label className="field-group">Prahar<select className="field-input" value={form.prahar} onChange={(event) => setForm({ ...form, prahar: event.target.value as QuestPrahar })}><option value="Morning">Morning</option><option value="Afternoon">Afternoon</option><option value="Evening">Evening</option><option value="Night">Night</option></select></label>
                     </div>
+                    <fieldset className="ability-fieldset">
+                        <legend>Abilities</legend>
+                        <p className="field-help">Choose at least one ability. A completed quest counts once per tagged ability each day.</p>
+                        <div className="ability-options">
+                            {ABILITY_OPTIONS.map(({ value, label }) => {
+                                const selected = form.abilities.includes(value)
+                                return (
+                                    <label className="ability-option" key={value}>
+                                        <input
+                                            type="checkbox"
+                                            checked={selected}
+                                            disabled={!selected && form.abilities.length >= MAX_ABILITIES_PER_QUEST}
+                                            onChange={(event) => setForm({
+                                                ...form,
+                                                abilities: event.target.checked
+                                                    ? [...form.abilities, value]
+                                                    : form.abilities.filter((ability) => ability !== value),
+                                            })}
+                                        />
+                                        <span>{label}</span>
+                                    </label>
+                                )
+                            })}
+                        </div>
+                    </fieldset>
                     <div className="inline-grid two-up">
                         <label className="field-group">Difficulty<select className="field-input" value={form.difficulty} onChange={(event) => setForm({ ...form, difficulty: event.target.value as QuestDifficulty })}><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select></label>
                         <label className="field-group">Target value<input className="field-input" type="number" min="1" step="1" value={form.target_value} onChange={(event) => setForm({ ...form, target_value: Number(event.target.value) })} /></label>
                     </div>
+                    <small className="field-help">Target and unit are for reference only; they do not affect rewards.</small>
                     <div className="inline-grid two-up">
                         <label className="field-group">
                             Unit
@@ -380,28 +368,6 @@ export function ManageQuestsPage() {
                         <label className="field-group">HP increase<input className="field-input" type="number" min="0" step="1" value={form.hp_reward} onChange={(event) => setForm({ ...form, hp_reward: event.target.value })} /></label>
                         <label className="field-group">MP increase<input className="field-input" type="number" min="0" step="1" value={form.mp_reward} onChange={(event) => setForm({ ...form, mp_reward: event.target.value })} /></label>
                     </div>
-                    <label className="field-group">Career ability points<input className="field-input" type="number" min="0" step="1" value={form.career_ability_reward} onChange={(event) => setForm({ ...form, career_ability_reward: event.target.value })} /></label>
-                    <fieldset className="stat-reward-fieldset">
-                        <legend>Stat rewards</legend>
-                        <div className="stat-reward-options">
-                            {statOptions.map(({ value, label }) => (
-                                <label className="stat-reward-option" key={value}>
-                                    <input
-                                        type="checkbox"
-                                        checked={form.stat_rewards.includes(value)}
-                                        onChange={(event) => setForm({
-                                            ...form,
-                                            stat_rewards: event.target.checked
-                                                ? [...form.stat_rewards, value]
-                                                : form.stat_rewards.filter((stat) => stat !== value),
-                                        })}
-                                    />
-                                    {label}
-                                </label>
-                            ))}
-                        </div>
-                    </fieldset>
-                    <label className="field-group">Amount per selected stat<input className="field-input" type="number" min="0" step="1" disabled={form.stat_rewards.length === 0} value={form.stat_reward_amount} onChange={(event) => setForm({ ...form, stat_reward_amount: event.target.value })} /></label>
                     <div className="inline-grid two-up">
                         <label className="field-group">HP penalty<input className="field-input" type="number" min="0" step="1" value={form.penalty_hp} onChange={(event) => setForm({ ...form, penalty_hp: event.target.value })} /></label>
                         <label className="field-group">Gold penalty<input className="field-input" type="number" min="0" step="1" value={form.penalty_gold} onChange={(event) => setForm({ ...form, penalty_gold: event.target.value })} /></label>

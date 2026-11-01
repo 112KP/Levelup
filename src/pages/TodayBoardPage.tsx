@@ -5,9 +5,9 @@ import type { QuestBoardEntry } from '../lib/quests'
 import { getDateKey } from '../lib/dateTime'
 import { useTimezone } from '../auth/useTimezone'
 
-function formatOutcomeLabel(status: string, data: { questName?: string; xp?: number; gold?: number; hp?: number; mp?: number; careerAbility?: number; penaltyHp?: number; penaltyGold?: number; fatigueRestore?: number }) {
+function formatOutcomeLabel(status: string, data: { questName?: string; xp?: number; gold?: number; hp?: number; mp?: number; penaltyHp?: number; penaltyGold?: number; fatigueRestore?: number }) {
     if (status === 'complete') {
-        const otherRewards = [data.hp ? `+${data.hp} HP` : '', data.mp ? `+${data.mp} MP` : '', data.careerAbility ? `+${data.careerAbility} Career Ability` : '', data.fatigueRestore ? `−${data.fatigueRestore} Fatigue` : ''].filter(Boolean)
+        const otherRewards = [data.hp ? `+${data.hp} HP` : '', data.mp ? `+${data.mp} MP` : '', data.fatigueRestore ? `−${data.fatigueRestore} Fatigue` : ''].filter(Boolean)
         const rewards = [`${data.xp ?? 0} XP`, `${data.gold ?? 0} gold`, ...otherRewards].join(', ')
         return `Completed ${data.questName ?? 'quest'} for ${rewards}.`
     }
@@ -65,7 +65,7 @@ export function TodayBoardPage() {
         return () => window.clearTimeout(timer)
     }, [toast])
 
-    async function handleQuest(action: 'complete' | 'fail', logId: string, questName: string, xpReward: number, goldReward: number, hpReward: number, mpReward: number, careerAbilityReward: number, penaltyHp: number, penaltyGold: number, fatigueRestore: number) {
+    async function handleQuest(action: 'complete' | 'fail', logId: string, questName: string, xpReward: number, goldReward: number, hpReward: number, mpReward: number, penaltyHp: number, penaltyGold: number, fatigueRestore: number) {
         setBusyId(logId)
         setError('')
 
@@ -82,7 +82,6 @@ export function TodayBoardPage() {
             gold: goldReward,
             hp: hpReward,
             mp: mpReward,
-            careerAbility: careerAbilityReward,
             penaltyHp,
             penaltyGold,
             fatigueRestore,
@@ -127,16 +126,15 @@ export function TodayBoardPage() {
                                                 <span>{quest.gold_reward} gold</span>
                                                 {quest.hp_reward > 0 && <span>+{quest.hp_reward} HP</span>}
                                                 {quest.mp_reward > 0 && <span>+{quest.mp_reward} MP</span>}
-                                                {quest.career_ability_reward > 0 && <span>+{quest.career_ability_reward} Career</span>}
                                                 {quest.fatigue_restore > 0 && <span>−{quest.fatigue_restore} Fatigue</span>}
                                                 <span>{quest.target_value} {quest.unit || 'goal'}</span>
                                             </div>
                                         </div>
                                         <div className="action-row compact">
-                                            <button type="button" className="primary-button" disabled={busyId === entry.id} onClick={() => void handleQuest('complete', entry.id, quest.name, quest.xp_reward, quest.gold_reward, quest.hp_reward, quest.mp_reward, quest.career_ability_reward, quest.penalty_hp, quest.penalty_gold, quest.fatigue_restore)}>
+                                            <button type="button" className="primary-button" disabled={busyId === entry.id} onClick={() => void handleQuest('complete', entry.id, quest.name, quest.xp_reward, quest.gold_reward, quest.hp_reward, quest.mp_reward, quest.penalty_hp, quest.penalty_gold, quest.fatigue_restore)}>
                                                 {busyId === entry.id ? 'Working...' : 'Complete'}
                                             </button>
-                                            <button type="button" className="secondary-button" disabled={busyId === entry.id} onClick={() => void handleQuest('fail', entry.id, quest.name, quest.xp_reward, quest.gold_reward, quest.hp_reward, quest.mp_reward, quest.career_ability_reward, quest.penalty_hp, quest.penalty_gold, quest.fatigue_restore)}>
+                                            <button type="button" className="secondary-button" disabled={busyId === entry.id} onClick={() => void handleQuest('fail', entry.id, quest.name, quest.xp_reward, quest.gold_reward, quest.hp_reward, quest.mp_reward, quest.penalty_hp, quest.penalty_gold, quest.fatigue_restore)}>
                                                 Fail
                                             </button>
                                         </div>

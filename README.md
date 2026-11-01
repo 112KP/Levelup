@@ -27,6 +27,12 @@ npm run build
 npm run build:mobile
 ```
 
+### Ability streaks
+
+Review and run [the ability streak migration](./supabase/migrations/20261031190000_ability_streaks.sql)
+manually in the Supabase SQL editor before deploying the matching frontend. The app expects the
+new migration's RPCs and tables; this repository change does not apply schema changes remotely.
+
 ## Android app
 
 The Android app uses Capacitor and shares this repository's React application. The web app continues to build for GitHub Pages; Android bundles use a separate root-based Vite build.

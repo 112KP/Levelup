@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../auth/useAuth'
 import { createDungeon, deleteDungeon, fetchDungeons, updateDungeon } from '../lib/dungeons'
-import type { DungeonRow, Rank } from '../types/database'
+import type { DungeonRow, Rank } from '../types/database.types'
 import { formatDateInTimeZone } from '../lib/dateTime'
 import { useTimezone } from '../auth/useTimezone'
 

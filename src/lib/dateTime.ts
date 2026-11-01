@@ -1,4 +1,4 @@
-export const DEFAULT_TIME_ZONE = 'America/New_York'
+export const DEFAULT_TIME_ZONE = 'UTC'
 
 export function getDateKey(date = new Date(), timeZone = DEFAULT_TIME_ZONE) {
     const parts = new Intl.DateTimeFormat('en-US', {

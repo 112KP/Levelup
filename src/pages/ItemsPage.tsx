@@ -14,7 +14,7 @@ import {
 } from '../lib/items'
 import type { ItemEffects } from '../lib/items'
 import { EffectBuilder } from '../components/items/EffectBuilder'
-import type { ItemRow, ItemType } from '../types/database'
+import type { ItemRow, ItemType } from '../types/database.types'
 
 const rarityColors: Record<string, string> = {
     common: 'gray',

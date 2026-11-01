@@ -15,6 +15,7 @@ import { TitlesPage } from './pages/TitlesPage'
 import { DeleteAccountPage } from './pages/DeleteAccountPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { TimezoneProvider } from './auth/TimezoneProvider'
+import { AbilityStreakProvider } from './auth/AbilityStreakProvider'
 import {
     signInWithGoogle,
     signInWithPassword,
@@ -358,7 +359,9 @@ function App() {
     return (
         <BrowserRouter basename={import.meta.env.BASE_URL}>
             <TimezoneProvider>
-                <AppShell />
+                <AbilityStreakProvider>
+                    <AppShell />
+                </AbilityStreakProvider>
             </TimezoneProvider>
         </BrowserRouter>
     )

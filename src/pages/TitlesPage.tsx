@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../auth/useAuth'
 import { fetchTitles, recheckMyTitles, setActiveTitle } from '../lib/titles'
-import type { TitleRow } from '../types/database'
+import type { TitleRow } from '../types/database.types'
 
 export function TitlesPage() {
     const { session } = useAuth()

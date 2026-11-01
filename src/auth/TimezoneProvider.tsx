@@ -12,26 +12,50 @@ export function TimezoneProvider({ children }: { children: React.ReactNode }) {
     const [error, setError] = useState('')
 
     useEffect(() => {
-        if (!userId) return
+        const profileUserId = userId ?? ''
+        if (!profileUserId) return
 
         let active = true
-        void supabase
-            .from('profiles')
-            .select('timezone')
-            .eq('user_id', userId)
-            .maybeSingle()
-            .then(({ data, error: queryError }) => {
-                if (!active) return
-                if (queryError) {
-                    setError(queryError.message)
-                } else if (data) {
-                    setTimeZone(data.timezone)
-                    setError('')
-                } else {
-                    setError('Your profile timezone could not be found.')
-                }
+        async function loadTimeZone() {
+            const { data, error: queryError } = await supabase
+                .from('profiles')
+                .select('timezone')
+                .eq('user_id', profileUserId)
+                .maybeSingle()
+
+            if (!active) return
+            if (queryError) {
+                setError(queryError.message)
                 setLoading(false)
-            })
+                return
+            }
+            if (!data) {
+                setError('Your profile timezone could not be found.')
+                setLoading(false)
+                return
+            }
+
+            const browserTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+            if (typeof browserTimeZone === 'string' && browserTimeZone.length > 0 && data.timezone !== browserTimeZone) {
+                const { error: syncError } = await supabase.rpc('set_timezone', {
+                    p_tz: browserTimeZone,
+                })
+                if (!active) return
+                if (syncError) {
+                    setTimeZone(data.timezone)
+                    setError(`Unable to sync your timezone: ${syncError.message}`)
+                    setLoading(false)
+                    return
+                }
+                setTimeZone(browserTimeZone)
+            } else {
+                setTimeZone(data.timezone)
+            }
+            setError('')
+            setLoading(false)
+        }
+
+        void loadTimeZone()
 
         return () => {
             active = false
@@ -41,10 +65,9 @@ export function TimezoneProvider({ children }: { children: React.ReactNode }) {
     const updateTimeZone = useCallback(async (nextTimeZone: string) => {
         if (!userId) throw new Error('You must be signed in to change your timezone.')
 
-        const { error: updateError } = await supabase
-            .from('profiles')
-            .update({ timezone: nextTimeZone })
-            .eq('user_id', userId)
+        const { error: updateError } = await supabase.rpc('set_timezone', {
+            p_tz: nextTimeZone,
+        })
 
         if (updateError) {
             setError(updateError.message)

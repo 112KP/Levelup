@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../auth/useAuth'
 import { fetchActivityHistory } from '../lib/history'
-import type { ActivityLogRow } from '../types/database'
+import type { ActivityLogRow } from '../types/database.types'
 import { formatDateInTimeZone } from '../lib/dateTime'
 import { useTimezone } from '../auth/useTimezone'
 
@@ -13,6 +13,7 @@ const icons: Record<string, string> = {
     purchase: '◈',
     quest_complete: '✓',
     dungeon_clear: '🏆',
+    streak_milestone: '✧',
 }
 
 export function HistoryPage() {

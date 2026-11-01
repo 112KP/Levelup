@@ -13,7 +13,7 @@ import {
     itemAttributeKeys,
 } from '../../lib/items'
 import type { ItemAttributeKey, ItemEffects } from '../../lib/items'
-import type { ItemType } from '../../types/database'
+import type { ItemType } from '../../types/database.types'
 
 const attributes: Array<{ key: ItemAttributeKey; label: string; icon: typeof Dumbbell }> = [
     { key: 'strength', label: 'Strength', icon: Dumbbell },

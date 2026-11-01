@@ -415,6 +415,56 @@
     gap: 8px;
 }
 
+.stat-card-streak {
+    display: grid;
+    gap: 5px;
+    margin-top: 2px;
+}
+
+.streak-summary {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 2px 6px;
+    color: #9db4d1;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+}
+
+.streak-summary span:last-child {
+    color: #78d8ff;
+}
+
+.streak-progress {
+    height: 5px;
+    overflow: hidden;
+    border: 1px solid rgba(168, 110, 255, 0.32);
+    border-radius: 999px;
+    background: rgba(7, 10, 18, 0.75);
+}
+
+.streak-progress > span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #6f40b2, #3ec6ff);
+    box-shadow: 0 0 8px rgba(62, 198, 255, 0.55);
+    transition: width 180ms ease;
+}
+
+.streak-next {
+    color: #7f93b8;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    line-height: 1.3;
+}
+
+.streak-error {
+    margin: 10px 0 0;
+    color: #ff9aa8;
+    font-size: 0.8rem;
+}
+
 .stat-number {
     font-size: 1.08rem;
     font-weight: 700;

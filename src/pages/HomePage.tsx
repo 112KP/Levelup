@@ -7,13 +7,19 @@ import {
     addQuestToToday,
     completeQuest,
     failQuest,
-    fetchQuestStatRewards,
     fetchQuests,
     fetchTodayQuestLogs,
     generateDailyQuestLogs,
 } from '../lib/quests'
+import { getAbilityLabel } from '../lib/abilities'
+import { useAbilityStreaks } from '../auth/useAbilityStreaks'
 import type { QuestBoardEntry } from '../lib/quests'
-import type { DungeonRow, QuestLogStatus, QuestPrahar, QuestRow, QuestStatRewardRow } from '../types/database'
+import type {
+    DungeonRow,
+    QuestLogStatus,
+    QuestPrahar,
+    QuestRow,
+} from '../types/database.types'
 import { RankBadge } from '../components/status/RankBadge'
 import { formatDateInTimeZone, getDateKey } from '../lib/dateTime'
 import { useTimezone } from '../auth/useTimezone'
@@ -54,12 +60,12 @@ type HomePageProps = {
 
 export function HomePage({ onRefreshReady }: HomePageProps) {
     const { session } = useAuth()
-    const { timeZone, loading: timezoneLoading } = useTimezone()
+    const { timeZone, loading: timezoneLoading, error: timezoneError } = useTimezone()
+    const { streaks, refresh: refreshStreaks } = useAbilityStreaks()
     const userId = session?.user.id ?? ''
     const [entries, setEntries] = useState<QuestBoardEntry[]>([])
     const [quests, setQuests] = useState<QuestRow[]>([])
     const [dungeons, setDungeons] = useState<DungeonRow[]>([])
-    const [statRewardsByQuestId, setStatRewardsByQuestId] = useState<Record<string, QuestStatRewardRow[]>>({})
     const [selectedTab, setSelectedTab] = useState<{ day: string; status: QuestLogStatus }>(() => ({
         day: getDateKey(new Date(), timeZone),
         status: 'pending',
@@ -70,6 +76,7 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
     const [busyId, setBusyId] = useState<string | null>(null)
     const [toast, setToast] = useState('')
     const [busyAddId, setBusyAddId] = useState<string | null>(null)
+    const [milestoneToasts, setMilestoneToasts] = useState<string[]>([])
     const today = getDateKey(new Date(clock), timeZone)
     const activeTab = selectedTab.day === today ? selectedTab.status : 'pending'
     const addQuestDialogRef = useRef<HTMLDialogElement | null>(null)
@@ -84,16 +91,21 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
         if (!userId || timezoneLoading) return
         setLoading(true)
         setError('')
+        if (timezoneError) {
+            setError(`Timezone is unavailable: ${timezoneError}`)
+            setLoading(false)
+            return
+        }
         const { error: generationError } = await generateDailyQuestLogs()
-        const [logsResult, dungeonsResult, rewardsResult, questsResult] = await Promise.all([
+        const streaksResult = await refreshStreaks()
+        const [logsResult, dungeonsResult, questsResult] = await Promise.all([
             fetchTodayQuestLogs(userId, today),
             fetchDungeons(userId),
-            fetchQuestStatRewards(userId),
             fetchQuests(userId),
         ])
 
-        if (logsResult.error || dungeonsResult.error || rewardsResult.error || questsResult.error) {
-            setError(logsResult.error?.message || dungeonsResult.error?.message || rewardsResult.error?.message || questsResult.error?.message || 'Unable to load your board.')
+        if (logsResult.error || dungeonsResult.error || questsResult.error || streaksResult.error) {
+            setError(logsResult.error?.message || dungeonsResult.error?.message || questsResult.error?.message || streaksResult.error?.message || 'Unable to load your board.')
             setLoading(false)
             return
         }
@@ -101,15 +113,9 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
         setEntries((logsResult.data ?? []) as QuestBoardEntry[])
         setQuests(questsResult.data ?? [])
         setDungeons(dungeonsResult.data ?? [])
-        const rewardsByQuestId: Record<string, QuestStatRewardRow[]> = {}
-        for (const reward of rewardsResult.data ?? []) {
-            rewardsByQuestId[reward.quest_id] ??= []
-            rewardsByQuestId[reward.quest_id].push(reward)
-        }
-        setStatRewardsByQuestId(rewardsByQuestId)
         setError(generationError?.message ? `Daily quests could not be generated: ${generationError.message}` : '')
         setLoading(false)
-    }, [today, timezoneLoading, userId])
+    }, [refreshStreaks, today, timezoneError, timezoneLoading, userId])
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -122,10 +128,13 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
     }, [loadHome, onRefreshReady])
 
     useEffect(() => {
-        if (!toast) return
-        const timer = window.setTimeout(() => setToast(''), 3000)
+        if (!toast && milestoneToasts.length === 0) return
+        const timer = window.setTimeout(() => {
+            setToast('')
+            setMilestoneToasts([])
+        }, 3000)
         return () => window.clearTimeout(timer)
-    }, [toast])
+    }, [milestoneToasts, toast])
 
     async function changeQuestStatus(entry: QuestBoardEntry, status: 'completed' | 'failed') {
         setBusyId(entry.id)
@@ -140,21 +149,48 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
         const quest = entry.quests
         setEntries((current) => current.map((item) => item.id === entry.id ? { ...item, status } : item))
         if (quest && status === 'completed') {
-            const savedRewards = statRewardsByQuestId[quest.id]
-            const rewards = savedRewards?.length
-                ? savedRewards
-                : quest.stat_reward
-                    ? [{ stat_name: quest.stat_reward, amount: quest.stat_reward_amount }]
-                    : []
-            const stat = rewards.length
-                ? `, ${rewards.map((reward) => `+${reward.amount} ${reward.stat_name}`).join(', ')}`
-                : ''
-            const hpReward = quest.hp_reward > 0 ? `, +${quest.hp_reward} HP` : ''
-            const mpReward = quest.mp_reward > 0 ? `, +${quest.mp_reward} MP` : ''
-            const careerReward = quest.career_ability_reward ? `, +${quest.career_ability_reward} Career Ability` : ''
-            const fatigueRestore = quest.fatigue_restore > 0 ? `, −${quest.fatigue_restore} Fatigue` : ''
-            setToast(`${quest.name}: +${quest.xp_reward} XP, +${quest.gold_reward} gold${hpReward}${mpReward}${stat}${careerReward}${fatigueRestore}.`)
+            const previousStreaks = new Map(streaks.map((streak) => [streak.ability, streak]))
+            const streaksResult = await refreshStreaks()
+            const milestoneMessages: string[] = []
+            let streakSummary: string
+
+            if (streaksResult.error) {
+                setError(`Quest completed, but streaks could not be refreshed: ${streaksResult.error.message}`)
+                streakSummary = 'Streak status unavailable'
+            } else {
+                const updatedStreaks = streaksResult.data ?? []
+                const updatedByAbility = new Map(updatedStreaks.map((streak) => [streak.ability, streak]))
+                const taggedStreaks = [...new Set(quest.abilities)]
+                    .map((ability) => updatedByAbility.get(ability))
+                    .filter((streak) => streak !== undefined)
+                streakSummary = taggedStreaks.length
+                    ? taggedStreaks
+                        .map((streak) => `${getAbilityLabel(streak.ability)} ${streak.current_streak}-day streak`)
+                        .join(', ')
+                    : 'No ability streak credited'
+
+                if (previousStreaks.size > 0) {
+                    for (const streak of updatedStreaks) {
+                        if (streak.highest_milestone_paid > (previousStreaks.get(streak.ability)?.highest_milestone_paid ?? 0)) {
+                            milestoneMessages.push(
+                                `+${streak.highest_milestone_paid} ${getAbilityLabel(streak.ability)}, ${streak.highest_milestone_paid}-day streak`,
+                            )
+                        }
+                    }
+                }
+            }
+
+            setMilestoneToasts(milestoneMessages)
+            const rewards = [
+                `+${quest.xp_reward} XP`,
+                `+${quest.gold_reward} gold`,
+                ...(quest.hp_reward > 0 ? [`+${quest.hp_reward} HP`] : []),
+                ...(quest.mp_reward > 0 ? [`+${quest.mp_reward} MP`] : []),
+                ...(quest.fatigue_restore > 0 ? [`−${quest.fatigue_restore} Fatigue`] : []),
+            ]
+            setToast(`${quest.name}: ${rewards.join(', ')}. ${streakSummary}.`)
         } else if (quest) {
+            setMilestoneToasts([])
             const penalties = [
                 quest.penalty_hp ? `-${quest.penalty_hp} HP` : '',
                 quest.penalty_gold ? `-${quest.penalty_gold} gold` : '',
@@ -254,6 +290,9 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
             </dialog>
 
             {toast && <div className="toast-banner" role="status">{toast}</div>}
+            {milestoneToasts.map((message) => (
+                <div className="streak-milestone-highlight" role="status" key={message}>{message}</div>
+            ))}
             {error && <p className="status-error" role="alert">{error}</p>}
 
             {activeDungeons.length > 0 && (
@@ -312,12 +351,6 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
                         if (!quest) return null
                         const pending = entry.status === 'pending'
                         const goalLabel = getQuestGoalLabel(quest.target_value, quest.unit)
-                        const savedRewards = statRewardsByQuestId[quest.id]
-                        const rewards = savedRewards?.length
-                            ? savedRewards
-                            : quest.stat_reward
-                                ? [{ stat_name: quest.stat_reward, amount: quest.stat_reward_amount }]
-                                : []
                         return (
                             <article className={`home-quest-card prahar-${quest.prahar.toLowerCase()}${pending ? '' : ' is-settled'}`} key={entry.id}>
                                 {pending && (
@@ -339,13 +372,18 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
                                     <p className="home-quest-recurrence">{recurrenceLabel(quest.recurrence)}</p>
                                     {quest.description && <p className="home-quest-description">{quest.description}</p>}
                                     {goalLabel && <p className="home-quest-goal">{goalLabel}</p>}
+                                    <div className="home-quest-abilities" aria-label="Quest abilities">
+                                        {quest.abilities.length > 0
+                                            ? quest.abilities.map((ability) => (
+                                                <span className="ability-chip" key={ability}>{getAbilityLabel(ability)}</span>
+                                            ))
+                                            : <span className="ability-chip no-ability">No ability</span>}
+                                    </div>
                                     <div className="home-quest-rewards">
                                         <span>+{quest.xp_reward} XP</span>
                                         <span>+{quest.gold_reward} gold</span>
                                         {quest.hp_reward > 0 && <span>+{quest.hp_reward} HP</span>}
                                         {quest.mp_reward > 0 && <span>+{quest.mp_reward} MP</span>}
-                                        {rewards.map((reward) => <span key={reward.stat_name}>+{reward.amount} {reward.stat_name}</span>)}
-                                        {quest.career_ability_reward > 0 && <span>+{quest.career_ability_reward} Career Ability</span>}
                                         {quest.fatigue_restore > 0 && <span>−{quest.fatigue_restore} Fatigue</span>}
                                     </div>
                                 </div>

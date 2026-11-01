@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient'
-import type { Database } from '../types/database'
+import type { Database } from '../types/database.types'
 
 export async function fetchSkills(userId: string) {
     return supabase.from('skills').select('*').eq('user_id', userId).order('created_at', { ascending: false })

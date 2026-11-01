@@ -12,6 +12,9 @@ export type StatName =
     | 'sense'
     | 'vitality'
     | 'intelligence'
+    | 'career'
+
+export type AbilityName = StatName
 
 export type QuestRecurrence = 'daily' | 'weekly' | 'one_time'
 export type QuestPrahar = 'Morning' | 'Afternoon' | 'Evening' | 'Night'
@@ -30,6 +33,7 @@ export type EventType =
     | 'purchase'
     | 'quest_complete'
     | 'dungeon_clear'
+    | 'streak_milestone'
 
 export type ProfileRow = {
     id: string
@@ -52,6 +56,7 @@ export type ProfileRow = {
     sense: number
     vitality: number
     intelligence: number
+    career: number
     career_ability: number
     available_points: number
     gold: number
@@ -79,6 +84,7 @@ export type QuestRow = {
     name: string
     description: string | null
     recurrence: QuestRecurrence
+    abilities: AbilityName[]
     prahar: QuestPrahar
     difficulty: QuestDifficulty
     target_value: number
@@ -104,6 +110,25 @@ export type QuestStatRewardRow = {
     stat_name: StatName
     amount: number
     created_at: string
+}
+
+export type AbilityStreakRow = {
+    user_id: string
+    ability: AbilityName
+    current_streak: number
+    highest_milestone_paid: number
+    last_hit_date: string | null
+}
+
+export type AbilityStreakRefreshRow = Omit<AbilityStreakRow, 'user_id' | 'last_hit_date'> & {
+    next_milestone: number | null
+    next_points: number | null
+    hit_today: boolean
+}
+
+export type StreakMilestoneRow = {
+    days: number
+    points: number
 }
 
 export type QuestLogRow = {
@@ -179,7 +204,19 @@ export interface Database {
             profiles: {
                 Row: ProfileRow
                 Insert: never
-                Update: { display_name?: string | null; job?: string; timezone?: string }
+                Update: { display_name?: string | null; job?: string }
+                Relationships: []
+            }
+            ability_streaks: {
+                Row: AbilityStreakRow
+                Insert: never
+                Update: never
+                Relationships: []
+            }
+            streak_milestones: {
+                Row: StreakMilestoneRow
+                Insert: never
+                Update: never
                 Relationships: []
             }
             titles: {
@@ -196,6 +233,7 @@ export interface Database {
                     name: string
                     description?: string | null
                     recurrence?: QuestRecurrence
+                    abilities?: AbilityName[]
                     prahar?: QuestPrahar
                     difficulty?: QuestDifficulty
                     target_value?: number
@@ -313,6 +351,14 @@ export interface Database {
             set_quest_stat_rewards: {
                 Args: { p_quest_id: string; p_stat_rewards: Json }
                 Returns: void
+            }
+            set_timezone: {
+                Args: { p_tz: string }
+                Returns: void
+            }
+            refresh_ability_streaks: {
+                Args: Record<string, never>
+                Returns: AbilityStreakRefreshRow[]
             }
             set_dungeon_status: {
                 Args: { p_dungeon_id: string; p_status: DungeonStatus }

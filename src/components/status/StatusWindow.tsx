@@ -11,8 +11,9 @@ import {
 } from 'lucide-react'
 import { Capacitor } from '@capacitor/core'
 import { useAuth } from '../../auth/useAuth'
+import { useAbilityStreaks } from '../../auth/useAbilityStreaks'
 import { supabase } from '../../lib/supabaseClient'
-import type { Profile, StatName } from '../../types/database'
+import type { Profile, StatName } from '../../types/database.types'
 import { CornerFrame } from './CornerFrame'
 import { RankBadge } from './RankBadge'
 import { StatCard } from './StatCard'
@@ -30,12 +31,14 @@ const statDetails: {
         { name: 'sense', label: 'Sense', icon: Eye },
         { name: 'vitality', label: 'Vitality', icon: HeartPulse },
         { name: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
+        { name: 'career', label: 'Career', icon: BriefcaseBusiness },
     ]
 
-const profileColumns = 'id,user_id,display_name,timezone,job,rank,active_title_id,level,hp_current,hp_max,mp_current,mp_max,fatigue,xp,xp_to_next,strength,agility,sense,vitality,intelligence,career_ability,available_points,gold,created_at,updated_at' as const
+const profileColumns = 'id,user_id,display_name,timezone,job,rank,active_title_id,level,hp_current,hp_max,mp_current,mp_max,fatigue,xp,xp_to_next,strength,agility,sense,vitality,intelligence,career,career_ability,available_points,gold,created_at,updated_at' as const
 
 export function StatusWindow() {
     const { session } = useAuth()
+    const { streaks, error: streakError, refresh: refreshStreaks } = useAbilityStreaks()
     const userId = session?.user.id
     const [profile, setProfile] = useState<Profile | null>(null)
     const profileRef = useRef<Profile | null>(null)
@@ -54,6 +57,7 @@ export function StatusWindow() {
 
         let active = true
         let levelUpTimer: number | undefined
+        void refreshStreaks()
 
         function commitProfile(nextProfile: Profile | null) {
             if (!active) return
@@ -138,7 +142,9 @@ export function StatusWindow() {
             window.clearTimeout(levelUpTimer)
             void supabase.removeChannel(channel)
         }
-    }, [retryCount, userId])
+    }, [refreshStreaks, retryCount, userId])
+
+    const streaksByAbility = new Map(streaks.map((streak) => [streak.ability, streak]))
 
     async function allocatePoint(stat: StatName) {
         if (!profile || allocating || profile.available_points < 1) return
@@ -265,20 +271,15 @@ export function StatusWindow() {
                                 key={stat.name}
                                 label={stat.label}
                                 value={profile[stat.name]}
+                                streak={streaksByAbility.get(stat.name)}
                                 icon={stat.icon}
                                 canAllocate={profile.available_points > 0}
                                 allocating={allocating}
                                 onAllocate={() => void allocatePoint(stat.name)}
                             />
                         ))}
-                        <StatCard
-                            label="Career Ability"
-                            value={profile.career_ability}
-                            icon={BriefcaseBusiness}
-                            canAllocate={false}
-                            allocating={false}
-                        />
                     </section>
+                    {streakError && <p className="streak-error" role="alert">Streak status unavailable: {streakError}</p>}
                     <p className="allocation-message" aria-live="polite">{allocationMessage}</p>
 
                     <footer className="status-footer">

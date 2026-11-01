@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient'
 import { getDateKey, DEFAULT_TIME_ZONE } from './dateTime'
-import type { Database, DungeonStatus } from '../types/database'
+import type { Database, DungeonStatus } from '../types/database.types'
 
 export function getDaysRemaining(deadline: string | null, timeZone = DEFAULT_TIME_ZONE) {
     if (!deadline) return null

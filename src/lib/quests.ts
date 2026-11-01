@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient'
-import type { Database, QuestLogRow, QuestRow, QuestStatRewardRow } from '../types/database'
+import type { Database, QuestLogRow, QuestRow } from '../types/database.types'
 
 export async function fetchQuests(userId: string) {
     return supabase
@@ -21,23 +21,6 @@ export async function deleteQuest(id: string) {
     return supabase.from('quests').delete().eq('id', id)
 }
 
-export async function fetchQuestStatRewards(userId: string) {
-    return supabase
-        .from('quest_stat_rewards')
-        .select('*')
-        .eq('user_id', userId)
-}
-
-export async function setQuestStatRewards(
-    questId: string,
-    rewards: Array<Pick<QuestStatRewardRow, 'stat_name' | 'amount'>>,
-) {
-    return supabase.rpc('set_quest_stat_rewards', {
-        p_quest_id: questId,
-        p_stat_rewards: rewards,
-    })
-}
-
 export async function generateDailyQuestLogs() {
     const { error } = await supabase.rpc('fail_expired_quest_logs')
     if (error) return { data: null, error }
@@ -52,7 +35,7 @@ export async function fetchTodayQuestLogs(userId: string, day: string) {
     return supabase
         .from('quest_logs')
         .select(
-            'id, user_id, quest_id, quest_date, status, completed_at, penalty_applied, created_at, updated_at, quests:quest_id (id, name, description, xp_reward, gold_reward, hp_reward, mp_reward, career_ability_reward, penalty_hp, penalty_gold, fatigue_restore, stat_reward, stat_reward_amount, recurrence, prahar, difficulty, target_value, unit)',
+            'id, user_id, quest_id, quest_date, status, completed_at, penalty_applied, created_at, updated_at, quests:quest_id (id, name, description, abilities, xp_reward, gold_reward, hp_reward, mp_reward, penalty_hp, penalty_gold, fatigue_restore, recurrence, prahar, difficulty, target_value, unit)',
         )
         .eq('user_id', userId)
         .eq('quest_date', day)
@@ -72,16 +55,14 @@ export type QuestBoardEntry = Omit<QuestLogRow, 'progress_value'> & {
         id: string
         name: string
         description: string | null
+        abilities: QuestRow['abilities']
         xp_reward: number
         gold_reward: number
         hp_reward: number
         mp_reward: number
-        career_ability_reward: number
         penalty_hp: number
         penalty_gold: number
         fatigue_restore: number
-        stat_reward: QuestRow['stat_reward']
-        stat_reward_amount: number
         recurrence: string
         prahar: QuestRow['prahar']
         difficulty: QuestRow['difficulty']

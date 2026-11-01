@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../auth/useAuth'
 import { createQuest, deleteQuest, fetchQuests, updateQuest } from '../lib/quests'
-import type { QuestRecurrence, QuestRow, StatName } from '../types/database'
+import type { QuestRecurrence, QuestRow, StatName } from '../types/database.types'
 
 const recurrenceOptions: Array<{ value: QuestRecurrence | 'all'; label: string }> = [
     { value: 'all', label: 'All recurrences' },

@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient'
-import type { Database, Json } from '../types/database'
+import type { Database, Json } from '../types/database.types'
 
 export const itemEffectKeys = [
     'hp',
