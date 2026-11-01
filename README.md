@@ -53,12 +53,18 @@ values start at 10 and 100/100:
 
 ### Account progress reset
 
-Review and run [the account reset migration](./supabase/migrations/20261031220600_add_reset_my_progress.sql)
-manually in the Supabase SQL editor before deploying the matching frontend. From **Settings >
-Account Reset**, type `RESET` to return progress to the initial level, stats, vital values, fatigue,
-gold, rank, streaks, and history. Quest templates, skills, items, dungeons, unlocked titles, account,
-profile name, and timezone are preserved. Test with a disposable account before using it on a
-personal account.
+The account reset RPC must be installed in Supabase before deploying the matching frontend. Its
+migration was applied manually and its SQL file is intentionally not retained in this repository.
+From **Settings > Account Reset**, type `RESET` to return progress to the initial level, stats, vital
+values, fatigue, gold, rank, streaks, and history. Quest templates, skills, items, dungeons, unlocked
+titles, account, profile name, and timezone are preserved. Test with a disposable account before
+using it on a personal account.
+
+### Inventory item effects
+
+Inventory item effects can change Body, Mind, Emotion, Energy, Fatigue, and Gold; they do not
+change abilities. Run [the item-effect migration](./supabase/migrations/20261031223300_remove_item_ability_effects.sql)
+manually in the Supabase SQL editor so using a consumable ignores any legacy ability-effect keys.
 
 ## Android app
 
