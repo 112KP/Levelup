@@ -467,6 +467,25 @@ body:has(.workspace-shell) {
     text-align: left;
 }
 
+.profile-menu-action {
+    width: 100%;
+    gap: 10px;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+}
+
+.profile-menu-feedback {
+    margin: 6px 12px 10px;
+    color: #bfeeff;
+    font-size: 0.78rem;
+}
+
+.profile-menu-feedback.is-error {
+    color: #ffb3b3;
+}
+
 .profile-menu-error {
     margin: 6px 12px 10px;
     color: #ffb3b3;

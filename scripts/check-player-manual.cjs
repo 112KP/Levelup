@@ -37,6 +37,7 @@ const sections = getManualSections(milestones)
 const sectionIds = new Set(sections.map(({ id }) => id))
 const glossary = getGlossaryTerms()
 
+assert.ok(!sectionIds.has('abilities'), 'The standalone Abilities section should not appear in the manual')
 assert.ok(glossary.length > 0, 'Glossary should contain terms')
 assert.equal(
     new Set(glossary.map(({ section, term }) => `${section}:${term.toLocaleLowerCase()}`)).size,

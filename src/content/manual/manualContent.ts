@@ -101,6 +101,21 @@ function getAbilityMetrics() {
     ))
 }
 
+function getAllocationMetric() {
+    return metric(
+        'ability-points',
+        'Points ready to allocate',
+        'An older, separate balance of ability points that you can spend with the plus buttons.',
+        'A banner on Profile when the balance is greater than zero.',
+        'No current gameplay action adds to this balance. Streak milestones go straight to an ability instead.',
+        'Each allocation spends the selected number of available points.',
+        'The balance cannot go below zero. One plus-button press spends one point.',
+        'Spending raises an ability and can raise its related vital ceiling. It does not refill current vitals.',
+        `If you have one available point, using a plus button spends ${GAME_RULES.abilities.baseAllocationCost} point and increases one ability by ${GAME_RULES.abilities.baseAllocationCost}.`,
+        'If the banner is not visible, you have no points to allocate. Continue ability streaks to earn milestone points directly.',
+    )
+}
+
 function getStreakMetrics(milestones: StreakMilestoneRow[]) {
     const firstMilestone = milestones[0]
     const milestoneExample = firstMilestone
@@ -134,18 +149,6 @@ function getStreakMetrics(milestones: StreakMilestoneRow[]) {
             'Milestone points go directly to the matching ability and raise its related vital ceiling.',
             milestoneExample,
             'Milestones differ in size. Check the “Next” value under each ability to see what is coming.',
-        ),
-        metric(
-            'ability-points',
-            'Points ready to allocate',
-            'An older, separate balance of ability points that you can spend with the plus buttons.',
-            'A banner on Profile when the balance is greater than zero.',
-            'No current gameplay action adds to this balance. Streak milestones go straight to an ability instead.',
-            'Each allocation spends the selected number of available points.',
-            'The balance cannot go below zero. One plus-button press spends one point.',
-            'Spending raises an ability and can raise its related vital ceiling. It does not refill current vitals.',
-            `If you have one available point, using a plus button spends ${GAME_RULES.abilities.baseAllocationCost} point and increases one ability by ${GAME_RULES.abilities.baseAllocationCost}.`,
-            'If the banner is not visible, you have no points to allocate. Continue ability streaks to earn milestone points directly.',
         ),
     ]
 }
@@ -303,8 +306,8 @@ export function getManualSections(milestones: StreakMilestoneRow[]): ManualSecti
     ]
 
     const abilityMetrics = getAbilityMetrics()
-    const streakMetrics = getStreakMetrics(milestones)
-    const vitalMetrics = getVitalMetrics()
+    const streakMetrics = [...getStreakMetrics(milestones), getAllocationMetric()]
+    const vitalMetrics = [...getVitalMetrics(), ...abilityMetrics]
     const titleMetrics = getTitleMetrics()
     const milestoneList = milestones.length
         ? milestones.map(({ days, points }) => `${days} days → ${points} points`).join(', ')
@@ -344,16 +347,6 @@ export function getManualSections(milestones: StreakMilestoneRow[]): ManualSecti
                 { title: 'Titles', text: `Current automatic unlocks: ${titleUnlockList}. ${streakTitle.name} unlocks after ${streakTitle.days} consecutive quest-completion days. A title can be equipped for display.` },
             ],
             metrics: progressionMetrics,
-        },
-        {
-            id: 'abilities',
-            title: 'Abilities',
-            intro: 'Abilities are Strength, Agility, Sense, Vitality, Intelligence, and Career. Tag quests carefully: tags choose which streaks can advance.',
-            notes: [
-                { title: 'How points arrive', text: 'A streak milestone awards its points directly to the matching ability. The separate “Points ready to allocate” balance only appears if it is already positive; you can spend that balance with the plus buttons.' },
-                { title: 'What abilities do', text: 'Abilities raise vital ceilings only. They do not refill current vitals, and leveling up does not change them by itself.' },
-            ],
-            metrics: abilityMetrics,
         },
         {
             id: 'streaks',
@@ -529,11 +522,11 @@ export type GlossaryTerm = {
 }
 
 const baseGlossary: GlossaryTerm[] = [
-    { term: 'Ability', definition: 'One of Strength, Agility, Sense, Vitality, Intelligence, or Career.', section: 'abilities' },
-    { term: 'Ability points', definition: 'Points awarded at streak milestones directly to the matching ability. Any available allocation balance is separate.', section: 'abilities' },
+    { term: 'Ability', definition: 'One of Strength, Agility, Sense, Vitality, Intelligence, or Career.', section: 'vitals' },
+    { term: 'Ability points', definition: 'Points awarded at streak milestones directly to the matching ability. Any available allocation balance is separate.', section: 'streaks' },
     { term: 'Active title', definition: 'The unlocked title currently shown on your Profile.', section: 'titles' },
     { term: 'Add quest', definition: 'Adds an eligible Weekly or One-time quest to today, once per quest per day.', section: 'quests' },
-    { term: 'Career', definition: 'An ability that raises the Mind ceiling. Career is not accepted as a linked skill stat by the live database.', section: 'abilities' },
+    { term: 'Career', definition: 'An ability that raises the Mind ceiling. Career is not accepted as a linked skill stat by the live database.', section: 'vitals' },
     { term: 'Clear', definition: 'Resolves an in-progress dungeon as cleared and grants its configured rewards once.', section: 'dungeons' },
     { term: 'Cooldown', definition: 'A stored skill field; it is for reference only.', section: 'skills' },
     { term: 'Difficulty', definition: 'Easy, Medium, or Hard label. It does not change gameplay.', section: 'quests' },
@@ -543,7 +536,7 @@ const baseGlossary: GlossaryTerm[] = [
     { term: 'Fatigue', definition: 'A separate value from zero to its maximum; quest completion can restore it.', section: 'vitals' },
     { term: 'Gold', definition: 'A balance raised by quest and dungeon rewards and lowered by penalties or item effects.', section: 'character' },
     { term: 'History', definition: 'A paged list of selected recorded events.', section: 'history' },
-    { term: 'Intelligence', definition: 'An ability that raises the Mind ceiling.', section: 'abilities' },
+    { term: 'Intelligence', definition: 'An ability that raises the Mind ceiling.', section: 'vitals' },
     { term: 'Level', definition: 'Your overall progression level, raised by XP rewards.', section: 'character' },
     { term: 'Material', definition: 'An inventory item with no implemented use effect.', section: 'inventory' },
     { term: 'Milestone', definition: 'A configured streak length that awards points to its ability.', section: 'streaks' },
@@ -551,19 +544,19 @@ const baseGlossary: GlossaryTerm[] = [
     { term: 'Mind cost', definition: 'A stored skill field; it does not spend Mind in the current app.', section: 'skills' },
     { term: 'One-time', definition: 'A quest recurrence that can be added to today once on that day.', section: 'quests' },
     { term: 'Overdue', definition: 'A dungeon deadline has passed. This does not automatically fail the dungeon.', section: 'dungeons' },
-    { term: 'Points ready to allocate', definition: 'A separate balance that appears only when positive; spend it with an ability plus button.', section: 'abilities' },
+    { term: 'Points ready to allocate', definition: 'A separate balance that appears only when positive; spend it with an ability plus button.', section: 'streaks' },
     { term: 'Rank', definition: 'A letter progression band based on player Level. Dungeon rank is a separate label.', section: 'character' },
     { term: 'Rarity', definition: 'Common, Rare, Epic, or Legendary item label. It does not change effects.', section: 'inventory' },
-    { term: 'Sense', definition: 'An ability that raises the Emotion ceiling.', section: 'abilities' },
+    { term: 'Sense', definition: 'An ability that raises the Emotion ceiling.', section: 'vitals' },
     { term: 'Shield', definition: 'Not implemented in the current app.', section: 'shields' },
     { term: 'Skill', definition: 'A saved description; there is no skill-use action.', section: 'skills' },
     { term: 'Skipped', definition: 'A quest marked failed; configured penalties apply immediately.', section: 'quests' },
     { term: 'Streak', definition: 'Consecutive local days with a completed quest tagged to an ability.', section: 'streaks' },
-    { term: 'Strength', definition: 'An ability that raises Body and Mind ceilings.', section: 'abilities' },
+    { term: 'Strength', definition: 'An ability that raises Body and Mind ceilings.', section: 'vitals' },
     { term: 'Target', definition: 'Reference-only quest goal number; it does not affect rewards or completion.', section: 'quests' },
     { term: 'Title', definition: 'An unlockable display label you can equip.', section: 'titles' },
     { term: 'Unit', definition: 'Reference-only text beside a quest target.', section: 'quests' },
-    { term: 'Vitality', definition: 'An ability that raises the Energy ceiling.', section: 'abilities' },
+    { term: 'Vitality', definition: 'An ability that raises the Energy ceiling.', section: 'vitals' },
     { term: 'Energy', definition: 'A current vital with a ceiling raised by Vitality.', section: 'vitals' },
     { term: 'Body', definition: 'A current vital with a ceiling raised by Strength and Agility.', section: 'vitals' },
     { term: 'XP', definition: 'Experience points that move you toward the next Level.', section: 'character' },
@@ -606,9 +599,9 @@ const sectionTerms: Record<string, Array<[string, string]>> = {
         ['No quests completed yet today', 'The Home Done list is empty for today.'],
         ['No quests skipped today', 'The Home Skipped list is empty for today.'],
         ['Quest Log', 'A Profile dialog that currently contains placeholder text, not activity history.'],
-        ['Points ready to allocate', 'A Profile banner shown only when your older available point balance is positive.'],
     ],
     streaks: [
+        ['Points ready to allocate', 'A Profile banner shown only when your older available point balance is positive.'],
         ['Hit secured', 'At least one matching quest completion has credited the ability today.'],
         ['Hit not secured', 'No matching quest completion has credited the ability today yet.'],
         ['Next', 'The next configured milestone for that ability.'],

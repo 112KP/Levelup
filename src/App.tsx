@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { CircleUserRound, LogOut, RefreshCw, ShieldCheck } from 'lucide-react'
+import { Capacitor } from '@capacitor/core'
+import { Share } from '@capacitor/share'
+import { CircleUserRound, Copy, LogOut, RefreshCw, Share2, ShieldCheck } from 'lucide-react'
 import { HashRouter, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuth } from './auth/useAuth'
 import { CornerFrame } from './components/status/CornerFrame'
@@ -25,6 +27,8 @@ import {
 } from './services/authService'
 import './App.css'
 
+const appUrl = 'https://112kp.github.io/Levelup/'
+
 const navItems = [
     { to: '/', label: 'Home' },
     { to: '/profile', label: 'View Profile' },
@@ -48,6 +52,7 @@ function ProfileNavigationMenu({ showRefresh, refreshing, onRefresh }: ProfileNa
     const { logout } = useAuth()
     const [open, setOpen] = useState(false)
     const [logoutError, setLogoutError] = useState('')
+    const [shareFeedback, setShareFeedback] = useState<{ message: string; isError: boolean } | null>(null)
     const [signingOut, setSigningOut] = useState(false)
     const menuRef = useRef<HTMLDivElement | null>(null)
 
@@ -77,6 +82,57 @@ function ProfileNavigationMenu({ showRefresh, refreshing, onRefresh }: ProfileNa
             setLogoutError('Unable to sign out. Please try again.')
         } finally {
             setSigningOut(false)
+        }
+    }
+
+    async function copyAppLink() {
+        setShareFeedback(null)
+        try {
+            try {
+                await navigator.clipboard.writeText(appUrl)
+            } catch {
+                const textArea = document.createElement('textarea')
+                textArea.value = appUrl
+                textArea.style.position = 'fixed'
+                textArea.style.opacity = '0'
+                document.body.appendChild(textArea)
+                try {
+                    textArea.select()
+                    if (!document.execCommand('copy')) throw new Error('Clipboard copy was not successful.')
+                } finally {
+                    textArea.remove()
+                }
+            }
+            setShareFeedback({ message: 'App link copied.', isError: false })
+        } catch {
+            setShareFeedback({ message: 'Unable to copy the app link. Please try again.', isError: true })
+        }
+    }
+
+    async function handleShareApp() {
+        setShareFeedback(null)
+        try {
+            if (Capacitor.isNativePlatform()) {
+                await Share.share({
+                    title: 'Levelup',
+                    text: 'Check out Levelup!',
+                    url: appUrl,
+                    dialogTitle: 'Share Levelup',
+                })
+            } else if (navigator.share) {
+                await navigator.share({
+                    title: 'Levelup',
+                    text: 'Check out Levelup!',
+                    url: appUrl,
+                })
+            } else {
+                await copyAppLink()
+                return
+            }
+            setOpen(false)
+        } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') return
+            setShareFeedback({ message: 'Unable to open the share menu. You can copy the app link instead.', isError: true })
         }
     }
 
@@ -130,6 +186,19 @@ function ProfileNavigationMenu({ showRefresh, refreshing, onRefresh }: ProfileNa
                                 <LogOut size={16} aria-hidden="true" />
                                 <span>{signingOut ? 'Signing out...' : 'Sign out'}</span>
                             </button>
+                            <button className="profile-menu-link profile-menu-action" type="button" onClick={() => void handleShareApp()}>
+                                <Share2 size={16} aria-hidden="true" />
+                                <span>Share App</span>
+                            </button>
+                            <button className="profile-menu-link profile-menu-action" type="button" onClick={() => void copyAppLink()}>
+                                <Copy size={16} aria-hidden="true" />
+                                <span>Copy link</span>
+                            </button>
+                            {shareFeedback && (
+                                <p className={`profile-menu-feedback${shareFeedback.isError ? ' is-error' : ''}`} role={shareFeedback.isError ? 'alert' : 'status'}>
+                                    {shareFeedback.message}
+                                </p>
+                            )}
                             {logoutError && <p className="profile-menu-error" role="alert">{logoutError}</p>}
                             <a className="profile-menu-link" href={`${import.meta.env.BASE_URL}privacy-policy.html`}>
                                 Privacy policy
