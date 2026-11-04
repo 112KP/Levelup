@@ -20,6 +20,7 @@ import { SettingsPage } from './pages/SettingsPage'
 import { ManualPage } from './pages/ManualPage'
 import { TimezoneProvider } from './auth/TimezoneProvider'
 import { AbilityStreakProvider } from './auth/AbilityStreakProvider'
+import { supabase } from './lib/supabaseClient'
 import {
     signInWithGoogle,
     signInWithPassword,
@@ -348,7 +349,150 @@ function AuthScreen() {
     )
 }
 
+function WelcomePlayerDialog({ userId }: { userId: string }) {
+    const dialogRef = useRef<HTMLDialogElement | null>(null)
+    const nameInputRef = useRef<HTMLInputElement | null>(null)
+    const [profileName, setProfileName] = useState<string | null>(null)
+    const [playerName, setPlayerName] = useState('')
+    const [profileError, setProfileError] = useState('')
+    const [saveError, setSaveError] = useState('')
+    const [loading, setLoading] = useState(true)
+    const [saving, setSaving] = useState(false)
+    const [retry, setRetry] = useState(0)
+    const needsWelcome = !loading && (Boolean(profileError) || !profileName?.trim())
+
+    useEffect(() => {
+        let active = true
+
+        async function loadProfile() {
+            setLoading(true)
+            setProfileName(null)
+
+            try {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('display_name')
+                    .eq('user_id', userId)
+                    .maybeSingle()
+
+                if (!active) return
+                if (error) {
+                    setProfileError(error.message)
+                } else if (!data) {
+                    setProfileError('Your player profile could not be found.')
+                } else {
+                    setProfileError('')
+                    setProfileName(data.display_name)
+                    setPlayerName(data.display_name ?? '')
+                }
+            } catch (error) {
+                if (active) {
+                    setProfileError(error instanceof Error ? error.message : 'Unable to load your player profile.')
+                }
+            } finally {
+                if (active) setLoading(false)
+            }
+        }
+
+        void loadProfile()
+        return () => {
+            active = false
+        }
+    }, [userId, retry])
+
+    useEffect(() => {
+        const dialog = dialogRef.current
+        if (!dialog) return
+
+        if (needsWelcome) {
+            if (!dialog.open) dialog.showModal()
+            if (!profileError) nameInputRef.current?.focus()
+        } else if (dialog.open) {
+            dialog.close()
+        }
+    }, [needsWelcome, profileError])
+
+    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault()
+        const displayName = playerName.trim()
+        if (!displayName || saving) {
+            setSaveError('Enter a player name to continue.')
+            return
+        }
+
+        setSaving(true)
+        setSaveError('')
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .update({ display_name: displayName })
+                .eq('user_id', userId)
+                .select('user_id')
+                .maybeSingle()
+
+            if (error) throw error
+            if (!data) throw new Error('Your player profile could not be found.')
+            setProfileName(displayName)
+        } catch (error) {
+            setSaveError(error instanceof Error ? error.message : 'Unable to save your player name.')
+        } finally {
+            setSaving(false)
+        }
+    }
+
+    return (
+        <dialog
+            className="welcome-dialog"
+            ref={dialogRef}
+            aria-labelledby="welcome-player-title"
+            onCancel={(event) => event.preventDefault()}
+        >
+            <div className="welcome-dialog-content">
+                {profileError ? (
+                    <>
+                        <p className="eyebrow">LEVELUP / PLAYER SETUP</p>
+                        <h2 id="welcome-player-title">We couldn&apos;t load your profile</h2>
+                        <p className="welcome-dialog-copy" role="alert">{profileError}</p>
+                        <button
+                            className="primary-button"
+                            type="button"
+                            disabled={loading}
+                            onClick={() => setRetry((current) => current + 1)}
+                        >
+                            {loading ? 'Trying again...' : 'Try again'}
+                        </button>
+                    </>
+                ) : (
+                    <form onSubmit={handleSubmit}>
+                        <p className="eyebrow">LEVELUP / PLAYER SETUP</p>
+                        <h2 id="welcome-player-title">Welcome to the world!</h2>
+                        <p className="welcome-dialog-copy">Choose a name for your player.</p>
+                        <label htmlFor="welcome-player-name">Player name</label>
+                        <input
+                            ref={nameInputRef}
+                            id="welcome-player-name"
+                            type="text"
+                            autoComplete="nickname"
+                            value={playerName}
+                            onChange={(event) => {
+                                setPlayerName(event.target.value)
+                                setSaveError('')
+                            }}
+                            required
+                        />
+                        {saveError && <p className="welcome-dialog-error" role="alert">{saveError}</p>}
+                        <button className="primary-button" type="submit" disabled={saving}>
+                            {saving ? 'Saving...' : 'Enter the world'}
+                        </button>
+                    </form>
+                )}
+            </div>
+        </dialog>
+    )
+}
+
 function AppShell() {
+    const { session } = useAuth()
     const location = useLocation()
     const isWideManagementPage = ['/quests/manage', '/inventory', '/dungeons/manage', '/manual'].includes(location.pathname)
     const [homeRefresh, setHomeRefresh] = useState<(() => Promise<void>) | null>(null)
@@ -392,6 +536,7 @@ function AppShell() {
 
     return (
         <div className={`workspace-shell${isWideManagementPage ? ' wide-management-shell' : ''}`}>
+            {session && <WelcomePlayerDialog userId={session.user.id} />}
             <header className="workspace-header">
                 <NavLink to="/" className="workspace-brand">LEVELUP <i>/</i> SYSTEM</NavLink>
                 <ProfileNavigationMenu

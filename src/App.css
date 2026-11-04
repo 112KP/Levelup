@@ -1311,6 +1311,91 @@ body:has(.workspace-shell) {
     backdrop-filter: blur(3px);
 }
 
+.welcome-dialog {
+    width: min(100% - 32px, 480px);
+    max-width: 480px;
+    padding: 0;
+    border: 1px solid rgba(168, 110, 255, 0.55);
+    border-radius: 8px;
+    color: #dfefff;
+    background: rgba(8, 13, 27, 0.98);
+    box-shadow: 0 0 48px rgba(168, 110, 255, 0.28);
+}
+
+.welcome-dialog::backdrop {
+    background: rgba(3, 5, 12, 0.84);
+    backdrop-filter: blur(5px);
+}
+
+.welcome-dialog-content {
+    padding: clamp(24px, 6vw, 36px);
+}
+
+.welcome-dialog .eyebrow {
+    margin-bottom: 12px;
+    color: #a8c0df;
+}
+
+.welcome-dialog h2 {
+    margin: 0;
+    color: #c7ffe0;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: clamp(1.8rem, 7vw, 2.4rem);
+    line-height: 1.1;
+}
+
+.welcome-dialog-copy {
+    margin: 12px 0 24px;
+    color: #a8bbd7;
+}
+
+.welcome-dialog form {
+    display: grid;
+    gap: 12px;
+}
+
+.welcome-dialog label {
+    margin-top: 8px;
+    color: #c7ffe0;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.welcome-dialog input {
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 14px;
+    border: 1px solid rgba(168, 110, 255, 0.42);
+    border-radius: 4px;
+    color: #dfefff;
+    background: rgba(7, 10, 18, 0.8);
+    caret-color: #3ec6ff;
+}
+
+.welcome-dialog input:focus {
+    border-color: #3ec6ff;
+    outline: 2px solid rgba(62, 198, 255, 0.35);
+    outline-offset: 2px;
+}
+
+.welcome-dialog .primary-button {
+    width: 100%;
+    margin-top: 8px;
+    color: #c7ffe0;
+    border-color: rgba(62, 198, 255, 0.65);
+    background: rgba(35, 54, 83, 0.8);
+}
+
+.welcome-dialog .primary-button:hover {
+    background: rgba(48, 77, 111, 0.9);
+}
+
+.welcome-dialog-error {
+    margin: 0;
+    color: #ff9aab;
+    font-size: 0.88rem;
+}
+
 .manage-form {
     display: grid;
     gap: 14px;
