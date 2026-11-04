@@ -8,7 +8,7 @@ import {
     completeQuest,
     failQuest,
     fetchQuests,
-    fetchTodayQuestLogs,
+    fetchQuestBoardLogs,
     getQuestVitalPenalties,
     getQuestVitalRewards,
     generateDailyQuestLogs,
@@ -24,7 +24,7 @@ import type {
     QuestRow,
 } from '../types/database.types'
 import { RankBadge } from '../components/status/RankBadge'
-import { formatDateInTimeZone, getDateKey } from '../lib/dateTime'
+import { formatDateInTimeZone, getDateKey, getWeekStartDateKey } from '../lib/dateTime'
 import { useTimezone } from '../auth/useTimezone'
 
 const tabs: Array<{ status: QuestLogStatus; label: string }> = [
@@ -81,6 +81,7 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
     const [busyAddId, setBusyAddId] = useState<string | null>(null)
     const [milestoneToasts, setMilestoneToasts] = useState<string[]>([])
     const today = getDateKey(new Date(clock), timeZone)
+    const weekStart = getWeekStartDateKey(today)
     const activeTab = selectedTab.day === today ? selectedTab.status : 'pending'
     const addQuestDialogRef = useRef<HTMLDialogElement | null>(null)
     const shortDate = formatDateInTimeZone(new Date(), { day: 'numeric', month: 'short' }, 'en-GB', timeZone)
@@ -102,7 +103,7 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
         const { error: generationError } = await generateDailyQuestLogs()
         const streaksResult = await refreshStreaks()
         const [logsResult, dungeonsResult, questsResult] = await Promise.all([
-            fetchTodayQuestLogs(userId, today),
+            fetchQuestBoardLogs(userId, today, weekStart),
             fetchDungeons(userId),
             fetchQuests(userId),
         ])
@@ -118,7 +119,7 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
         setDungeons(dungeonsResult.data ?? [])
         setError(generationError?.message ? `Daily quests could not be generated: ${generationError.message}` : '')
         setLoading(false)
-    }, [refreshStreaks, today, timezoneError, timezoneLoading, userId])
+    }, [refreshStreaks, today, weekStart, timezoneError, timezoneLoading, userId])
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -223,7 +224,7 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
         }
 
         addQuestDialogRef.current?.close()
-        setToast(`${quest.name} added to today's To-Do list.`)
+        setToast(`${quest.name} added to ${quest.recurrence === 'weekly' ? 'this week' : 'today'}'s To-Do list.`)
         setBusyAddId(null)
         await loadHome()
     }
@@ -254,6 +255,7 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
                 <div>
                     <p className="eyebrow">DAILY QUEST BOARD</p>
                     <h2 id="home-title">Today&apos;s quests</h2>
+                    <p className="home-quest-recurrence">Weekly quests stay here through Sunday. Unfinished quests are skipped the next time your board loads after the week ends.</p>
                 </div>
                 <button
                     type="button"
@@ -353,7 +355,7 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
                 </div>
             ) : visibleEntries.length === 0 ? (
                 <p className="home-empty-state">
-                    {activeTab === 'pending' ? 'No quests to do today.' : activeTab === 'completed' ? 'No quests completed yet today.' : 'No quests skipped today — nice.'}
+                    {activeTab === 'pending' ? 'No quests to do today or this week.' : activeTab === 'completed' ? 'No quests completed today or this week.' : 'No quests skipped today or this week — nice.'}
                 </p>
             ) : (
                 <div className="quest-board-list" role="tabpanel">
@@ -380,8 +382,10 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
                                         <h3>{quest.name}</h3>
                                         <span className={`difficulty-tag ${quest.difficulty}`}>{quest.difficulty}</span>
                                     </div>
-                                    <p className="home-quest-recurrence">{recurrenceLabel(quest.recurrence)}</p>
-                                    {quest.description && <p className="home-quest-description">{quest.description}</p>}
+                                    <p className="home-quest-recurrence">
+                                        {recurrenceLabel(quest.recurrence)}
+                                        {quest.recurrence === 'weekly' && ` · Added ${formatDateInTimeZone(entry.quest_date, { dateStyle: 'medium' }, undefined, timeZone)}`}
+                                    </p>
                                     {goalLabel && <p className="home-quest-goal">{goalLabel}</p>}
                                     <div className="home-quest-abilities" aria-label="Quest abilities">
                                         {quest.abilities.length > 0

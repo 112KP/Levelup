@@ -295,7 +295,6 @@ export function ManageQuestsPage() {
                             <article className="manage-row quest-manage-row" key={quest.id}>
                                 <div className="manage-row-main">
                                     <h3>{quest.name}</h3>
-                                    {quest.description && <p>{quest.description}</p>}
                                     <div className="manage-row-tags">
                                         <span>{recurrenceLabel(quest.recurrence)}</span>
                                         <span className={`difficulty-tag ${quest.difficulty}`}>{quest.difficulty}</span>

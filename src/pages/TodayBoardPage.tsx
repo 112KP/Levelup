@@ -173,7 +173,6 @@ export function TodayBoardPage() {
                                     <div key={entry.id} className={`quest-card pending prahar-${quest.prahar.toLowerCase()}`}>
                                         <div>
                                             <h3>{quest.name}</h3>
-                                            {quest.description && <p>{quest.description}</p>}
                                             <div className="meta-row">
                                                 <span>{quest.xp_reward} XP</span>
                                                 <span>{quest.gold_reward} gold</span>

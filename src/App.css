@@ -952,8 +952,7 @@ body:has(.workspace-shell) {
     color: #ff7189;
 }
 
-.home-quest-recurrence,
-.home-quest-description {
+.home-quest-recurrence {
     margin: 3px 0 0;
     color: var(--home-dim);
     font-size: 0.8rem;

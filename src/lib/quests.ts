@@ -1,6 +1,7 @@
 import { supabase } from './supabaseClient'
 import type { Database, QuestLogRow, QuestRow } from '../types/database.types'
 import { formatVitalEffect } from './vitals'
+import { GAME_RULES } from './gameRules'
 
 export function getQuestVitalRewards(quest: Pick<
     QuestRow,
@@ -66,6 +67,80 @@ export async function fetchTodayQuestLogs(userId: string, day: string) {
         .eq('user_id', userId)
         .eq('quest_date', day)
         .order('created_at', { ascending: false })
+}
+
+export async function fetchQuestBoardLogs(userId: string, day: string, weekStart: string) {
+    const { data: logs, error } = await supabase
+        .from('quest_logs')
+        .select('*')
+        .eq('user_id', userId)
+        .gte('quest_date', weekStart)
+        .lte('quest_date', day)
+        .order('created_at', { ascending: false })
+
+    if (error) return { data: null, error }
+    if (!logs?.length) return { data: [], error: null }
+
+    const questIds = [...new Set(logs.map((log) => log.quest_id))]
+    const { data: quests, error: questError } = await supabase
+        .from('quests')
+        .select('*')
+        .eq('user_id', userId)
+        .in('id', questIds)
+
+    if (questError) return { data: null, error: questError }
+
+    const questsById = new Map((quests ?? []).map((quest) => [quest.id, quest]))
+    return {
+        data: logs
+            .map((log) => ({
+                ...log,
+                quests: questsById.get(log.quest_id) ?? null,
+            }))
+            .filter((entry) =>
+                entry.quest_date === day || entry.quests?.recurrence === 'weekly',
+            ),
+        error: null,
+    }
+}
+
+export type QuestHistoryEntry = {
+    log: QuestLogRow
+    quest: QuestRow | null
+}
+
+export async function fetchQuestHistory(userId: string, page: number, pageSize = GAME_RULES.history.pageSize) {
+    const from = (page - 1) * pageSize
+    const to = from + pageSize - 1
+    const { data: logs, error, count } = await supabase
+        .from('quest_logs')
+        .select('*', { count: 'exact' })
+        .eq('user_id', userId)
+        .order('quest_date', { ascending: false })
+        .order('created_at', { ascending: false })
+        .range(from, to)
+
+    if (error) return { data: null, error, count }
+    if (!logs?.length) return { data: [], error: null, count }
+
+    const questIds = [...new Set(logs.map((log) => log.quest_id))]
+    const { data: quests, error: questError } = await supabase
+        .from('quests')
+        .select('*')
+        .eq('user_id', userId)
+        .in('id', questIds)
+
+    if (questError) return { data: null, error: questError, count }
+
+    const questsById = new Map((quests ?? []).map((quest) => [quest.id, quest]))
+    return {
+        data: logs.map((log) => ({
+            log,
+            quest: questsById.get(log.quest_id) ?? null,
+        })),
+        error: null,
+        count,
+    }
 }
 
 export async function completeQuest(pLogId: string) {

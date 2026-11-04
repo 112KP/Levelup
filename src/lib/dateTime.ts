@@ -12,6 +12,14 @@ export function getDateKey(date = new Date(), timeZone = DEFAULT_TIME_ZONE) {
     return `${value('year')}-${value('month')}-${value('day')}`
 }
 
+export function getWeekStartDateKey(dateKey: string) {
+    const date = new Date(`${dateKey}T12:00:00.000Z`)
+    const dayOfWeek = date.getUTCDay()
+    const daysSinceMonday = (dayOfWeek + 6) % 7
+    date.setUTCDate(date.getUTCDate() - daysSinceMonday)
+    return date.toISOString().slice(0, 10)
+}
+
 export function formatDateInTimeZone(
     value: string | Date,
     options: Intl.DateTimeFormatOptions = {},

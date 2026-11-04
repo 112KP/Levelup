@@ -39,6 +39,7 @@ export function StatCard({
                     <button
                         className="stat-add"
                         type="button"
+                        data-profile-share-exclude
                         aria-label={`Allocate one point to ${label}`}
                         title={`Add 1 ${label} point`}
                         disabled={allocating}

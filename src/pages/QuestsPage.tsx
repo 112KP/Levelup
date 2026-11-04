@@ -329,7 +329,6 @@ export function QuestsPage() {
                                                         <tr key={quest.id}>
                                                             <td>
                                                                 <strong>{quest.name}</strong>
-                                                                {quest.description && <div className="muted-copy">{quest.description}</div>}
                                                             </td>
                                                             <td>{quest.target_value} {quest.unit || 'x'}</td>
                                                             <td>

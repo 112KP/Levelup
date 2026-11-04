@@ -27,7 +27,6 @@
     line-height: 1.5;
 }
 
-.manual-toc,
 .manual-section {
     margin: 0 0 14px;
     border: 1px solid rgba(168, 110, 255, 0.38);
@@ -36,23 +35,6 @@
     box-shadow: 0 0 18px rgba(155, 92, 240, 0.08);
 }
 
-.manual-toc {
-    padding: 14px;
-}
-
-.manual-toc h2 {
-    margin: 0 0 8px;
-    color: #c7ffe0;
-    font-size: 1.15rem;
-}
-
-.manual-toc > div {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
-    gap: 5px;
-}
-
-.manual-toc a,
 .manual-glossary-list a {
     display: flex;
     min-height: 44px;
@@ -64,8 +46,6 @@
     text-decoration: none;
 }
 
-.manual-toc a:hover,
-.manual-toc a:focus-visible,
 .manual-glossary-list a:hover,
 .manual-glossary-list a:focus-visible {
     background: rgba(62, 198, 255, 0.1);
@@ -337,10 +317,6 @@
 }
 
 @media (max-width: 540px) {
-    .manual-toc > div {
-        grid-template-columns: 1fr;
-    }
-
     .manual-metric-row {
         gap: 1px;
     }

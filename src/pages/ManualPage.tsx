@@ -160,17 +160,6 @@ export function ManualPage() {
                 <p>Learn how to use Levelup, what each number means, and what your choices actually change.</p>
             </header>
 
-            <nav className="manual-toc" aria-label="Manual contents">
-                <h2>On this page</h2>
-                <div>
-                    {sections.map((section) => (
-                        <Link key={section.id} to={`/manual?section=${section.id}`}>
-                            {section.title}
-                        </Link>
-                    ))}
-                </div>
-            </nav>
-
             {milestoneError && <p className="manual-error" role="alert">{milestoneError}</p>}
             <div className="manual-sections">
                 {sections.map((section) => (

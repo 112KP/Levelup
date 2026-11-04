@@ -550,6 +550,57 @@
     animation: number-change 500ms ease-out;
 }
 
+.status-footer-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.status-share-button {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 12px;
+    border: 1px solid rgba(168, 110, 255, 0.55);
+    border-radius: 6px;
+    color: #d7c2ff;
+    background: rgba(168, 110, 255, 0.08);
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.status-share-button:hover:not(:disabled) {
+    background: rgba(168, 110, 255, 0.16);
+}
+
+.status-share-button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.status-share-button:focus-visible,
+.quest-button:focus-visible {
+    outline: 2px solid var(--blue-accent);
+    outline-offset: 3px;
+}
+
+.status-share-feedback {
+    margin: 8px 0 0;
+    color: #bfe6ff;
+    font-size: 0.78rem;
+    text-align: right;
+}
+
+.status-share-feedback.is-error {
+    color: #ff9aa8;
+}
+
 .quest-button {
     min-height: 44px;
     padding: 0 14px;
@@ -654,7 +705,9 @@
 }
 
 .quest-dialog {
-    width: min(calc(100% - 32px), 420px);
+    width: min(calc(100% - 32px), 640px);
+    max-height: min(85vh, 760px);
+    overflow-y: auto;
     padding: 22px;
     border: 1px solid rgba(168, 110, 255, 0.38);
     border-radius: 8px;
@@ -687,6 +740,121 @@
 .quest-dialog p {
     color: var(--dim);
     font-size: 0.95rem;
+}
+
+.quest-dialog .quest-history-note {
+    margin: -8px 0 14px;
+    font-size: 0.82rem;
+}
+
+.quest-history-count {
+    margin: 0 0 12px;
+}
+
+.quest-history-list {
+    display: grid;
+    gap: 12px;
+}
+
+.quest-history-entry {
+    padding: 14px;
+    border: 1px solid rgba(168, 110, 255, 0.26);
+    border-radius: 7px;
+    background: rgba(7, 10, 18, 0.5);
+}
+
+.quest-history-entry-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.quest-history-entry-heading h3 {
+    margin: 0;
+    color: #dfefff;
+    font-size: 1.1rem;
+}
+
+.quest-history-entry-heading time,
+.quest-history-completed {
+    color: var(--dim);
+    font-size: 0.85rem;
+}
+
+.quest-history-status {
+    flex: 0 0 auto;
+    padding: 3px 8px;
+    border: 1px solid rgba(62, 198, 255, 0.35);
+    border-radius: 999px;
+    color: #bfe6ff;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.quest-history-status.completed {
+    border-color: rgba(23, 184, 102, 0.5);
+    color: #c7ffe0;
+}
+
+.quest-history-status.failed {
+    border-color: rgba(255, 96, 128, 0.45);
+    color: #ffd0d9;
+}
+
+.quest-history-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.quest-history-details span {
+    padding: 3px 7px;
+    border-radius: 4px;
+    color: #bfe6ff;
+    background: rgba(62, 198, 255, 0.08);
+    font-size: 0.82rem;
+}
+
+.quest-history-completed,
+.quest-history-effects {
+    margin: 8px 0 0;
+}
+
+.quest-history-effects strong {
+    color: #dfefff;
+}
+
+.quest-history-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 16px;
+    color: #bfe6ff;
+}
+
+.quest-history-page-button {
+    min-height: 44px;
+    padding: 8px 12px;
+    border: 1px solid rgba(62, 198, 255, 0.45);
+    border-radius: 6px;
+    color: var(--blue-accent);
+    background: rgba(62, 198, 255, 0.07);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.quest-history-page-button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.quest-history-page-button:focus-visible {
+    outline: 2px solid #b083ff;
+    outline-offset: 3px;
 }
 
 .quest-close {
@@ -949,6 +1117,21 @@
     .quest-button {
         min-height: 34px;
         padding-inline: 11px;
+    }
+
+    .status-footer-actions {
+        gap: 6px;
+    }
+
+    .status-share-button {
+        min-height: 34px;
+        gap: 5px;
+        padding-inline: 9px;
+        font-size: 0.74rem;
+    }
+
+    .status-share-feedback {
+        font-size: 0.68rem;
     }
 
     .status-footnote {
