@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
 import { supabase } from '../lib/supabaseClient'
 import { useTimezone } from '../auth/useTimezone'
+import { GAME_RULES } from '../lib/gameRules'
 
 const timeZones = ['UTC', ...Intl.supportedValuesOf('timeZone')]
 
@@ -172,7 +173,7 @@ export function SettingsPage() {
                         id="profile-name"
                         aria-describedby="profile-name-help"
                         autoComplete="nickname"
-                        maxLength={50}
+                        maxLength={GAME_RULES.profile.displayNameMaxLength}
                         value={profileName}
                         disabled={!userId || profileNameLoading || profileNameSaving}
                         onChange={(event) => {

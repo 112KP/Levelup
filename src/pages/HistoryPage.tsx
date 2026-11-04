@@ -5,6 +5,7 @@ import type { ActivityLogRow } from '../types/database.types'
 import { formatDateInTimeZone } from '../lib/dateTime'
 import { useTimezone } from '../auth/useTimezone'
 import { replaceLegacyVitalLabels } from '../lib/vitals'
+import { GAME_RULES } from '../lib/gameRules'
 
 const icons: Record<string, string> = {
     xp_gain: '✦',
@@ -30,7 +31,7 @@ export function HistoryPage() {
     const loadHistory = useCallback(async (nextPage = page) => {
         if (!userId) return
         setLoading(true)
-        const { data, error: queryError, count } = await fetchActivityHistory(userId, nextPage, 20)
+        const { data, error: queryError, count } = await fetchActivityHistory(userId, nextPage, GAME_RULES.history.pageSize)
         if (queryError) {
             setError(queryError.message || 'Unable to load activity history.')
             setLoading(false)
@@ -39,7 +40,7 @@ export function HistoryPage() {
         setItems((data ?? []) as ActivityLogRow[])
         setPageInfo({
             total: count ?? (data?.length ?? 0),
-            hasMore: (data?.length ?? 0) === 20,
+            hasMore: (data?.length ?? 0) === GAME_RULES.history.pageSize,
         })
         setError('')
         setLoading(false)

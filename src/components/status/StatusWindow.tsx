@@ -21,6 +21,7 @@ import { VitalsBar } from './VitalsBar'
 import { XPBar } from './XPBar'
 import './status-window.css'
 import { VITAL_LABELS } from '../../lib/vitals'
+import { GAME_RULES } from '../../lib/gameRules'
 
 const statDetails: {
     name: StatName
@@ -246,7 +247,7 @@ export function StatusWindow() {
                         <VitalsBar label={VITAL_LABELS.mind} current={profile.mp_current} max={profile.mp_max} kind="mind" />
                         <VitalsBar label={VITAL_LABELS.emotion} current={profile.emotion_current} max={profile.emotion_max} kind="emotion" />
                         <VitalsBar label={VITAL_LABELS.energy} current={profile.energy_current} max={profile.energy_max} kind="energy" />
-                        <VitalsBar label={VITAL_LABELS.fatigue} current={profile.fatigue} max={100} kind="fatigue" />
+                        <VitalsBar label={VITAL_LABELS.fatigue} current={profile.fatigue} max={GAME_RULES.vitals.fatigueMaximum} kind="fatigue" />
                     </section>
 
                     <XPBar

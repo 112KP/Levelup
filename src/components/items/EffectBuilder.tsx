@@ -3,6 +3,7 @@ import { formatItemEffectSummary } from '../../lib/items'
 import type { ItemEffects } from '../../lib/items'
 import type { ItemType } from '../../types/database.types'
 import { VITAL_LABELS } from '../../lib/vitals'
+import { GAME_RULES } from '../../lib/gameRules'
 
 const effectSteppers = [
     { key: 'hp', label: VITAL_LABELS.body },
@@ -43,8 +44,8 @@ export function EffectBuilder({ itemType, effects, onChange }: EffectBuilderProp
                             label={label}
                             value={effects[key] ?? 0}
                             onChange={(value) => changeVital(key, value)}
-                            min={-100}
-                            max={100}
+                            min={GAME_RULES.itemEffects.minimum}
+                            max={GAME_RULES.itemEffects.maximum}
                         />
                     ))}
                 </div>

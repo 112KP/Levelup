@@ -10,6 +10,7 @@
     "cap:sync": "npm run build:mobile && cap sync android",
     "cap:open": "cap open android",
     "lint": "eslint .",
+    "test:manual": "node scripts/check-player-manual.cjs",
     "preview": "vite preview",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit"

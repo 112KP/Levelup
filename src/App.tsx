@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { CircleUserRound, LogOut, RefreshCw, ShieldCheck } from 'lucide-react'
-import { BrowserRouter, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { HashRouter, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuth } from './auth/useAuth'
 import { CornerFrame } from './components/status/CornerFrame'
 import { StatusWindow } from './components/status/StatusWindow'
@@ -15,6 +15,7 @@ import { TitlesPage } from './pages/TitlesPage'
 import { DeleteAccountPage } from './pages/DeleteAccountPage'
 import { ResetAccountPage } from './pages/ResetAccountPage'
 import { SettingsPage } from './pages/SettingsPage'
+import { ManualPage } from './pages/ManualPage'
 import { TimezoneProvider } from './auth/TimezoneProvider'
 import { AbilityStreakProvider } from './auth/AbilityStreakProvider'
 import {
@@ -26,14 +27,15 @@ import './App.css'
 
 const navItems = [
     { to: '/', label: 'Home' },
-    { to: '/profile', label: 'Profile' },
-    { to: '/quests/manage', label: 'Quests' },
-    { to: '/dungeons/manage', label: 'Dungeons' },
+    { to: '/profile', label: 'View Profile' },
+    { to: '/quests/manage', label: 'Manage Quests' },
+    { to: '/dungeons/manage', label: 'Manage Dungeons' },
     { to: '/inventory', label: 'Inventory' },
     { to: '/skills', label: 'Skills' },
-    { to: '/titles', label: 'Title' },
+    { to: '/titles', label: 'Titles' },
     { to: '/history', label: 'History' },
     { to: '/settings', label: 'Settings' },
+    { to: '/manual', label: 'Player Manual' },
 ]
 
 type ProfileNavigationMenuProps = {
@@ -279,7 +281,7 @@ function AuthScreen() {
 
 function AppShell() {
     const location = useLocation()
-    const isWideManagementPage = ['/quests/manage', '/inventory', '/dungeons/manage'].includes(location.pathname)
+    const isWideManagementPage = ['/quests/manage', '/inventory', '/dungeons/manage', '/manual'].includes(location.pathname)
     const [homeRefresh, setHomeRefresh] = useState<(() => Promise<void>) | null>(null)
     const [refreshing, setRefreshing] = useState(false)
     const registerHomeRefresh = useCallback((refresh: (() => Promise<void>) | null) => {
@@ -312,6 +314,7 @@ function AppShell() {
             <Route path="/dungeons/manage" element={<ManageDungeonsPage />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/manual" element={<ManualPage />} />
             <Route path="/delete-account" element={<DeleteAccountPage />} />
             <Route path="/reset-account" element={<ResetAccountPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
@@ -359,13 +362,13 @@ function App() {
     }
 
     return (
-        <BrowserRouter basename={import.meta.env.BASE_URL}>
+        <HashRouter>
             <TimezoneProvider>
                 <AbilityStreakProvider>
                     <AppShell />
                 </AbilityStreakProvider>
             </TimezoneProvider>
-        </BrowserRouter>
+        </HashRouter>
     )
 }
 

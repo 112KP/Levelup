@@ -1,3 +1,5 @@
+import { GAME_RULES } from '../../lib/gameRules'
+
 type VitalsBarProps = {
     label: string
     current: number
@@ -9,7 +11,11 @@ export function VitalsBar({ label, current, max, kind }: VitalsBarProps) {
     const safeMax = Math.max(max, 0)
     const value = Math.min(Math.max(current, 0), safeMax)
     const percentage = safeMax === 0 ? 0 : (value / safeMax) * 100
-    const fatigueTone = current >= 75 ? 'fatigue-high' : current >= 45 ? 'fatigue-mid' : 'fatigue-low'
+    const fatigueTone = current >= GAME_RULES.vitals.fatigueColorThresholds.high
+        ? 'fatigue-high'
+        : current >= GAME_RULES.vitals.fatigueColorThresholds.medium
+            ? 'fatigue-mid'
+            : 'fatigue-low'
 
     return (
         <div className={`vital vital-${kind}`}>

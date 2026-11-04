@@ -1,6 +1,7 @@
 import { supabase } from './supabaseClient'
+import { GAME_RULES } from './gameRules'
 
-export async function fetchActivityHistory(userId: string, page: number, pageSize = 20) {
+export async function fetchActivityHistory(userId: string, page: number, pageSize = GAME_RULES.history.pageSize) {
     const from = (page - 1) * pageSize
     const to = from + pageSize - 1
 

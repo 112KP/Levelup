@@ -1,6 +1,7 @@
 import { supabase } from './supabaseClient'
 import type { Database, Json } from '../types/database.types'
 import { formatVitalEffect } from './vitals'
+import { GAME_RULES } from './gameRules'
 
 export const itemEffectKeys = [
     'hp',
@@ -33,7 +34,10 @@ export function buildItemEffectJson(effects: ItemEffects): Json {
     for (const key of itemEffectKeys) {
         const amount = effects[key]
         if (typeof amount === 'number' && Number.isFinite(amount)) {
-            const normalizedAmount = Math.max(-100, Math.min(100, Math.trunc(amount)))
+            const normalizedAmount = Math.max(
+                GAME_RULES.itemEffects.minimum,
+                Math.min(GAME_RULES.itemEffects.maximum, Math.trunc(amount)),
+            )
             if (normalizedAmount !== 0) result[key] = normalizedAmount
         }
     }

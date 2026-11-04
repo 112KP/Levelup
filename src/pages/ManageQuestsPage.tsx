@@ -12,6 +12,7 @@ import {
 } from '../lib/quests'
 import { ABILITY_OPTIONS, MAX_ABILITIES_PER_QUEST, getAbilityLabel } from '../lib/abilities'
 import { VITAL_LABELS } from '../lib/vitals'
+import { GAME_RULES } from '../lib/gameRules'
 import type { AbilityName, QuestDifficulty, QuestPrahar, QuestRecurrence, QuestRow } from '../types/database.types'
 
 const recurrenceOptions: Array<{ value: QuestRecurrence | 'all'; label: string }> = [
@@ -340,7 +341,7 @@ export function ManageQuestsPage() {
                         </div>
                         <button type="button" className="dialog-close-button" aria-label="Close quest form" onClick={closeForm}><X size={19} aria-hidden="true" /></button>
                     </header>
-                    <label className="field-group">Name<input className="field-input" required maxLength={120} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
+                    <label className="field-group">Name<input className="field-input" required maxLength={GAME_RULES.quests.nameMaxLength} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
                     <label className="field-group">Description<textarea className="field-input" rows={3} value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} /></label>
                     <div className="inline-grid two-up">
                         <label className="field-group">Recurrence<select className="field-input" value={form.recurrence} onChange={(event) => setForm({ ...form, recurrence: event.target.value as QuestRecurrence })}><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="one_time">One-time</option></select></label>
@@ -408,7 +409,7 @@ export function ManageQuestsPage() {
                         label={`${VITAL_LABELS.fatigue} restored on completion`}
                         value={Number(form.fatigue_restore) || 0}
                         onChange={(value) => setVitalAmount('fatigue_restore', value)}
-                        max={100}
+                        max={GAME_RULES.vitals.fatigueMaximum}
                     />
                     <label className="manage-checkbox"><input type="checkbox" checked={form.is_active} onChange={(event) => setForm({ ...form, is_active: event.target.checked })} /> Enrolled and active</label>
                     {error && <p className="status-error" role="alert">{error}</p>}

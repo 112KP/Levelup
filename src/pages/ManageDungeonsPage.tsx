@@ -9,6 +9,7 @@ import { useSearchParams } from 'react-router-dom'
 import { formatDateInTimeZone } from '../lib/dateTime'
 import { useTimezone } from '../auth/useTimezone'
 import { VITAL_LABELS } from '../lib/vitals'
+import { GAME_RULES } from '../lib/gameRules'
 
 const rankOptions: Rank[] = ['E', 'D', 'C', 'B', 'A', 'S']
 
@@ -283,7 +284,7 @@ export function ManageDungeonsPage() {
                         </div>
                         <button type="button" className="dialog-close-button" aria-label="Close dungeon form" onClick={closeForm}><X size={19} aria-hidden="true" /></button>
                     </header>
-                    <label className="field-group">Name<input className="field-input" required maxLength={120} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
+                    <label className="field-group">Name<input className="field-input" required maxLength={GAME_RULES.dungeons.nameMaxLength} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
                     <div className="inline-grid two-up">
                         <label className="field-group">Dungeon rank<select className="field-input" value={form.dungeon_rank} onChange={(event) => setForm({ ...form, dungeon_rank: event.target.value as Rank })}>{rankOptions.map((rank) => <option key={rank} value={rank}>{rank}</option>)}</select></label>
                         <label className="field-group">Deadline<input className="field-input" type="date" value={form.deadline} onChange={(event) => setForm({ ...form, deadline: event.target.value })} /></label>

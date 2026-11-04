@@ -19,3 +19,6 @@ Dark background (#070a12), glowing purple panel borders (#9b5cf0 edge,
 rgba(168,110,255,0.38) border), blue accents (#3ec6ff) for interactive
 elements, parrot-green glowing numbers (#c7ffe0 text-shadow #17b866),
 Rajdhani for labels, JetBrains Mono for numbers.
+
+When game rules, player-facing labels, or formulas change, update the Player
+Manual content in the same change.
