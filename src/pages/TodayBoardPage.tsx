@@ -17,13 +17,14 @@ import { useTimezone } from '../auth/useTimezone'
 function formatOutcomeLabel(status: string, data: {
     questName?: string
     xp?: number
+    careerXp?: number
     gold?: number
     vitalRewards?: string[]
     vitalPenalties?: string[]
     penaltyGold?: number
 }) {
     if (status === 'complete') {
-        const rewards = [`${data.xp ?? 0} XP`, `${data.gold ?? 0} gold`, ...(data.vitalRewards ?? [])].join(', ')
+        const rewards = [`${data.xp ?? 0} XP`, `${data.careerXp ?? 0} Career XP`, `${data.gold ?? 0} gold`, ...(data.vitalRewards ?? [])].join(', ')
         return `Completed ${data.questName ?? 'quest'} for ${rewards}.`
     }
     const penalties = [...(data.vitalPenalties ?? []), data.penaltyGold ? `−${data.penaltyGold} gold` : ''].filter(Boolean)
@@ -134,6 +135,7 @@ export function TodayBoardPage() {
         setToast(formatOutcomeLabel(action === 'complete' ? 'complete' : 'fail', {
             questName: quest.name,
             xp: quest.xp_reward,
+            careerXp: quest.career_xp_reward,
             gold: quest.gold_reward,
             vitalRewards: getQuestVitalRewards(quest),
             vitalPenalties: getQuestVitalPenalties(quest),
@@ -175,6 +177,7 @@ export function TodayBoardPage() {
                                             <h3>{quest.name}</h3>
                                             <div className="meta-row">
                                                 <span>{quest.xp_reward} XP</span>
+                                                <span>{quest.career_xp_reward} Career XP</span>
                                                 <span>{quest.gold_reward} gold</span>
                                                 {getQuestVitalRewards(quest).map((reward) => <span key={reward}>{reward}</span>)}
                                                 {getQuestVitalPenalties(quest).map((penalty) => <span key={`penalty-${penalty}`}>On skip: {penalty}</span>)}

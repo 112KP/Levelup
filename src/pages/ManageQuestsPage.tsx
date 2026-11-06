@@ -38,6 +38,7 @@ const defaultForm = {
     target_value: 1,
     unit: '',
     xp_reward: '',
+    career_xp_reward: '',
     gold_reward: '',
     hp_reward: '',
     mp_reward: '',
@@ -124,6 +125,7 @@ export function ManageQuestsPage() {
             target_value: quest.target_value,
             unit: quest.unit ?? '',
             xp_reward: String(quest.xp_reward),
+            career_xp_reward: String(quest.career_xp_reward),
             gold_reward: String(quest.gold_reward),
             hp_reward: String(quest.hp_reward),
             mp_reward: String(quest.mp_reward),
@@ -172,6 +174,7 @@ export function ManageQuestsPage() {
             target_value: Math.max(1, Number(form.target_value) || 1),
             unit: form.unit.trim() || null,
             xp_reward: Math.max(0, Number(form.xp_reward) || 0),
+            career_xp_reward: Math.max(0, Number(form.career_xp_reward) || 0),
             gold_reward: Math.max(0, Number(form.gold_reward) || 0),
             hp_reward: Math.max(0, Math.trunc(Number(form.hp_reward) || 0)),
             mp_reward: Math.max(0, Math.trunc(Number(form.mp_reward) || 0)),
@@ -304,6 +307,7 @@ export function ManageQuestsPage() {
                                             ))
                                             : <span className="ability-chip no-ability">No ability</span>}
                                         <span className="reward-text">+{quest.xp_reward} XP</span>
+                                        <span className="reward-text">+{quest.career_xp_reward} Career XP</span>
                                         <span className="reward-text">+{quest.gold_reward} gold</span>
                                         {getQuestVitalRewards(quest).map((reward) => <span className="reward-text" key={reward}>{reward}</span>)}
                                         {getQuestVitalPenalties(quest).map((penalty) => <span className="reward-text" key={`penalty-${penalty}`}>On skip: {penalty}</span>)}
@@ -376,19 +380,20 @@ export function ManageQuestsPage() {
                         <label className="field-group">Target value<input className="field-input" type="number" min="1" step="1" value={form.target_value} onChange={(event) => setForm({ ...form, target_value: Number(event.target.value) })} /></label>
                     </div>
                     <small className="field-help">Target and unit are for reference only; they do not affect rewards.</small>
+                    <label className="field-group">
+                        Unit
+                        <input
+                            className="field-input"
+                            value={form.unit}
+                            placeholder="e.g. L, pages, sessions"
+                            aria-describedby="quest-unit-help"
+                            onChange={(event) => setForm({ ...form, unit: event.target.value })}
+                        />
+                        <small id="quest-unit-help">Optional — leave blank for simple pass/fail quests.</small>
+                    </label>
                     <div className="inline-grid two-up">
-                        <label className="field-group">
-                            Unit
-                            <input
-                                className="field-input"
-                                value={form.unit}
-                                placeholder="e.g. L, pages, sessions"
-                                aria-describedby="quest-unit-help"
-                                onChange={(event) => setForm({ ...form, unit: event.target.value })}
-                            />
-                            <small id="quest-unit-help">Optional — leave blank for simple pass/fail quests.</small>
-                        </label>
                         <label className="field-group">XP reward<input className="field-input" type="number" min="0" step="1" value={form.xp_reward} onChange={(event) => setForm({ ...form, xp_reward: event.target.value })} /></label>
+                        <label className="field-group">Career XP reward<input className="field-input" type="number" min="0" step="1" value={form.career_xp_reward} onChange={(event) => setForm({ ...form, career_xp_reward: event.target.value })} /></label>
                     </div>
                     <label className="field-group">Gold reward<input className="field-input" type="number" min="0" step="1" value={form.gold_reward} onChange={(event) => setForm({ ...form, gold_reward: event.target.value })} /></label>
                     <div className="effect-vitals-grid">

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import {
     BrainCircuit,
-    BriefcaseBusiness,
     Dumbbell,
     Eye,
     HeartPulse,
@@ -41,10 +40,9 @@ const statDetails: {
         { name: 'sense', label: 'Sense', icon: Eye },
         { name: 'vitality', label: 'Vitality', icon: HeartPulse },
         { name: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
-        { name: 'career', label: 'Career', icon: BriefcaseBusiness },
     ]
 
-const profileColumns = 'id,user_id,display_name,timezone,job,rank,active_title_id,level,hp_current,hp_max,mp_current,mp_max,emotion_current,emotion_max,energy_current,energy_max,fatigue,xp,xp_to_next,strength,agility,sense,vitality,intelligence,career,career_ability,available_points,gold,created_at,updated_at' as const
+const profileColumns = 'id,user_id,display_name,timezone,job,rank,active_title_id,level,hp_current,hp_max,mp_current,mp_max,emotion_current,emotion_max,energy_current,energy_max,fatigue,xp,xp_to_next,career_xp,xp_career_linked,strength,agility,sense,vitality,intelligence,career,career_ability,available_points,gold,created_at,updated_at' as const
 
 async function imageToBase64(image: Blob): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -84,6 +82,7 @@ export function StatusWindow() {
     const [levelUp, setLevelUp] = useState(false)
     const [sharingProfile, setSharingProfile] = useState(false)
     const [profileShareFeedback, setProfileShareFeedback] = useState<{ message: string; isError: boolean } | null>(null)
+    const [linkingProgress, setLinkingProgress] = useState(false)
 
     useEffect(() => {
         const profileUserId = userId ?? ''
@@ -246,6 +245,38 @@ export function StatusWindow() {
         setAllocating(false)
     }
 
+    async function setProgressLinked(linked: boolean) {
+        if (!profile || linkingProgress) return
+        setLinkingProgress(true)
+        setAllocationMessage('')
+
+        const { error: linkError } = await supabase.rpc('set_xp_career_linked', { p_linked: linked })
+        if (linkError) {
+            setAllocationMessage(`Progress linking could not be updated: ${linkError.message}`)
+            setLinkingProgress(false)
+            return
+        }
+
+        const { data, error: refreshError } = await supabase
+            .from('profiles')
+            .select(profileColumns)
+            .eq('user_id', profile.user_id)
+            .maybeSingle()
+
+        if (refreshError || !data) {
+            setAllocationMessage(`Progress linking was updated, but profile status could not be refreshed${refreshError ? `: ${refreshError.message}` : '.'}`)
+            setLinkingProgress(false)
+            return
+        }
+
+        profileRef.current = data
+        setProfile(data)
+        setAllocationMessage(linked
+            ? 'XP and Career are linked. Level-ups wait for both bars to reach the target.'
+            : 'XP and Career are unlinked. XP controls level-ups.')
+        setLinkingProgress(false)
+    }
+
     async function shareProfileImage() {
         const profileFrame = profileImageRef.current
         if (!profileFrame || sharingProfile) return
@@ -379,6 +410,10 @@ export function StatusWindow() {
                         level={profile.level}
                         xp={profile.xp}
                         xpToNext={profile.xp_to_next}
+                        careerXp={profile.career_xp}
+                        xpCareerLinked={profile.xp_career_linked}
+                        linkingProgress={linkingProgress}
+                        onSetProgressLinked={(linked) => void setProgressLinked(linked)}
                         levelUp={levelUp}
                     />
 
@@ -517,7 +552,7 @@ export function StatusWindow() {
                                                     {log.penalty_applied ? 'Skip penalty applied' : 'No skip penalty applied'}
                                                 </p>
                                             )}
-                                            <QuestEffects title="Configured rewards" effects={getQuestVitalRewards(quest)} extras={[`${quest.xp_reward} XP`, `${quest.gold_reward} Gold`]} />
+                                            <QuestEffects title="Configured rewards" effects={getQuestVitalRewards(quest)} extras={[`${quest.xp_reward} XP`, `${quest.career_xp_reward} Career XP`, `${quest.gold_reward} Gold`]} />
                                             <QuestEffects
                                                 title="Skip penalties"
                                                 effects={getQuestVitalPenalties(quest)}

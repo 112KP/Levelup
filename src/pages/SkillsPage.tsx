@@ -221,7 +221,6 @@ export function SkillsPage() {
                             <option value="sense">Sense</option>
                             <option value="vitality">Vitality</option>
                             <option value="intelligence">Intelligence</option>
-                            <option value="career">Career</option>
                         </select></label>
                         <label className="field-group" htmlFor="skill-mp-cost">{VITAL_LABELS.mind} cost<input id="skill-mp-cost" className="field-input" type="number" min="0" value={form.mp_cost} onChange={(event) => setForm({ ...form, mp_cost: Number(event.target.value) })} /></label>
                     </div>

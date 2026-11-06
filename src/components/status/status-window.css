@@ -294,6 +294,34 @@
     min-width: 0;
 }
 
+.xp-progress-stack {
+    display: grid;
+    min-width: 0;
+    gap: 12px;
+}
+
+.career-progress .xp-track {
+    border-color: rgba(155, 92, 240, 0.42);
+}
+
+.career-xp-fill {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #6e38b8, #b083ff);
+    box-shadow: 0 0 12px rgba(168, 110, 255, 0.55);
+    transition: width 350ms ease;
+}
+
+.progress-link-control {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    color: var(--dim);
+    font-size: 0.75rem;
+}
+
 .xp-heading {
     display: flex;
     align-items: baseline;
@@ -1034,6 +1062,15 @@
     .xp-heading {
         gap: 4px;
         margin-bottom: 4px;
+    }
+
+    .xp-progress-stack {
+        gap: 9px;
+    }
+
+    .progress-link-control {
+        gap: 5px;
+        font-size: 0.67rem;
     }
 
     .mono-value {

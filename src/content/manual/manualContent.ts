@@ -80,17 +80,12 @@ function getAbilityMetrics() {
             ceiling: 'Mind',
             example: `One ${getAbilityLabel('intelligence')} point raises the Mind ceiling by ${vitalityIncrease}.`,
         },
-        {
-            name: 'Career',
-            ceiling: 'Mind',
-            example: `One ${getAbilityLabel('career')} point raises the Mind ceiling by ${vitalityIncrease}.`,
-        },
     ] as const
 
     return abilities.map(({ name, ceiling, example }) => metric(
         `ability-${name.toLowerCase()}`,
         name,
-        `${name} is one of your six abilities. It also helps set your ${ceiling} ceiling.`,
+        `${name} is one of your five abilities. It also helps set your ${ceiling} ceiling.`,
         'Profile, in the Attributes area.',
         `A streak milestone tagged to ${name} adds its milestone points directly to ${name}. A point can also be allocated from an available balance.`,
         'The normal game rules do not decrease abilities. Resetting progress returns abilities to their starting values.',
@@ -153,7 +148,7 @@ function getStreakMetrics(milestones: StreakMilestoneRow[]) {
 function getVitalMetrics() {
     const { startingCeiling, ceilingPerAbilityPoint, fatigueMinimum, fatigueMaximum } = GAME_RULES.vitals
     const bodyGain = getVitalCeilingIncrease(2)
-    const mindGain = getVitalCeilingIncrease(4)
+    const mindGain = getVitalCeilingIncrease(3)
     const names = ['Body', 'Mind', 'Emotion', 'Energy'] as const
     const definitions: Record<typeof names[number], { ceiling: string; sources: string }> = {
         Body: {
@@ -161,7 +156,7 @@ function getVitalMetrics() {
             sources: 'Quest rewards, skipped-quest penalties, consumable effects, and dungeon-clear effects.',
         },
         Mind: {
-            ceiling: `Strength, Agility, Intelligence, and Career above ${GAME_RULES.abilities.startingValue}.`,
+            ceiling: `Strength, Agility, and Intelligence above ${GAME_RULES.abilities.startingValue}.`,
             sources: 'Quest rewards, skipped-quest penalties, consumable effects, and dungeon-clear effects.',
         },
         Emotion: {
@@ -179,12 +174,12 @@ function getVitalMetrics() {
         const formula = name === 'Body'
             ? `${startingCeiling} + ${ceilingPerAbilityPoint} × (Strength − ${GAME_RULES.abilities.startingValue}) + ${ceilingPerAbilityPoint} × (Agility − ${GAME_RULES.abilities.startingValue})`
             : name === 'Mind'
-                ? `${startingCeiling} + ${ceilingPerAbilityPoint} × (Strength − ${GAME_RULES.abilities.startingValue}) + ${ceilingPerAbilityPoint} × (Agility − ${GAME_RULES.abilities.startingValue}) + ${ceilingPerAbilityPoint} × (Intelligence − ${GAME_RULES.abilities.startingValue}) + ${ceilingPerAbilityPoint} × (Career − ${GAME_RULES.abilities.startingValue})`
+                ? `${startingCeiling} + ${ceilingPerAbilityPoint} × (Strength − ${GAME_RULES.abilities.startingValue}) + ${ceilingPerAbilityPoint} × (Agility − ${GAME_RULES.abilities.startingValue}) + ${ceilingPerAbilityPoint} × (Intelligence − ${GAME_RULES.abilities.startingValue})`
                 : `${startingCeiling} + ${ceilingPerAbilityPoint} × (${name === 'Emotion' ? 'Sense' : 'Vitality'} − ${GAME_RULES.abilities.startingValue})`
         const example = name === 'Body'
             ? `At the starting ability values, Body is ${startingCeiling} / ${startingCeiling}. One Strength and one Agility point raise its ceiling by ${bodyGain}, but do not change the current value.`
             : name === 'Mind'
-                ? `At the starting ability values, Mind is ${startingCeiling} / ${startingCeiling}. One point in each of Strength, Agility, Intelligence, and Career raises its ceiling by ${mindGain}, but does not refill Mind.`
+                ? `At the starting ability values, Mind is ${startingCeiling} / ${startingCeiling}. One point in each of Strength, Agility, and Intelligence raises its ceiling by ${mindGain}, but does not refill Mind.`
                 : `At the starting ability values, ${name} is ${startingCeiling} / ${startingCeiling}. One point in ${name === 'Emotion' ? 'Sense' : 'Vitality'} raises its ceiling by ${ceilingPerAbilityPoint}, but does not refill the current value.`
         return metric(
             `vital-${name.toLowerCase()}`,
@@ -257,7 +252,7 @@ export function getManualSections(milestones: StreakMilestoneRow[]): ManualSecti
             'Level',
             'Your overall progression level.',
             'Profile, beside the Experience bar.',
-            'Earn XP from completed quests and cleared dungeons. A large reward can raise multiple levels.',
+            'Earn XP from completed quests and cleared dungeons. When XP and Career are linked, a level-up also requires Career to reach the same target.',
             'Normal rewards do not lower your level. Resetting progress returns it to its starting level.',
             `Starts at ${GAME_RULES.progression.startingLevel}. No upper limit is defined.`,
             'Level determines your Rank and can unlock titles.',
@@ -270,11 +265,35 @@ export function getManualSections(milestones: StreakMilestoneRow[]): ManualSecti
             'Experience points that move you toward your next level.',
             'Profile’s Experience bar and quest or dungeon reward summaries.',
             'Complete a quest or clear a dungeon with an XP reward.',
-            'At level-up, the required XP is subtracted from the displayed amount. The remainder carries forward.',
+            'When unlinked, the required XP is subtracted at level-up and the remainder carries forward. When linked, XP stops at the target while Career catches up, and excess XP rewards are discarded.',
             `Starts at ${GAME_RULES.progression.startingXp}; the next threshold follows ${xpFormula}.`,
             'XP raises Level, which can change Rank and unlock titles. XP does not refill vitals.',
-            `A reward of ${exampleXpReward} XP at level ${GAME_RULES.progression.startingLevel} reaches level ${nextLevel} and leaves ${GAME_RULES.progression.exampleRewardBonus} / ${nextLevelXp} XP toward the following level.`,
-            'A bar that is not full after leveling is expected: it now shows progress toward the new threshold.',
+            `When unlinked, a reward of ${exampleXpReward} XP at level ${GAME_RULES.progression.startingLevel} reaches level ${nextLevel} and leaves ${GAME_RULES.progression.exampleRewardBonus} / ${nextLevelXp} XP toward the following level.`,
+            'When linked, the XP bar can remain full until Career reaches the same target.',
+        ),
+        metric(
+            'career-experience',
+            'Career Experience',
+            'A separate progress track that uses the same next-level target as XP.',
+            'Profile, directly below the Experience bar. Career XP rewards are configured on quests and dungeons.',
+            'Complete quests or clear dungeons with Career XP rewards.',
+            'Career XP is not removed when the character levels while progress is unlinked. When linked, Career XP is spent by a level-up.',
+            'The target is the current XP-to-next-level threshold. Career XP does not raise a separate Career level.',
+            'Career XP never contributes to Mind or ability stats. Linking it to XP makes both tracks necessary for level-ups.',
+            'If the current target is 283, both XP and Career must reach 283 while linked. When unlinked, only XP controls character levels.',
+            'Check the Profile toggle to see whether the two progress tracks are linked.',
+        ),
+        metric(
+            'linked-progression',
+            'Linked XP and Career',
+            'A Profile setting that requires both bars to reach the current target before a level-up.',
+            'Profile, next to the Career Experience bar.',
+            'Turn the setting on to require both XP and Career progress. Turn it off to let XP level the character independently.',
+            'Changing the setting does not remove either progress balance.',
+            'With linked progress, XP stops at the target and excess XP rewards are discarded. Career progress can continue earning until it catches up.',
+            'When unlinked, XP controls levels and Career XP carries forward. Both use the current level’s next target.',
+            'At a target of 283, linked progress levels the character only after XP and Career each reach 283.',
+            'Use Linked when you want both kinds of progress to be required for every level.',
         ),
         metric(
             'rank',
@@ -320,7 +339,7 @@ export function getManualSections(milestones: StreakMilestoneRow[]): ManualSecti
             title: 'Welcome and the big picture',
             intro: 'Levelup turns your real work into a simple loop. Set up quests that matter, complete them, and use your status screen to understand what changed.',
             notes: [
-                { title: 'The loop', text: 'Quests award XP and gold. XP moves your level and rank. Ability tags connect completed quests to separate streaks. Milestones add points directly to abilities. Abilities raise vital ceilings. Quest effects, consumables, and dungeon clears can change current vitals.' },
+                { title: 'The loop', text: 'Quests and dungeons can award XP, Career XP, and gold. XP moves your level and rank; optionally, link XP and Career so both are needed for level-ups. Ability tags connect completed quests to separate streaks. Milestones add points directly to abilities. Abilities raise vital ceilings. Quest effects, consumables, and dungeon clears can change current vitals.' },
                 { title: 'Use the app honestly', text: 'Some fields are for organization only. Difficulty, target, unit, dungeon rank, skill details, and title bonuses do not add hidden effects. This guide calls those out where they appear.' },
             ],
             diagram: 'big-picture',
@@ -331,7 +350,7 @@ export function getManualSections(milestones: StreakMilestoneRow[]): ManualSecti
             intro: 'Start on Home. Your daily quests are listed for your current game day.',
             notes: [
                 { title: 'Make a quest useful', text: 'Give it a clear name, choose one or more ability tags, and set a reward that reflects what you want to reinforce. Difficulty and goal text help you organize the task, but do not change its reward.' },
-                { title: 'Complete or skip', text: 'Complete a quest to receive its configured XP, gold, vital effects, fatigue restoration, and ability streak credit. Skip applies any configured vital or gold penalties. A completed or skipped quest cannot be resolved again.' },
+                { title: 'Complete or skip', text: 'Complete a quest to receive its configured XP, Career XP, gold, vital effects, fatigue restoration, and ability streak credit. Skip applies any configured vital or gold penalties. A completed or skipped quest cannot be resolved again.' },
                 { title: 'Check the result', text: 'Read the toast and your Profile. The XP bar may have rolled over to the next level; vital bars may stop at their ceilings; streaks update by tagged ability.' },
             ],
         },
@@ -348,10 +367,10 @@ export function getManualSections(milestones: StreakMilestoneRow[]): ManualSecti
         {
             id: 'abilities',
             title: 'Abilities',
-            intro: 'Abilities are Strength, Agility, Sense, Vitality, Intelligence, and Career. Tag quests carefully: tags choose which streaks can advance.',
+            intro: 'Abilities are Strength, Agility, Sense, Vitality, and Intelligence. Tag quests carefully: tags choose which streaks can advance. Career is now a separate experience track.',
             notes: [
                 { title: 'How points arrive', text: 'A streak milestone awards its points directly to the matching ability. The separate “Points ready to allocate” balance only appears if it is already positive; you can spend that balance with the plus buttons.' },
-                { title: 'What abilities do', text: 'Abilities raise vital ceilings only. They do not refill current vitals, and leveling up does not change them by itself.' },
+                { title: 'What abilities do', text: 'Abilities raise vital ceilings only. They do not refill current vitals, and leveling up does not change them by itself. Career is not an ability and does not affect Mind.' },
             ],
             metrics: abilityMetrics,
         },
@@ -410,7 +429,7 @@ export function getManualSections(milestones: StreakMilestoneRow[]): ManualSecti
                 { title: 'Ability tags', text: 'Choose at least one ability for each managed quest. On completion, the quest credits each tagged ability at most once that day. No tag means no streak credit.' },
                 { title: 'Skip', text: 'You can manually skip a pending quest at any time; this immediately applies its configured vital and gold penalties. An unfinished weekly quest is automatically marked Skipped after Sunday when your board next loads. Skipping one quest does not itself break a streak if you complete another quest tagged to that ability before the day ends.' },
                 { title: 'Add quest and repeats', text: 'You can add a weekly quest once per Monday–Sunday week and a One-time quest once per day. A weekly quest stays pending across days until you complete or manually skip it, or until the week ends. There is no repeat-until-20 behavior or remove-extra-copy action.' },
-                { title: 'Rewards', text: 'Every completion pays the configured XP and gold and applies configured vital rewards and fatigue restoration. Current vitals stop at their ceiling.' },
+                { title: 'Rewards', text: 'Every completion pays the configured XP, Career XP, and gold and applies configured vital rewards and fatigue restoration. Career XP contributes only to its separate Profile bar. Current vitals stop at their ceiling.' },
             ],
             metrics: [
                 metric('quest-difficulty', 'Quest difficulty', 'An Easy, Medium, or Hard label you choose for organization.', 'Quest cards and quest setup.', 'You can change the label when editing the quest.', 'You can change it back when editing.', 'Only the three labels are available.', 'It does not change XP, gold, vitals, or streak credit.', 'An Easy and a Hard quest with the same configured rewards pay the same rewards.', 'Use difficulty to sort or communicate effort, not to predict rewards.'),
@@ -424,12 +443,12 @@ export function getManualSections(milestones: StreakMilestoneRow[]): ManualSecti
             title: 'Dungeons',
             intro: 'A dungeon is a larger goal with optional deadline and configured completion rewards.',
             notes: [
-                { title: 'Status', text: 'A new dungeon is Open. Start moves it to In progress. Abandon moves an open or in-progress dungeon to Failed. Clear is available only while it is in progress. Clearing pays configured rewards once.' },
+                { title: 'Status', text: 'A new dungeon is Open. Start moves it to In progress. Abandon moves an open or in-progress dungeon to Failed. Clear is available only while it is in progress. Clearing pays configured XP, Career XP, gold, and effects once.' },
                 { title: 'Rank and deadline', text: 'Dungeon rank is a planning label and does not affect its rewards. A deadline shows days remaining or Overdue; being overdue does not automatically fail the dungeon.' },
             ],
             metrics: [
                 metric('dungeon-rank', 'Dungeon rank', 'A letter label you choose for a dungeon.', 'Dungeon card and setup form.', 'You can change it while editing.', 'You can change it while editing.', `Available labels: ${GAME_RULES.dungeons.ranks.join(', ')}.`, 'It does not affect rewards or status changes.', 'An E-rank dungeon and an S-rank dungeon with the same configured rewards pay the same amount.', 'Use this as a planning label only.'),
-                metric('dungeon-status', 'Dungeon status', 'The current stage of a dungeon: Open, In progress, Cleared, or Failed.', 'Dungeon manager and active-dungeon strip on Home.', 'Start changes Open to In progress. Clear changes In progress to Cleared.', 'Abandon changes Open or In progress to Failed. Status does not automatically change after the deadline.', 'Clear is enabled only while in progress. A cleared dungeon cannot pay again.', 'Status controls available actions; Clear pays configured XP, gold, and effects.', 'Starting makes Clear available; clearing resolves the reward one time.', 'Set a status using the available actions; it is not editable as plain text.'),
+                metric('dungeon-status', 'Dungeon status', 'The current stage of a dungeon: Open, In progress, Cleared, or Failed.', 'Dungeon manager and active-dungeon strip on Home.', 'Start changes Open to In progress. Clear changes In progress to Cleared.', 'Abandon changes Open or In progress to Failed. Status does not automatically change after the deadline.', 'Clear is enabled only while in progress. A cleared dungeon cannot pay again.', 'Status controls available actions; Clear pays configured XP, Career XP, gold, and effects.', 'Starting makes Clear available; clearing resolves the reward one time.', 'Set a status using the available actions; it is not editable as plain text.'),
                 metric('dungeon-deadline', 'Dungeon deadline', 'A date used to display time remaining or Overdue.', 'Dungeon card and setup form.', 'You can set or change the date in the dungeon editor.', 'You can clear the date in the editor.', `No deadline is also allowed. Dungeon names can be up to ${GAME_RULES.dungeons.nameMaxLength} characters. The date does not automatically fail a dungeon.`, 'It is a reminder, not an automatic penalty or reward.', 'An overdue dungeon stays open or in progress until you change its status.', 'Use the deadline as a planning prompt, not a game timer.'),
             ],
         },
@@ -455,7 +474,6 @@ export function getManualSections(milestones: StreakMilestoneRow[]): ManualSecti
             intro: 'The Skills page stores descriptive skill records. Skills cannot currently be activated.',
             notes: [
                 { title: 'For reference only', text: 'Active/Passive type, skill level, linked stat, Mind cost, and cooldown are stored and displayed only. The app has no action that uses a skill, spends Mind, checks cooldown, or applies linked-stat effects.' },
-                { title: 'Linked Career', text: 'The form offers Career, but the game does not accept it as a skill’s linked stat. Choosing Career may cause saving to fail.' },
             ],
             metrics: [
                 metric('skill', 'Skill', 'A saved description of a skill; it is not an ability you can activate in the current app.', 'Skills page.', 'Create a skill or edit its fields.', 'Edit or delete the saved record.', 'Skill level must be at least one; Mind cost and cooldown cannot be negative.', 'Type, level, linked stat, Mind cost, and cooldown have no gameplay effect.', 'A skill with a Mind cost and cooldown does not spend Mind or start a timer.', 'Treat skill records as notes until the app adds a skill-use action.'),
@@ -529,11 +547,11 @@ export type GlossaryTerm = {
 }
 
 const baseGlossary: GlossaryTerm[] = [
-    { term: 'Ability', definition: 'One of Strength, Agility, Sense, Vitality, Intelligence, or Career.', section: 'abilities' },
+    { term: 'Ability', definition: 'One of Strength, Agility, Sense, Vitality, or Intelligence.', section: 'abilities' },
     { term: 'Ability points', definition: 'Points awarded at streak milestones directly to the matching ability. Any available allocation balance is separate.', section: 'abilities' },
     { term: 'Active title', definition: 'The unlocked title currently shown on your Profile.', section: 'titles' },
     { term: 'Add quest', definition: 'Adds an eligible Weekly or One-time quest to today, once per quest per day.', section: 'quests' },
-    { term: 'Career', definition: 'An ability that raises the Mind ceiling. Career is not accepted as a linked skill stat by the live database.', section: 'abilities' },
+    { term: 'Career Experience', definition: 'A separate progress track that uses the current next-level XP target and can be linked to XP for level-ups.', section: 'character' },
     { term: 'Clear', definition: 'Resolves an in-progress dungeon as cleared and grants its configured rewards once.', section: 'dungeons' },
     { term: 'Cooldown', definition: 'A stored skill field; it is for reference only.', section: 'skills' },
     { term: 'Difficulty', definition: 'Easy, Medium, or Hard label. It does not change gameplay.', section: 'quests' },
@@ -547,7 +565,7 @@ const baseGlossary: GlossaryTerm[] = [
     { term: 'Level', definition: 'Your overall progression level, raised by XP rewards.', section: 'character' },
     { term: 'Material', definition: 'An inventory item with no implemented use effect.', section: 'inventory' },
     { term: 'Milestone', definition: 'A configured streak length that awards points to its ability.', section: 'streaks' },
-    { term: 'Mind', definition: 'A current vital with a ceiling raised by Strength, Agility, Intelligence, and Career.', section: 'vitals' },
+    { term: 'Mind', definition: 'A current vital with a ceiling raised by Strength, Agility, and Intelligence.', section: 'vitals' },
     { term: 'Mind cost', definition: 'A stored skill field; it does not spend Mind in the current app.', section: 'skills' },
     { term: 'One-time', definition: 'A quest recurrence that can be added to today once on that day.', section: 'quests' },
     { term: 'Overdue', definition: 'A dungeon deadline has passed. This does not automatically fail the dungeon.', section: 'dungeons' },

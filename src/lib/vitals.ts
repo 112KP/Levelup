@@ -16,7 +16,6 @@ export const ABILITY_VITAL_CEILINGS: Record<AbilityName, readonly VitalName[]> =
     sense: ['emotion'],
     vitality: ['energy'],
     intelligence: ['mind'],
-    career: ['mind'],
 }
 
 export function formatVitalEffect(vital: VitalName, amount: number) {

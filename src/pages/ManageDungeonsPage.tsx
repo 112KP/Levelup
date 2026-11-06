@@ -17,6 +17,7 @@ const defaultForm = {
     name: '',
     dungeon_rank: 'E' as Rank,
     xp_reward: 0,
+    career_xp_reward: 0,
     gold_reward: 0,
     body_effect: 0,
     mind_effect: 0,
@@ -102,6 +103,7 @@ export function ManageDungeonsPage() {
             name: dungeon.name,
             dungeon_rank: dungeon.dungeon_rank,
             xp_reward: dungeon.xp_reward,
+            career_xp_reward: dungeon.career_xp_reward,
             gold_reward: dungeon.gold_reward,
             body_effect: dungeon.body_effect,
             mind_effect: dungeon.mind_effect,
@@ -134,6 +136,7 @@ export function ManageDungeonsPage() {
             name,
             dungeon_rank: form.dungeon_rank,
             xp_reward: Math.max(0, Number(form.xp_reward) || 0),
+            career_xp_reward: Math.max(0, Number(form.career_xp_reward) || 0),
             gold_reward: Math.max(0, Number(form.gold_reward) || 0),
             body_effect: Math.trunc(Number(form.body_effect) || 0),
             mind_effect: Math.trunc(Number(form.mind_effect) || 0),
@@ -196,7 +199,7 @@ export function ManageDungeonsPage() {
         }
         setDungeons((current) => current.map((item) => item.id === dungeon.id ? { ...item, status: 'cleared' } : item))
         const vitalEffects = getDungeonVitalEffects(dungeon)
-        setToast(`${dungeon.name} cleared: +${dungeon.xp_reward} XP, +${dungeon.gold_reward} gold${vitalEffects ? `, ${vitalEffects}` : ''}.`)
+        setToast(`${dungeon.name} cleared: +${dungeon.xp_reward} XP, +${dungeon.career_xp_reward} Career XP, +${dungeon.gold_reward} gold${vitalEffects ? `, ${vitalEffects}` : ''}.`)
         setBusyId(null)
     }
 
@@ -250,6 +253,7 @@ export function ManageDungeonsPage() {
                                         <div className="manage-row-tags">
                                             <span>{deadlineLabel(dungeon.deadline, timeZone)}</span>
                                             <span className="reward-text">+{dungeon.xp_reward} XP</span>
+                                            <span className="reward-text">+{dungeon.career_xp_reward} Career XP</span>
                                             <span className="reward-text">+{dungeon.gold_reward} gold</span>
                                             {vitalEffects && <span className="reward-text">{vitalEffects}</span>}
                                             {dungeon.deadline && (
@@ -291,8 +295,9 @@ export function ManageDungeonsPage() {
                     </div>
                     <div className="inline-grid two-up">
                         <label className="field-group">XP reward<input className="field-input" type="number" min="0" step="1" value={form.xp_reward} onChange={(event) => setForm({ ...form, xp_reward: Number(event.target.value) })} /></label>
-                        <label className="field-group">Gold reward<input className="field-input" type="number" min="0" step="1" value={form.gold_reward} onChange={(event) => setForm({ ...form, gold_reward: Number(event.target.value) })} /></label>
+                        <label className="field-group">Career XP reward<input className="field-input" type="number" min="0" step="1" value={form.career_xp_reward} onChange={(event) => setForm({ ...form, career_xp_reward: Number(event.target.value) })} /></label>
                     </div>
+                    <label className="field-group">Gold reward<input className="field-input" type="number" min="0" step="1" value={form.gold_reward} onChange={(event) => setForm({ ...form, gold_reward: Number(event.target.value) })} /></label>
                     <fieldset className="ability-fieldset">
                         <legend>Effects on clear</legend>
                         <p className="field-help">Positive values restore or add; negative values reduce.</p>

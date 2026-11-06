@@ -197,6 +197,7 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
             setMilestoneToasts(milestoneMessages)
             const rewards = [
                 `+${quest.xp_reward} XP`,
+                `+${quest.career_xp_reward} Career XP`,
                 `+${quest.gold_reward} gold`,
                 ...getQuestVitalRewards(quest),
             ]
@@ -396,6 +397,7 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
                                     </div>
                                     <div className="home-quest-rewards">
                                         <span>+{quest.xp_reward} XP</span>
+                                        <span>+{quest.career_xp_reward} Career XP</span>
                                         <span>+{quest.gold_reward} gold</span>
                                         {getQuestVitalRewards(quest).map((reward) => <span key={reward}>{reward}</span>)}
                                         {getQuestVitalPenalties(quest).map((penalty) => <span key={`penalty-${penalty}`}>On skip: {penalty}</span>)}

@@ -6,7 +6,6 @@ export const ABILITY_OPTIONS: Array<{ value: AbilityName; label: string }> = [
     { value: 'sense', label: 'Sense' },
     { value: 'vitality', label: 'Vitality' },
     { value: 'intelligence', label: 'Intelligence' },
-    { value: 'career', label: 'Career' },
 ]
 
 export const MAX_ABILITIES_PER_QUEST = ABILITY_OPTIONS.length

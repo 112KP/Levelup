@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Capacitor } from '@capacitor/core'
 import { Share } from '@capacitor/share'
-import { CircleUserRound, Copy, LogOut, RefreshCw, Share2, ShieldCheck } from 'lucide-react'
+import { CircleUserRound, LogOut, RefreshCw, Share2, ShieldCheck } from 'lucide-react'
 import { HashRouter, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuth } from './auth/useAuth'
 import { CornerFrame } from './components/status/CornerFrame'
@@ -190,10 +190,6 @@ function ProfileNavigationMenu({ showRefresh, refreshing, onRefresh }: ProfileNa
                             <button className="profile-menu-link profile-menu-action" type="button" onClick={() => void handleShareApp()}>
                                 <Share2 size={16} aria-hidden="true" />
                                 <span>Share App</span>
-                            </button>
-                            <button className="profile-menu-link profile-menu-action" type="button" onClick={() => void copyAppLink()}>
-                                <Copy size={16} aria-hidden="true" />
-                                <span>Copy link</span>
                             </button>
                             {shareFeedback && (
                                 <p className={`profile-menu-feedback${shareFeedback.isError ? ' is-error' : ''}`} role={shareFeedback.isError ? 'alert' : 'status'}>

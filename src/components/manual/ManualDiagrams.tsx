@@ -115,14 +115,14 @@ export function ManualDiagrams({ name, milestones }: ManualDiagramProps) {
     return (
         <svg className="manual-diagram" viewBox="0 0 640 256" role="img" aria-labelledby="ability-map-title ability-map-desc">
             <title id="ability-map-title">Ability to vital ceiling connections</title>
-            <desc id="ability-map-desc">Strength and Agility raise Body and Mind. Intelligence and Career raise Mind. Sense raises Emotion. Vitality raises Energy.</desc>
+            <desc id="ability-map-desc">Strength and Agility raise Body and Mind. Intelligence raises Mind. Sense raises Emotion. Vitality raises Energy.</desc>
             <defs><marker id="ability-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" /></marker></defs>
             <g className="diagram-arrows" markerEnd="url(#ability-arrow)">
                 <path d="M150 40 C190 40 190 51 228 51" /><path d="M150 40 C187 40 190 99 228 99" />
                 <path d="M150 80 C190 80 190 51 228 51" /><path d="M150 80 H228" />
                 <path d="M150 120 C300 120 335 147 460 147" />
                 <path d="M150 160 C300 160 335 195 460 195" />
-                <path d="M150 200 C190 200 190 99 228 99" /><path d="M150 240 C190 240 190 99 228 99" />
+                <path d="M150 200 C190 200 190 99 228 99" />
             </g>
             <g className="diagram-nodes">
                 <DiagramNode x={25} y={16} width={125} title="Strength" />
@@ -130,7 +130,6 @@ export function ManualDiagrams({ name, milestones }: ManualDiagramProps) {
                 <DiagramNode x={25} y={96} width={125} title="Sense" />
                 <DiagramNode x={25} y={136} width={125} title="Vitality" />
                 <DiagramNode x={25} y={176} width={125} title="Intelligence" />
-                <DiagramNode x={25} y={216} width={125} title="Career" />
                 <DiagramNode x={228} y={27} width={146} title="Body ceiling" />
                 <DiagramNode x={228} y={75} width={146} title="Mind ceiling" />
                 <DiagramNode x={460} y={123} width={146} title="Emotion ceiling" />

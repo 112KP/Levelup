@@ -12,7 +12,6 @@ export type StatName =
     | 'sense'
     | 'vitality'
     | 'intelligence'
-    | 'career'
 
 export type AbilityName = StatName
 
@@ -55,6 +54,8 @@ export type ProfileRow = {
     fatigue: number
     xp: number
     xp_to_next: number
+    career_xp: number
+    xp_career_linked: boolean
     strength: number
     agility: number
     sense: number
@@ -94,6 +95,7 @@ export type QuestRow = {
     target_value: number
     unit: string | null
     xp_reward: number
+    career_xp_reward: number
     gold_reward: number
     hp_reward: number
     mp_reward: number
@@ -189,6 +191,7 @@ export type DungeonRow = {
     dungeon_rank: Rank
     status: DungeonStatus
     xp_reward: number
+    career_xp_reward: number
     gold_reward: number
     body_effect: number
     mind_effect: number
@@ -252,6 +255,7 @@ export interface Database {
                     target_value?: number
                     unit?: string | null
                     xp_reward?: number
+                    career_xp_reward?: number
                     gold_reward?: number
                     hp_reward?: number
                     mp_reward?: number
@@ -324,6 +328,7 @@ export interface Database {
                     name: string
                     dungeon_rank?: Rank
                     xp_reward?: number
+                    career_xp_reward?: number
                     gold_reward?: number
                     body_effect?: number
                     mind_effect?: number
@@ -362,6 +367,10 @@ export interface Database {
             }
             allocate_points: {
                 Args: { p_stat: StatName; p_points?: number }
+                Returns: void
+            }
+            set_xp_career_linked: {
+                Args: { p_linked: boolean }
                 Returns: void
             }
             generate_daily_quest_logs: {

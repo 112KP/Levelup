@@ -18,6 +18,7 @@ const defaultForm = {
     target_value: 1,
     unit: '',
     xp_reward: 0,
+    career_xp_reward: 0,
     gold_reward: 0,
     stat_reward: 'none' as StatName | 'none',
     stat_reward_amount: 0,
@@ -98,6 +99,7 @@ export function QuestsPage() {
             target_value: quest.target_value,
             unit: quest.unit ?? '',
             xp_reward: quest.xp_reward,
+            career_xp_reward: quest.career_xp_reward,
             gold_reward: quest.gold_reward,
             stat_reward: quest.stat_reward ?? 'none',
             stat_reward_amount: quest.stat_reward_amount,
@@ -120,6 +122,7 @@ export function QuestsPage() {
             target_value: Number(form.target_value) || 1,
             unit: form.unit.trim() || null,
             xp_reward: Number(form.xp_reward) || 0,
+            career_xp_reward: Number(form.career_xp_reward) || 0,
             gold_reward: Number(form.gold_reward) || 0,
             stat_reward: form.stat_reward === 'none' ? null : form.stat_reward,
             stat_reward_amount: Number(form.stat_reward_amount) || 0,
@@ -246,6 +249,10 @@ export function QuestsPage() {
                                 <input className="field-input" type="number" value={form.xp_reward} onChange={(event) => setForm({ ...form, xp_reward: Number(event.target.value) })} />
                             </div>
                         </div>
+                        <div className="field-group">
+                            <label>Career XP reward</label>
+                            <input className="field-input" type="number" min="0" step="1" value={form.career_xp_reward} onChange={(event) => setForm({ ...form, career_xp_reward: Number(event.target.value) })} />
+                        </div>
                         <div className="field-group inline-grid two-up">
                             <div>
                                 <label>Gold reward</label>
@@ -332,7 +339,7 @@ export function QuestsPage() {
                                                             </td>
                                                             <td>{quest.target_value} {quest.unit || 'x'}</td>
                                                             <td>
-                                                                {quest.xp_reward} XP / {quest.gold_reward} gold
+                                                                {quest.xp_reward} XP / {quest.career_xp_reward} Career XP / {quest.gold_reward} gold
                                                                 {quest.fatigue_restore > 0 && <div className="muted-copy">−{quest.fatigue_restore} Fatigue on completion</div>}
                                                             </td>
                                                             <td>

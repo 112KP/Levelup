@@ -19,7 +19,7 @@ export const GAME_RULES = {
     abilities: {
         startingValue: 10,
         baseAllocationCost: 1,
-        names: ['Strength', 'Agility', 'Sense', 'Vitality', 'Intelligence', 'Career'],
+        names: ['Strength', 'Agility', 'Sense', 'Vitality', 'Intelligence'],
     },
     // SQL source: public.vital_caps, public.sync_profile_vital_caps, and the profiles table checks.
     vitals: {
