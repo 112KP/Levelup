@@ -27,14 +27,16 @@ export function XPBar({
 
     return (
         <section className={`xp-block ${levelUp ? 'level-up' : ''}`} aria-label="Progress">
-            <div className="level-number">
-                <span className="system-label">LEVEL</span>
-                <strong key={level}>{level}</strong>
-            </div>
             <div className="xp-progress-stack">
                 <div className="xp-progress">
                     <div className="xp-heading">
-                        <span className="system-label">EXPERIENCE</span>
+                        <div className="xp-heading-title">
+                            <span className="system-label">EXPERIENCE</span>
+                            <span className="level-number">
+                                <span className="system-label">LEVEL</span>
+                                <strong key={level}>{level}</strong>
+                            </span>
+                        </div>
                         <span className="mono-value" key={`${xp}-${xpToNext}`}>
                             {xp.toLocaleString()} <span>/</span> {xpToNext.toLocaleString()} XP
                         </span>

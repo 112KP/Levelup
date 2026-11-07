@@ -488,7 +488,7 @@ function WelcomePlayerDialog({ userId }: { userId: string }) {
 }
 
 function AppShell() {
-    const { session } = useAuth()
+    const { session, refreshSession } = useAuth()
     const location = useLocation()
     const isWideManagementPage = ['/quests/manage', '/inventory', '/dungeons/manage', '/manual'].includes(location.pathname)
     const [homeRefresh, setHomeRefresh] = useState<(() => Promise<void>) | null>(null)
@@ -501,7 +501,9 @@ function AppShell() {
         if (!homeRefresh || refreshing) return
         setRefreshing(true)
         try {
-            await homeRefresh()
+            if (await refreshSession()) {
+                await homeRefresh()
+            }
         } finally {
             setRefreshing(false)
         }
@@ -552,7 +554,7 @@ function AppShell() {
 }
 
 function App() {
-    const { session, loading, authError } = useAuth()
+    const { session, loading, authError, refreshError } = useAuth()
 
     if (loading) {
         return <main className="loading-screen">Loading your workspace...</main>
@@ -572,13 +574,20 @@ function App() {
     }
 
     return (
-        <HashRouter>
-            <TimezoneProvider>
-                <AbilityStreakProvider>
-                    <AppShell />
-                </AbilityStreakProvider>
-            </TimezoneProvider>
-        </HashRouter>
+        <>
+            {refreshError && (
+                <p className="auth-startup-error" role="alert">
+                    Authentication warning: {refreshError}
+                </p>
+            )}
+            <HashRouter>
+                <TimezoneProvider>
+                    <AbilityStreakProvider>
+                        <AppShell />
+                    </AbilityStreakProvider>
+                </TimezoneProvider>
+            </HashRouter>
+        </>
     )
 }
 

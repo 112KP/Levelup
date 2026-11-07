@@ -264,28 +264,26 @@
 .xp-block {
     position: relative;
     z-index: 1;
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    gap: 14px;
     margin: 22px 0;
     padding: 18px 0;
     border-block: 1px solid rgba(168, 110, 255, 0.18);
 }
 
 .level-number {
-    min-width: 62px;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-left: 10px;
 }
 
 .level-number .system-label {
-    margin-bottom: 2px;
+    margin-bottom: 0;
 }
 
 .level-number strong {
-    display: block;
-    font-size: 2.1rem;
+    font-size: 1rem;
     font-weight: 700;
-    line-height: 1;
+    line-height: 1.1;
     text-shadow: var(--strong-green-glow);
     animation: number-change 500ms ease-out;
 }
@@ -328,6 +326,12 @@
     justify-content: space-between;
     gap: 8px;
     margin-bottom: 7px;
+}
+
+.xp-heading-title {
+    display: flex;
+    align-items: baseline;
+    gap: 0;
 }
 
 .mono-value {
@@ -1046,17 +1050,16 @@
     }
 
     .xp-block {
-        gap: 9px;
         margin: 16px 0;
         padding: 12px 0;
     }
 
     .level-number {
-        min-width: 42px;
+        margin-left: 7px;
     }
 
     .level-number strong {
-        font-size: 1.55rem;
+        font-size: 0.9rem;
     }
 
     .xp-heading {
