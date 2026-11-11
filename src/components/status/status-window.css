@@ -273,7 +273,6 @@
     display: inline-flex;
     align-items: baseline;
     gap: 4px;
-    margin-left: 10px;
 }
 
 .level-number .system-label {
@@ -322,7 +321,7 @@
 
 .xp-heading {
     display: flex;
-    align-items: baseline;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 8px;
     margin-bottom: 7px;
@@ -330,8 +329,9 @@
 
 .xp-heading-title {
     display: flex;
-    align-items: baseline;
-    gap: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
 }
 
 .mono-value {
@@ -1052,10 +1052,6 @@
     .xp-block {
         margin: 16px 0;
         padding: 12px 0;
-    }
-
-    .level-number {
-        margin-left: 7px;
     }
 
     .level-number strong {

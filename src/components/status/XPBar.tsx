@@ -31,11 +31,11 @@ export function XPBar({
                 <div className="xp-progress">
                     <div className="xp-heading">
                         <div className="xp-heading-title">
-                            <span className="system-label">EXPERIENCE</span>
                             <span className="level-number">
                                 <span className="system-label">LEVEL</span>
                                 <strong key={level}>{level}</strong>
                             </span>
+                            <span className="system-label">EXPERIENCE</span>
                         </div>
                         <span className="mono-value" key={`${xp}-${xpToNext}`}>
                             {xp.toLocaleString()} <span>/</span> {xpToNext.toLocaleString()} XP
