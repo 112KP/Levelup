@@ -14,6 +14,7 @@ import {
     generateDailyQuestLogs,
 } from '../lib/quests'
 import { getAbilityLabel } from '../lib/abilities'
+import { formatVitalEffect } from '../lib/vitals'
 import { fetchStreakMilestones, getStreakMilestoneMessages } from '../lib/streaks'
 import { useAbilityStreaks } from '../auth/useAbilityStreaks'
 import type { QuestBoardEntry } from '../lib/quests'
@@ -400,6 +401,7 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
                                         <span>+{quest.xp_reward} XP</span>
                                         <span>+{quest.career_xp_reward} Career XP</span>
                                         <span>+{quest.gold_reward} gold</span>
+                                        {quest.fatigue_restore > 0 && <span>{formatVitalEffect('fatigue', -quest.fatigue_restore)}</span>}
                                     </div>
                                 </div>
                                 {pending ? (

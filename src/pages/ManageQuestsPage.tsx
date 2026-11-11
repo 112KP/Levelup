@@ -22,12 +22,24 @@ const recurrenceOptions: Array<{ value: QuestRecurrence | 'all'; label: string }
     { value: 'one_time', label: 'One-time' },
 ]
 
-const difficultyOptions: Array<{ value: QuestDifficulty | 'all'; label: string }> = [
-    { value: 'all', label: 'All difficulties' },
-    { value: 'easy', label: 'Easy' },
-    { value: 'medium', label: 'Medium' },
-    { value: 'hard', label: 'Hard' },
+type QuestVital = 'body' | 'mind' | 'emotion' | 'energy'
+type QuestVitalField = 'hp_reward' | 'mp_reward' | 'emotion_reward' | 'energy_reward'
+    | 'penalty_hp' | 'penalty_mp' | 'penalty_emotion' | 'penalty_energy'
+
+const vitalOptions: Array<{ value: QuestVital | 'all'; label: string }> = [
+    { value: 'all', label: 'All vitals' },
+    { value: 'body', label: VITAL_LABELS.body },
+    { value: 'mind', label: VITAL_LABELS.mind },
+    { value: 'emotion', label: VITAL_LABELS.emotion },
+    { value: 'energy', label: VITAL_LABELS.energy },
 ]
+
+const vitalQuestFields: Record<QuestVital, { reward: QuestVitalField; penalty: QuestVitalField }> = {
+    body: { reward: 'hp_reward', penalty: 'penalty_hp' },
+    mind: { reward: 'mp_reward', penalty: 'penalty_mp' },
+    emotion: { reward: 'emotion_reward', penalty: 'penalty_emotion' },
+    energy: { reward: 'energy_reward', penalty: 'penalty_energy' },
+}
 
 const defaultForm = {
     name: '',
@@ -66,7 +78,7 @@ export function ManageQuestsPage() {
     const [error, setError] = useState('')
     const [search, setSearch] = useState('')
     const [recurrenceFilter, setRecurrenceFilter] = useState<QuestRecurrence | 'all'>('all')
-    const [difficultyFilter, setDifficultyFilter] = useState<QuestDifficulty | 'all'>('all')
+    const [vitalFilter, setVitalFilter] = useState<QuestVital | 'all'>('all')
     const [editingId, setEditingId] = useState<string | null>(null)
     const [form, setForm] = useState(defaultForm)
     const [busy, setBusy] = useState(false)
@@ -103,9 +115,10 @@ export function ManageQuestsPage() {
     const filteredQuests = useMemo(() => quests.filter((quest) => {
         const matchesName = quest.name.toLocaleLowerCase().includes(search.toLocaleLowerCase())
         const matchesRecurrence = recurrenceFilter === 'all' || quest.recurrence === recurrenceFilter
-        const matchesDifficulty = difficultyFilter === 'all' || quest.difficulty === difficultyFilter
-        return matchesName && matchesRecurrence && matchesDifficulty
-    }), [difficultyFilter, quests, recurrenceFilter, search])
+        const fields = vitalFilter === 'all' ? null : vitalQuestFields[vitalFilter]
+        const matchesVital = !fields || quest[fields.reward] > 0 || quest[fields.penalty] > 0
+        return matchesName && matchesRecurrence && matchesVital
+    }), [quests, recurrenceFilter, search, vitalFilter])
 
     function openCreateForm() {
         setForm(defaultForm)
@@ -280,8 +293,8 @@ export function ManageQuestsPage() {
                 <select className="field-input" value={recurrenceFilter} onChange={(event) => setRecurrenceFilter(event.target.value as QuestRecurrence | 'all')} aria-label="Filter by recurrence">
                     {recurrenceOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                 </select>
-                <select className="field-input" value={difficultyFilter} onChange={(event) => setDifficultyFilter(event.target.value as QuestDifficulty | 'all')} aria-label="Filter by difficulty">
-                    {difficultyOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                <select className="field-input" value={vitalFilter} onChange={(event) => setVitalFilter(event.target.value as QuestVital | 'all')} aria-label="Filter by vital">
+                    {vitalOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                 </select>
             </div>
 
