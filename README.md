@@ -62,9 +62,17 @@ using it on a personal account.
 
 ### Inventory item effects
 
-Inventory item effects can change Body, Mind, Emotion, Energy, Fatigue, and Gold; they do not
-change abilities. Run [the item-effect migration](./supabase/migrations/20261031223300_remove_item_ability_effects.sql)
-manually in the Supabase SQL editor so using a consumable ignores any legacy ability-effect keys.
+Use **Inventory** for quick access to equipped Equipment and Materials and to Consumables with
+quantity remaining. **Manage Inventory** remains the place to create, edit, delete, and equip items.
+Using a Consumable consumes one and applies its configured Body, Mind, Emotion, Energy, Fatigue,
+and Gold effects with the existing clamps; a vital decrease requires confirmation. Using a Material
+consumes one without changing stats. Equipment can only be used while equipped; that action logs
+the use but consumes nothing and does not apply its displayed passive bonus as a one-off.
+Equipment ability bonuses are display-only and positive ability values never grant ability points;
+ability points come from streak milestones.
+
+The inventory RPC migration has been applied manually in Supabase. Its SQL file is intentionally
+not retained in this repository.
 
 ## Android app
 

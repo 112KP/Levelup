@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Capacitor } from '@capacitor/core'
 import { Share } from '@capacitor/share'
-import { CircleUserRound, LogOut, RefreshCw, Share2, ShieldCheck } from 'lucide-react'
+import { Backpack, CircleUserRound, LogOut, RefreshCw, Share2, ShieldCheck } from 'lucide-react'
 import { HashRouter, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuth } from './auth/useAuth'
 import { CornerFrame } from './components/status/CornerFrame'
@@ -11,6 +11,7 @@ import { ManageDungeonsPage } from './pages/ManageDungeonsPage'
 import { HistoryPage } from './pages/HistoryPage'
 import { HomePage } from './pages/HomePage'
 import { ItemsPage } from './pages/ItemsPage'
+import { InventoryPage } from './pages/InventoryPage'
 import { ManageQuestsPage } from './pages/ManageQuestsPage'
 import { SkillsPage } from './pages/SkillsPage'
 import { TitlesPage } from './pages/TitlesPage'
@@ -36,6 +37,7 @@ const navItems = [
     { to: '/quests/manage', label: 'Manage Quests' },
     { to: '/dungeons/manage', label: 'Manage Dungeons' },
     { to: '/inventory', label: 'Inventory' },
+    { to: '/inventory/manage', label: 'Manage Inventory' },
     { to: '/skills', label: 'Skills' },
     { to: '/titles', label: 'Titles' },
     { to: '/history', label: 'History' },
@@ -140,16 +142,26 @@ function ProfileNavigationMenu({ showRefresh, refreshing, onRefresh }: ProfileNa
     return (
         <div className="workspace-header-actions">
             {showRefresh && (
-                <button
-                    className={`home-refresh-button${refreshing ? ' is-refreshing' : ''}`}
-                    type="button"
-                    aria-label="Refresh home"
-                    title="Refresh home"
-                    disabled={refreshing}
-                    onClick={onRefresh}
-                >
-                    <RefreshCw size={19} aria-hidden="true" />
-                </button>
+                <>
+                    <NavLink
+                        to="/inventory"
+                        className="home-refresh-button"
+                        aria-label="Inventory"
+                        title="Inventory"
+                    >
+                        <Backpack size={19} aria-hidden="true" />
+                    </NavLink>
+                    <button
+                        className={`home-refresh-button${refreshing ? ' is-refreshing' : ''}`}
+                        type="button"
+                        aria-label="Refresh home"
+                        title="Refresh home"
+                        disabled={refreshing}
+                        onClick={onRefresh}
+                    >
+                        <RefreshCw size={19} aria-hidden="true" />
+                    </button>
+                </>
             )}
             <div className="profile-menu-anchor" ref={menuRef}>
                 <button
@@ -171,7 +183,7 @@ function ProfileNavigationMenu({ showRefresh, refreshing, onRefresh }: ProfileNa
                                 <NavLink
                                     key={to}
                                     to={to}
-                                    end={to === '/'}
+                                    end={to === '/' || to === '/inventory'}
                                     className={({ isActive }) => isActive ? 'profile-menu-link is-active' : 'profile-menu-link'}
                                     onClick={() => setOpen(false)}
                                 >
@@ -505,7 +517,7 @@ function WelcomePlayerDialog({ userId }: { userId: string }) {
 function AppShell() {
     const { session, refreshSession } = useAuth()
     const location = useLocation()
-    const isWideManagementPage = ['/quests/manage', '/inventory', '/dungeons/manage', '/manual'].includes(location.pathname)
+    const isWideManagementPage = ['/quests/manage', '/inventory', '/inventory/manage', '/dungeons/manage', '/manual'].includes(location.pathname)
     const [homeRefresh, setHomeRefresh] = useState<(() => Promise<void>) | null>(null)
     const [refreshing, setRefreshing] = useState(false)
     const registerHomeRefresh = useCallback((refresh: (() => Promise<void>) | null) => {
@@ -534,8 +546,9 @@ function AppShell() {
             <Route path="/today" element={<Navigate to="/" replace />} />
             <Route path="/titles" element={<TitlesPage />} />
             <Route path="/skills" element={<SkillsPage />} />
-            <Route path="/inventory" element={<ItemsPage />} />
-            <Route path="/items" element={<Navigate to="/inventory" replace />} />
+            <Route path="/inventory" element={<InventoryPage />} />
+            <Route path="/inventory/manage" element={<ItemsPage />} />
+            <Route path="/items" element={<Navigate to="/inventory/manage" replace />} />
             <Route path="/dungeons" element={<Navigate to="/dungeons/manage" replace />} />
             <Route path="/dungeons/manage" element={<ManageDungeonsPage />} />
             <Route path="/history" element={<HistoryPage />} />

@@ -25,7 +25,7 @@ export function EffectBuilder({ itemType, effects, onChange }: EffectBuilderProp
         onChange({ ...effects, [key]: value })
     }
 
-    const summary = formatItemEffectSummary(effects)
+    const summary = formatItemEffectSummary(effects, itemType)
 
     return (
         <section className="effect-builder" aria-labelledby="effect-builder-title">
@@ -54,7 +54,7 @@ export function EffectBuilder({ itemType, effects, onChange }: EffectBuilderProp
             <p className={`effect-summary${summary ? '' : ' is-empty'}`} role="status">
                 {summary
                     ? `${itemType === 'equipment' ? 'While equipped, this item grants:' : 'Using this item will:'} ${summary}.`
-                    : 'This item has no effect when used.'}
+                    : itemType === 'equipment' ? 'This item has no passive effect while equipped.' : 'This item has no effect when used.'}
             </p>
         </section>
     )

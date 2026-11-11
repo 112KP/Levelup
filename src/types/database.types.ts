@@ -33,6 +33,7 @@ export type EventType =
     | 'quest_complete'
     | 'dungeon_clear'
     | 'streak_milestone'
+    | 'item_use'
 
 export type ProfileRow = {
     id: string

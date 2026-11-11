@@ -16,6 +16,7 @@ const icons: Record<string, string> = {
     quest_complete: '✓',
     dungeon_clear: '🏆',
     streak_milestone: '✧',
+    item_use: '▣',
 }
 
 export function HistoryPage() {

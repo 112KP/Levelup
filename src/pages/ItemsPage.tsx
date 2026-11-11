@@ -10,7 +10,6 @@ import {
     normalizeItemEffects,
     toggleEquip,
     updateItem,
-    consumeItem,
 } from '../lib/items'
 import type { ItemEffects } from '../lib/items'
 import { EffectBuilder } from '../components/items/EffectBuilder'
@@ -51,7 +50,7 @@ export function ItemsPage() {
 
     useEffect(() => {
         const previousTitle = document.title
-        document.title = 'Inventory | Levelup'
+        document.title = 'Manage Inventory | Levelup'
         return () => {
             document.title = previousTitle
         }
@@ -161,19 +160,6 @@ export function ItemsPage() {
         await loadItems()
     }
 
-    async function handleUse(item: ItemRow) {
-        setBusyItemId(item.id)
-        setError('')
-        const { error: useError } = await consumeItem(item.id)
-        if (useError) {
-            setError(useError.message || 'Unable to use this item.')
-            setBusyItemId(null)
-            return
-        }
-        setBusyItemId(null)
-        await loadItems()
-    }
-
     async function handleDelete(id: string) {
         const confirmed = window.confirm('Delete this item?')
         if (!confirmed) return
@@ -189,8 +175,8 @@ export function ItemsPage() {
         <section className="screen-page manage-screen" aria-labelledby="inventory-title">
             <header className="screen-header">
                 <div>
-                    <p className="eyebrow">INVENTORY</p>
-                    <h2 id="inventory-title">Inventory</h2>
+                    <p className="eyebrow">INVENTORY MANAGEMENT</p>
+                    <h2 id="inventory-title">Manage Inventory</h2>
                 </div>
                 <button type="button" className="primary-button manage-create-button" onClick={openCreateForm}>
                     <Plus size={17} aria-hidden="true" /> New Item
@@ -217,7 +203,7 @@ export function ItemsPage() {
             </div>
 
             <div className="panel-block stretch">
-                <h3>Inventory</h3>
+                <h3>All Items</h3>
                 {loading ? (
                     <p className="status-empty">Loading inventory...</p>
                 ) : filteredItems.length === 0 ? (
@@ -257,23 +243,17 @@ export function ItemsPage() {
                                                     <tr key={item.id}>
                                                         <td>
                                                             <strong>{item.name}</strong>
-                                                            {formatItemEffectSummary(item.stat_bonus) && (
-                                                                <div className="item-effect-summary">{formatItemEffectSummary(item.stat_bonus)}</div>
+                                                            {formatItemEffectSummary(item.stat_bonus, item.item_type) && (
+                                                                <div className="item-effect-summary">{formatItemEffectSummary(item.stat_bonus, item.item_type)}</div>
                                                             )}
                                                             {item.description && <div className="muted-copy">{item.description}</div>}
                                                         </td>
                                                         <td><span className={`rarity-badge ${rarityColors[item.rarity]}`}>{item.rarity}</span></td>
                                                         <td>{item.quantity}</td>
                                                         <td>
-                                                            {item.item_type === 'equipment' ? (
-                                                                <button type="button" className={`toggle-pill ${item.is_equipped ? 'on' : 'off'}`} disabled={busyItemId === item.id} onClick={() => void handleToggle(item)}>
-                                                                    {item.is_equipped ? 'Equipped' : 'Unequipped'}
-                                                                </button>
-                                                            ) : item.item_type === 'consumable' ? (
-                                                                <button type="button" className="primary-button inventory-use-button" disabled={busyItemId === item.id || item.quantity <= 0} onClick={() => void handleUse(item)}>
-                                                                    {busyItemId === item.id ? 'Using...' : 'Use'}
-                                                                </button>
-                                                            ) : <span className="muted-copy">Material</span>}
+                                                            <button type="button" className={`toggle-pill ${item.is_equipped ? 'on' : 'off'}`} disabled={busyItemId === item.id} onClick={() => void handleToggle(item)}>
+                                                                {item.is_equipped ? 'Equipped' : 'Unequipped'}
+                                                            </button>
                                                         </td>
                                                         <td>
                                                             <div className="inline-actions">
