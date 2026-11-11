@@ -911,13 +911,14 @@ body:has(.workspace-shell) {
 }
 
 .home-quest-heading {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     gap: 6px 9px;
 }
 
 .home-quest-heading h3 {
+    min-width: 0;
     margin: 0;
     color: #f2f8ff;
     font-size: clamp(1.05rem, 3.7vw, 1.6rem);
@@ -925,6 +926,10 @@ body:has(.workspace-shell) {
     line-height: 1.2;
     letter-spacing: -0.03em;
     overflow-wrap: anywhere;
+}
+
+.home-quest-heading .difficulty-tag {
+    justify-self: end;
 }
 
 .difficulty-tag {
@@ -953,6 +958,10 @@ body:has(.workspace-shell) {
 }
 
 .home-quest-recurrence {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 8px;
     margin: 3px 0 0;
     color: var(--home-dim);
     font-size: 0.8rem;
@@ -963,7 +972,7 @@ body:has(.workspace-shell) {
 }
 
 .home-quest-goal {
-    margin: 6px 0 0;
+    margin: 0;
     color: var(--home-blue);
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.7rem;

@@ -365,6 +365,7 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
                         if (!quest) return null
                         const pending = entry.status === 'pending'
                         const goalLabel = getQuestGoalLabel(quest.target_value, quest.unit)
+                        const difficultyLabel = quest.difficulty === 'easy' ? 'E' : quest.difficulty === 'medium' ? 'M' : 'H'
                         return (
                             <article className={`home-quest-card prahar-${quest.prahar.toLowerCase()}${pending ? '' : ' is-settled'}`} key={entry.id}>
                                 {pending && (
@@ -381,13 +382,13 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
                                 <div className="home-quest-copy">
                                     <div className="home-quest-heading">
                                         <h3>{quest.name}</h3>
-                                        <span className={`difficulty-tag ${quest.difficulty}`}>{quest.difficulty}</span>
+                                        <span className={`difficulty-tag ${quest.difficulty}`} aria-label={`${quest.difficulty} difficulty`}>{difficultyLabel}</span>
                                     </div>
                                     <p className="home-quest-recurrence">
-                                        {recurrenceLabel(quest.recurrence)}
-                                        {quest.recurrence === 'weekly' && ` · Added ${formatDateInTimeZone(entry.quest_date, { dateStyle: 'medium' }, undefined, timeZone)}`}
+                                        <span>{recurrenceLabel(quest.recurrence)}</span>
+                                        {quest.recurrence === 'weekly' && <span>· Added {formatDateInTimeZone(entry.quest_date, { dateStyle: 'medium' }, undefined, timeZone)}</span>}
+                                        {goalLabel && <span className="home-quest-goal">{goalLabel}</span>}
                                     </p>
-                                    {goalLabel && <p className="home-quest-goal">{goalLabel}</p>}
                                     <div className="home-quest-abilities" aria-label="Quest abilities">
                                         {quest.abilities.length > 0
                                             ? quest.abilities.map((ability) => (
@@ -399,8 +400,6 @@ export function HomePage({ onRefreshReady }: HomePageProps) {
                                         <span>+{quest.xp_reward} XP</span>
                                         <span>+{quest.career_xp_reward} Career XP</span>
                                         <span>+{quest.gold_reward} gold</span>
-                                        {getQuestVitalRewards(quest).map((reward) => <span key={reward}>{reward}</span>)}
-                                        {getQuestVitalPenalties(quest).map((penalty) => <span key={`penalty-${penalty}`}>On skip: {penalty}</span>)}
                                     </div>
                                 </div>
                                 {pending ? (

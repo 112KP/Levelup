@@ -365,21 +365,36 @@ function WelcomePlayerDialog({ userId }: { userId: string }) {
             setProfileName(null)
 
             try {
-                const { data, error } = await supabase
-                    .from('profiles')
-                    .select('display_name')
-                    .eq('user_id', userId)
-                    .maybeSingle()
+                const retryDelays = [500, 1000, 2000]
+                let retryIndex = 0
 
-                if (!active) return
-                if (error) {
-                    setProfileError(error.message)
-                } else if (!data) {
-                    setProfileError('Your player profile could not be found.')
-                } else {
-                    setProfileError('')
-                    setProfileName(data.display_name)
-                    setPlayerName(data.display_name ?? '')
+                while (active) {
+                    const { data, error } = await supabase
+                        .from('profiles')
+                        .select('display_name')
+                        .eq('user_id', userId)
+                        .maybeSingle()
+
+                    if (error && /jwt issued at future/i.test(error.message)) {
+                        const delay = retryDelays[retryIndex]
+                        if (delay !== undefined) {
+                            retryIndex += 1
+                            await new Promise<void>((resolve) => window.setTimeout(resolve, delay))
+                            continue
+                        }
+                    }
+
+                    if (!active) return
+                    if (error) {
+                        setProfileError(error.message)
+                    } else if (!data) {
+                        setProfileError('Your player profile could not be found.')
+                    } else {
+                        setProfileError('')
+                        setProfileName(data.display_name)
+                        setPlayerName(data.display_name ?? '')
+                    }
+                    break
                 }
             } catch (error) {
                 if (active) {

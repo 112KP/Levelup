@@ -317,7 +317,7 @@ export function getManualSections(milestones: StreakMilestoneRow[]): ManualSecti
             `Gold cannot go below ${GAME_RULES.gold.minimum}. No upper limit is defined.`,
             'Gold is recorded as a balance. No purchase flow is currently present.',
             `If you have ${GAME_RULES.gold.exampleStartingBalance} gold and a skip penalty of ${GAME_RULES.gold.examplePenalty}, your balance becomes ${GAME_RULES.gold.minimum}, not a negative amount.`,
-            'Check a quest’s “On skip” text before you decide to skip it.',
+            'Skipping a quest automatically applies any configured vital or gold penalties; those effects are not shown on the Home quest card.',
         ),
     ]
 
@@ -617,7 +617,7 @@ const sectionTerms: Record<string, Array<[string, string]>> = {
         ['Night', 'A quest time-of-day label.'],
         ['Enrolled', 'The quest is active and eligible for automatic daily generation.'],
         ['Not enrolled', 'The quest is inactive and not generated automatically.'],
-        ['On skip', 'The configured vital penalty displayed on a quest card.'],
+        ['On skip', 'A configured vital penalty applied when a quest is skipped.'],
         ['No ability', 'A displayed state for a quest without ability tags; it receives no streak credit.'],
         ['On-demand', 'Not an available recurrence in the current app.'],
         ['No quests to do today', 'The Home To-Do list has no daily quests for today or weekly quests for the current week.'],
