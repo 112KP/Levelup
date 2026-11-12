@@ -36,7 +36,6 @@ const navItems = [
     { to: '/profile', label: 'View Profile' },
     { to: '/quests/manage', label: 'Manage Quests' },
     { to: '/dungeons/manage', label: 'Manage Dungeons' },
-    { to: '/inventory', label: 'Inventory' },
     { to: '/inventory/manage', label: 'Manage Inventory' },
     { to: '/skills', label: 'Skills' },
     { to: '/titles', label: 'Titles' },
