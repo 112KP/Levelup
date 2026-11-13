@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { Plus, X } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { Plus } from 'lucide-react'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
 import {
     buildItemEffectJson,
@@ -33,20 +34,35 @@ const defaultForm = {
     stat_bonus: {} as ItemEffects,
 }
 
+function getItemForm(item: ItemRow) {
+    return {
+        name: item.name,
+        description: item.description ?? '',
+        item_type: item.item_type,
+        rarity: item.rarity,
+        quantity: item.quantity,
+        is_equipped: item.is_equipped,
+        stat_bonus: normalizeItemEffects(item.stat_bonus),
+    }
+}
+
 export function ItemsPage() {
     const { session } = useAuth()
+    const navigate = useNavigate()
+    const location = useLocation()
+    const { itemId } = useParams<{ itemId: string }>()
     const userId = session?.user.id ?? ''
+    const editingId = itemId ?? null
+    const isFormPage = location.pathname !== '/inventory/manage'
     const [items, setItems] = useState<ItemRow[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [formError, setFormError] = useState('')
-    const [editingId, setEditingId] = useState<string | null>(null)
     const [filter, setFilter] = useState<'all' | ItemType>('all')
     const [effectFilter, setEffectFilter] = useState<'all' | 'hp' | 'mp' | 'emotion' | 'energy' | 'fatigue'>('all')
     const [form, setForm] = useState(defaultForm)
     const [busy, setBusy] = useState(false)
     const [busyItemId, setBusyItemId] = useState<string | null>(null)
-    const dialogRef = useRef<HTMLDialogElement | null>(null)
 
     useEffect(() => {
         const previousTitle = document.title
@@ -75,6 +91,18 @@ export function ItemsPage() {
         void loadItems()
     }, [loadItems])
 
+    useEffect(() => {
+        if (!itemId || loading) return
+        const item = items.find((entry) => entry.id === itemId)
+        if (item) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setForm(getItemForm(item))
+            setFormError('')
+        } else {
+            setFormError('Item not found.')
+        }
+    }, [itemId, items, loading])
+
     const filteredItems = items.filter((item) =>
         (filter === 'all' || item.item_type === filter)
         && (effectFilter === 'all' || normalizeItemEffects(item.stat_bonus)[effectFilter] !== undefined),
@@ -82,35 +110,25 @@ export function ItemsPage() {
 
     function resetForm() {
         setForm(defaultForm)
-        setEditingId(null)
         setFormError('')
     }
 
     function openCreateForm() {
         resetForm()
         setError('')
-        dialogRef.current?.showModal()
+        navigate('/inventory/manage/new')
     }
 
     function handleEdit(item: ItemRow) {
-        setEditingId(item.id)
-        setForm({
-            name: item.name,
-            description: item.description ?? '',
-            item_type: item.item_type,
-            rarity: item.rarity,
-            quantity: item.quantity,
-            is_equipped: item.is_equipped,
-            stat_bonus: normalizeItemEffects(item.stat_bonus),
-        })
+        setForm(getItemForm(item))
         setError('')
         setFormError('')
-        dialogRef.current?.showModal()
+        navigate(`/inventory/manage/${item.id}/edit`)
     }
 
     function closeForm() {
-        dialogRef.current?.close()
         resetForm()
+        navigate('/inventory/manage')
     }
 
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -144,8 +162,8 @@ export function ItemsPage() {
         }
 
         setBusy(false)
-        closeForm()
         await loadItems()
+        navigate('/inventory/manage')
     }
 
     async function handleToggle(item: ItemRow) {
@@ -174,18 +192,29 @@ export function ItemsPage() {
     return (
         <section className="screen-page manage-screen" aria-labelledby="inventory-title">
             <header className="screen-header">
-                <div>
-                    <p className="eyebrow">INVENTORY MANAGEMENT</p>
-                    <h2 id="inventory-title">Manage Inventory</h2>
-                </div>
-                <button type="button" className="primary-button manage-create-button" onClick={openCreateForm}>
-                    <Plus size={17} aria-hidden="true" /> New Item
-                </button>
+                {isFormPage ? (
+                    <div>
+                        <p className="eyebrow">INVENTORY RECORD</p>
+                        <h2 id="inventory-title">{editingId ? 'Edit item' : 'New item'}</h2>
+                    </div>
+                ) : (
+                    <>
+                        <div>
+                            <p className="eyebrow">INVENTORY MANAGEMENT</p>
+                            <h2 id="inventory-title">Manage Inventory</h2>
+                        </div>
+                        <button type="button" className="primary-button manage-create-button" onClick={openCreateForm}>
+                            <Plus size={17} aria-hidden="true" /> New Item
+                        </button>
+                    </>
+                )}
             </header>
 
-            {error && <p className="status-error" role="alert">{error}</p>}
+            {!isFormPage && (
+                <>
+                    {error && <p className="status-error" role="alert">{error}</p>}
 
-            <div className="controls-row">
+                    <div className="controls-row">
                 <select aria-label="Filter by item type" className="field-input" value={filter} onChange={(event) => setFilter(event.target.value as 'all' | ItemType)}>
                     <option value="all">All item types</option>
                     <option value="equipment">Equipment</option>
@@ -200,9 +229,9 @@ export function ItemsPage() {
                     <option value="energy">{VITAL_LABELS.energy}</option>
                     <option value="fatigue">{VITAL_LABELS.fatigue}</option>
                 </select>
-            </div>
+                    </div>
 
-            <div className="panel-block stretch">
+                    <div className="panel-block stretch">
                 <h3>All Items</h3>
                 {loading ? (
                     <p className="status-empty">Loading inventory...</p>
@@ -271,17 +300,12 @@ export function ItemsPage() {
                         })}
                     </div>
                 )}
-            </div>
+                    </div>
+                </>
+            )}
 
-            <dialog className="manage-dialog" ref={dialogRef} aria-labelledby="inventory-form-title" onClose={resetForm}>
-                <form className="manage-form entity-form" onSubmit={handleSubmit}>
-                    <header className="manage-dialog-header">
-                        <div>
-                            <p className="eyebrow">INVENTORY RECORD</p>
-                            <h2 id="inventory-form-title">{editingId ? 'Edit item' : 'New item'}</h2>
-                        </div>
-                        <button type="button" className="dialog-close-button" aria-label="Close item form" onClick={closeForm}><X size={19} aria-hidden="true" /></button>
-                    </header>
+            {isFormPage && (
+                <form className="manage-form manage-page-form entity-form" onSubmit={handleSubmit}>
                     <div className="field-group">
                         <label htmlFor="inventory-item-name">Name</label>
                         <input id="inventory-item-name" className="field-input" required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
@@ -334,7 +358,7 @@ export function ItemsPage() {
                         <button type="submit" className="primary-button" disabled={busy}>{busy ? 'Saving...' : editingId ? 'Save item' : 'Create item'}</button>
                     </footer>
                 </form>
-            </dialog>
+            )}
         </section>
     )
 }

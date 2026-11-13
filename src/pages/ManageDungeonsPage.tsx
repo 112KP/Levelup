@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Plus, X } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Plus } from 'lucide-react'
 import { ValueStepper } from '../components/ValueStepper'
 import { useAuth } from '../auth/useAuth'
 import { clearDungeon, createDungeon, deleteDungeon, fetchDungeons, getDaysRemaining, getDungeonVitalEffects, setDungeonStatus, updateDungeon } from '../lib/dungeons'
 import type { DungeonRow, DungeonStatus, Rank } from '../types/database.types'
 import { RankBadge } from '../components/status/RankBadge'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { formatDateInTimeZone } from '../lib/dateTime'
 import { useTimezone } from '../auth/useTimezone'
 import { VITAL_LABELS } from '../lib/vitals'
@@ -36,21 +36,40 @@ function deadlineLabel(deadline: string | null, timeZone: string) {
     return formatDateInTimeZone(deadline, { day: 'numeric', month: 'short', year: 'numeric' }, 'en-GB', timeZone)
 }
 
+function getDungeonForm(dungeon: DungeonRow) {
+    return {
+        name: dungeon.name,
+        dungeon_rank: dungeon.dungeon_rank,
+        xp_reward: dungeon.xp_reward,
+        career_xp_reward: dungeon.career_xp_reward,
+        gold_reward: dungeon.gold_reward,
+        body_effect: dungeon.body_effect,
+        mind_effect: dungeon.mind_effect,
+        emotion_effect: dungeon.emotion_effect,
+        energy_effect: dungeon.energy_effect,
+        fatigue_effect: dungeon.fatigue_effect,
+        deadline: dungeon.deadline ?? '',
+    }
+}
+
 export function ManageDungeonsPage() {
     const { session } = useAuth()
     const { timeZone } = useTimezone()
+    const navigate = useNavigate()
+    const location = useLocation()
+    const { dungeonId } = useParams<{ dungeonId: string }>()
     const userId = session?.user.id ?? ''
     const [searchParams] = useSearchParams()
     const focusedId = searchParams.get('focus')
+    const editingId = dungeonId ?? null
+    const isFormPage = location.pathname !== '/dungeons/manage'
     const [dungeons, setDungeons] = useState<DungeonRow[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
-    const [editingId, setEditingId] = useState<string | null>(null)
     const [form, setForm] = useState(defaultForm)
     const [busy, setBusy] = useState(false)
     const [busyId, setBusyId] = useState<string | null>(null)
     const [toast, setToast] = useState('')
-    const dialogRef = useRef<HTMLDialogElement | null>(null)
 
     const loadDungeons = useCallback(async () => {
         if (!userId) return
@@ -72,6 +91,27 @@ export function ManageDungeonsPage() {
     }, [loadDungeons])
 
     useEffect(() => {
+        if (!dungeonId || loading) return
+        const dungeon = dungeons.find((item) => item.id === dungeonId)
+        if (dungeon) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setForm(getDungeonForm(dungeon))
+            setError('')
+        } else {
+            setError('Dungeon not found.')
+        }
+    }, [dungeonId, dungeons, loading])
+
+    useEffect(() => {
+        const routeToast = (location.state as { manageToast?: unknown } | null)?.manageToast
+        if (typeof routeToast === 'string') {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setToast(routeToast)
+            navigate(location.pathname, { replace: true, state: null })
+        }
+    }, [location.pathname, location.state, navigate])
+
+    useEffect(() => {
         if (!toast) return
         const timer = window.setTimeout(() => setToast(''), 3000)
         return () => window.clearTimeout(timer)
@@ -91,35 +131,21 @@ export function ManageDungeonsPage() {
     }), [dungeons])
 
     function openCreateForm() {
-        setEditingId(null)
         setForm(defaultForm)
         setError('')
-        dialogRef.current?.showModal()
+        navigate('/dungeons/manage/new')
     }
 
     function openEditForm(dungeon: DungeonRow) {
-        setEditingId(dungeon.id)
-        setForm({
-            name: dungeon.name,
-            dungeon_rank: dungeon.dungeon_rank,
-            xp_reward: dungeon.xp_reward,
-            career_xp_reward: dungeon.career_xp_reward,
-            gold_reward: dungeon.gold_reward,
-            body_effect: dungeon.body_effect,
-            mind_effect: dungeon.mind_effect,
-            emotion_effect: dungeon.emotion_effect,
-            energy_effect: dungeon.energy_effect,
-            fatigue_effect: dungeon.fatigue_effect,
-            deadline: dungeon.deadline ?? '',
-        })
+        setForm(getDungeonForm(dungeon))
         setError('')
-        dialogRef.current?.showModal()
+        navigate(`/dungeons/manage/${dungeon.id}/edit`)
     }
 
     function closeForm() {
-        dialogRef.current?.close()
-        setEditingId(null)
         setForm(defaultForm)
+        setError('')
+        navigate('/dungeons/manage')
     }
 
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -156,9 +182,8 @@ export function ManageDungeonsPage() {
 
         const wasEditing = Boolean(editingId)
         setBusy(false)
-        closeForm()
-        setToast(wasEditing ? 'Dungeon updated.' : 'Dungeon created.')
         await loadDungeons()
+        navigate('/dungeons/manage', { state: { manageToast: wasEditing ? 'Dungeon updated.' : 'Dungeon created.' } })
     }
 
     async function handleDelete(dungeon: DungeonRow) {
@@ -213,19 +238,30 @@ export function ManageDungeonsPage() {
     return (
         <section className="screen-page manage-screen" aria-labelledby="manage-dungeons-title">
             <header className="screen-header">
-                <div>
-                    <p className="eyebrow">DUNGEONS / CONFIGURATION</p>
-                    <h2 id="manage-dungeons-title">Manage dungeons</h2>
-                </div>
-                <button type="button" className="primary-button manage-create-button" onClick={openCreateForm}>
-                    <Plus size={17} aria-hidden="true" /> New Dungeon
-                </button>
+                {isFormPage ? (
+                    <div>
+                        <p className="eyebrow">DUNGEON RECORD</p>
+                        <h2 id="manage-dungeons-title">{editingId ? 'Edit dungeon' : 'New dungeon'}</h2>
+                    </div>
+                ) : (
+                    <>
+                        <div>
+                            <p className="eyebrow">DUNGEONS / CONFIGURATION</p>
+                            <h2 id="manage-dungeons-title">Manage dungeons</h2>
+                        </div>
+                        <button type="button" className="primary-button manage-create-button" onClick={openCreateForm}>
+                            <Plus size={17} aria-hidden="true" /> New Dungeon
+                        </button>
+                    </>
+                )}
             </header>
 
-            {toast && <div className="toast-banner" role="status">{toast}</div>}
-            {error && <div className="manage-error" role="alert"><p>{error}</p><button type="button" className="rpg-action-button" onClick={() => void loadDungeons()}>Retry</button></div>}
+            {!isFormPage && (
+                <>
+                    {toast && <div className="toast-banner" role="status">{toast}</div>}
+                    {error && <div className="manage-error" role="alert"><p>{error}</p><button type="button" className="rpg-action-button" onClick={() => void loadDungeons()}>Retry</button></div>}
 
-            {loading ? (
+                    {loading ? (
                 <div className="manage-loading" role="status" aria-live="polite">Loading dungeons...</div>
             ) : error && dungeons.length === 0 ? null : (
                 sortedDungeons.length === 0 ? (
@@ -277,17 +313,12 @@ export function ManageDungeonsPage() {
                         })}
                     </div>
                 )
+                    )}
+                </>
             )}
 
-            <dialog className="manage-dialog" ref={dialogRef} aria-labelledby="dungeon-form-title" onClose={() => { setEditingId(null); setForm(defaultForm) }}>
-                <form className="manage-form" onSubmit={(event) => void handleSubmit(event)}>
-                    <header className="manage-dialog-header">
-                        <div>
-                            <p className="eyebrow">DUNGEON RECORD</p>
-                            <h2 id="dungeon-form-title">{editingId ? 'Edit dungeon' : 'New dungeon'}</h2>
-                        </div>
-                        <button type="button" className="dialog-close-button" aria-label="Close dungeon form" onClick={closeForm}><X size={19} aria-hidden="true" /></button>
-                    </header>
+            {isFormPage && (
+                <form className="manage-form manage-page-form" onSubmit={(event) => void handleSubmit(event)}>
                     <label className="field-group">Name<input className="field-input" required maxLength={GAME_RULES.dungeons.nameMaxLength} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
                     <div className="inline-grid two-up">
                         <label className="field-group">Dungeon rank<select className="field-input" value={form.dungeon_rank} onChange={(event) => setForm({ ...form, dungeon_rank: event.target.value as Rank })}>{rankOptions.map((rank) => <option key={rank} value={rank}>{rank}</option>)}</select></label>
@@ -315,7 +346,7 @@ export function ManageDungeonsPage() {
                         <button type="submit" className="primary-button" disabled={busy}>{busy ? 'Saving...' : editingId ? 'Save Dungeon' : 'Create Dungeon'}</button>
                     </footer>
                 </form>
-            </dialog>
+            )}
         </section>
     )
 }

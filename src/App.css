@@ -1411,6 +1411,15 @@ body:has(.workspace-shell) {
     padding: clamp(16px, 4vw, 26px);
 }
 
+.manage-page-form {
+    width: min(100%, 760px);
+    margin: 0 auto;
+    border: 1px solid rgba(168, 110, 255, 0.48);
+    border-radius: 8px;
+    background: rgba(8, 13, 27, 0.97);
+    box-shadow: 0 0 36px rgba(168, 110, 255, 0.16);
+}
+
 .manage-dialog-header {
     display: flex;
     align-items: center;
@@ -1947,19 +1956,16 @@ textarea.field-input {
     font-size: 0.78rem;
 }
 
-.inventory-back-link {
-    display: inline-block;
+.inventory-home-link {
+    display: inline-flex;
+    align-items: center;
     margin-bottom: 8px;
     color: #3ec6ff;
-    font-family: 'Rajdhani', sans-serif;
-    font-weight: 700;
-    text-decoration: none;
 }
 
-.inventory-back-link:hover,
-.inventory-back-link:focus-visible {
+.inventory-home-link:hover,
+.inventory-home-link:focus-visible {
     color: #c8edff;
-    text-decoration: underline;
 }
 
 .inventory-manage-link {

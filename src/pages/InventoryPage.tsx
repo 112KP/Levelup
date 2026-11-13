@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { House } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
 import { executeItemUse, fetchItems, formatItemEffectSummary, normalizeItemEffects } from '../lib/items'
@@ -102,7 +103,9 @@ export function InventoryPage() {
         <section className="screen-page inventory-screen" aria-labelledby="inventory-title">
             <header className="screen-header">
                 <div>
-                    <Link className="inventory-back-link" to="/">← Home</Link>
+                    <Link className="inventory-home-link" to="/" aria-label="Home" title="Home">
+                        <House size={18} aria-hidden="true" />
+                    </Link>
                     <p className="eyebrow">YOUR ITEMS</p>
                     <h2 id="inventory-title">Inventory</h2>
                 </div>

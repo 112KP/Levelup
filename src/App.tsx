@@ -516,7 +516,8 @@ function WelcomePlayerDialog({ userId }: { userId: string }) {
 function AppShell() {
     const { session, refreshSession } = useAuth()
     const location = useLocation()
-    const isWideManagementPage = ['/quests/manage', '/inventory', '/inventory/manage', '/dungeons/manage', '/manual'].includes(location.pathname)
+    const isWideManagementPage = ['/quests/manage', '/inventory', '/dungeons/manage', '/manual']
+        .some((path) => location.pathname === path || location.pathname.startsWith(`${path}/`))
     const [homeRefresh, setHomeRefresh] = useState<(() => Promise<void>) | null>(null)
     const [refreshing, setRefreshing] = useState(false)
     const registerHomeRefresh = useCallback((refresh: (() => Promise<void>) | null) => {
@@ -541,14 +542,20 @@ function AppShell() {
             <Route path="/home" element={<Navigate to="/" replace />} />
             <Route path="/profile" element={<StatusWindow />} />
             <Route path="/quests" element={<Navigate to="/quests/manage" replace />} />
+            <Route path="/quests/manage/new" element={<ManageQuestsPage />} />
+            <Route path="/quests/manage/:questId/edit" element={<ManageQuestsPage />} />
             <Route path="/quests/manage" element={<ManageQuestsPage />} />
             <Route path="/today" element={<Navigate to="/" replace />} />
             <Route path="/titles" element={<TitlesPage />} />
             <Route path="/skills" element={<SkillsPage />} />
             <Route path="/inventory" element={<InventoryPage />} />
+            <Route path="/inventory/manage/new" element={<ItemsPage />} />
+            <Route path="/inventory/manage/:itemId/edit" element={<ItemsPage />} />
             <Route path="/inventory/manage" element={<ItemsPage />} />
             <Route path="/items" element={<Navigate to="/inventory/manage" replace />} />
             <Route path="/dungeons" element={<Navigate to="/dungeons/manage" replace />} />
+            <Route path="/dungeons/manage/new" element={<ManageDungeonsPage />} />
+            <Route path="/dungeons/manage/:dungeonId/edit" element={<ManageDungeonsPage />} />
             <Route path="/dungeons/manage" element={<ManageDungeonsPage />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/settings" element={<SettingsPage />} />
