@@ -29,6 +29,7 @@ import { getAbilityLabel } from '../../lib/abilities'
 import { formatDateInTimeZone } from '../../lib/dateTime'
 import { useTimezone } from '../../auth/useTimezone'
 import type { QuestLogStatus, QuestRow } from '../../types/database.types'
+import { decryptPersonalText } from '../../lib/personalDataEncryption'
 
 const statDetails: {
     name: StatName
@@ -92,7 +93,13 @@ export function StatusWindow() {
         let levelUpTimer: number | undefined
         void refreshStreaks()
 
-        function commitProfile(nextProfile: Profile | null) {
+        async function commitProfile(nextProfile: Profile | null) {
+            if (nextProfile) {
+                nextProfile = {
+                    ...nextProfile,
+                    display_name: await decryptPersonalText(nextProfile.display_name, profileUserId, 'profiles.display_name'),
+                }
+            }
             if (!active) return
             if (nextProfile && profileRef.current && nextProfile.level > profileRef.current.level) {
                 setLevelUp(true)
@@ -133,14 +140,18 @@ export function StatusWindow() {
                 },
                 (payload) => {
                     if (payload.eventType === 'DELETE') {
-                        commitProfile(null)
+                        void commitProfile(null)
                         setError('Your status record is no longer available.')
                         return
                     }
                     const nextProfile = payload.new as Profile
-                    commitProfile(nextProfile)
-                    void syncActiveTitle(nextProfile.active_title_id)
-                    setError('')
+                    void commitProfile(nextProfile).then(() => {
+                        if (!active) return
+                        void syncActiveTitle(nextProfile.active_title_id)
+                        setError('')
+                    }).catch(() => {
+                        if (active) setError('We could not decrypt your status data. Please unlock encryption and try again.')
+                    })
                 },
             )
             .subscribe()
@@ -159,13 +170,17 @@ export function StatusWindow() {
                 return
             }
             if (!data) {
-                commitProfile(null)
+                void commitProfile(null)
                 setError('Your status record has not been created yet.')
                 return
             }
-            commitProfile(data)
-            void syncActiveTitle(data.active_title_id)
-            setError('')
+            try {
+                await commitProfile(data)
+                void syncActiveTitle(data.active_title_id)
+                setError('')
+            } catch {
+                setError('We could not decrypt your status data. Please unlock encryption and try again.')
+            }
         }
 
         void loadProfile()

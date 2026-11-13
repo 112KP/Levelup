@@ -171,9 +171,16 @@ export function ManageDungeonsPage() {
             fatigue_effect: Math.trunc(Number(form.fatigue_effect) || 0),
             deadline: form.deadline || null,
         }
-        const result = editingId
-            ? await updateDungeon(editingId, payload)
-            : await createDungeon({ ...payload, user_id: userId })
+        let result
+        try {
+            result = editingId
+                ? await updateDungeon(editingId, payload)
+                : await createDungeon({ ...payload, user_id: userId })
+        } catch (saveError) {
+            setError(saveError instanceof Error ? saveError.message : 'The dungeon could not be saved.')
+            setBusy(false)
+            return
+        }
         if (result.error) {
             setError(result.error.message || 'The dungeon could not be saved.')
             setBusy(false)

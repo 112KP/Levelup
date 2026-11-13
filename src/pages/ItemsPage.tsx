@@ -152,9 +152,16 @@ export function ItemsPage() {
             return
         }
 
-        const result = editingId
-            ? await updateItem(editingId, payload)
-            : await createItem({ ...payload, user_id: userId })
+        let result
+        try {
+            result = editingId
+                ? await updateItem(editingId, payload)
+                : await createItem({ ...payload, user_id: userId })
+        } catch (saveError) {
+            setFormError(saveError instanceof Error ? saveError.message : 'The item could not be saved.')
+            setBusy(false)
+            return
+        }
         if (result.error) {
             setFormError(result.error.message || 'The item could not be saved.')
             setBusy(false)

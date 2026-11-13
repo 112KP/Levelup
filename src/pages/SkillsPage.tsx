@@ -105,9 +105,16 @@ export function SkillsPage() {
             return
         }
 
-        const result = editingId
-            ? await updateSkill(editingId, payload)
-            : await createSkill({ ...payload, user_id: userId })
+        let result
+        try {
+            result = editingId
+                ? await updateSkill(editingId, payload)
+                : await createSkill({ ...payload, user_id: userId })
+        } catch (saveError) {
+            setFormError(saveError instanceof Error ? saveError.message : 'The skill could not be saved.')
+            setBusy(false)
+            return
+        }
         if (result.error) {
             setFormError(result.error.message || 'The skill could not be saved.')
             setBusy(false)

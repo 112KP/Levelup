@@ -2,6 +2,11 @@ import { supabase } from './supabaseClient'
 import type { AbilityName, Database, ItemType, Json } from '../types/database.types'
 import { formatVitalEffect } from './vitals'
 import { GAME_RULES } from './gameRules'
+import {
+    decryptPersonalText,
+    encryptPersonalTextForActiveSession,
+    normalizePersonalDataError,
+} from './personalDataEncryption'
 
 export const itemEffectKeys = [
     'hp',
@@ -98,15 +103,42 @@ export function formatItemEffectSummary(value: unknown, itemType: ItemType) {
 }
 
 export async function fetchItems(userId: string) {
-    return supabase.from('items').select('*').eq('user_id', userId).order('created_at', { ascending: false })
+    const result = await supabase.from('items').select('*').eq('user_id', userId).order('created_at', { ascending: false })
+    if (result.error || !result.data) return result
+    try {
+        return {
+            ...result,
+            data: await Promise.all(result.data.map(async (item) => ({
+                ...item,
+                name: await decryptPersonalText(item.name, userId, 'items.name'),
+                description: await decryptPersonalText(item.description, userId, 'items.description'),
+            }))),
+        }
+    } catch (decryptionError) {
+        return { ...result, data: null, error: normalizePersonalDataError(decryptionError) }
+    }
 }
 
 export async function createItem(payload: Database['public']['Tables']['items']['Insert']) {
-    return supabase.from('items').insert(payload)
+    const encryptedPayload = {
+        ...payload,
+        name: await encryptPersonalTextForActiveSession(payload.name, 'items.name'),
+    }
+    if (payload.description !== undefined) {
+        encryptedPayload.description = await encryptPersonalTextForActiveSession(payload.description, 'items.description')
+    }
+    return supabase.from('items').insert(encryptedPayload)
 }
 
 export async function updateItem(id: string, updates: Database['public']['Tables']['items']['Update']) {
-    return supabase.from('items').update(updates).eq('id', id)
+    const encryptedUpdates = { ...updates }
+    if (updates.name !== undefined) {
+        encryptedUpdates.name = await encryptPersonalTextForActiveSession(updates.name, 'items.name')
+    }
+    if (updates.description !== undefined) {
+        encryptedUpdates.description = await encryptPersonalTextForActiveSession(updates.description, 'items.description')
+    }
+    return supabase.from('items').update(encryptedUpdates).eq('id', id)
 }
 
 export async function deleteItem(id: string) {

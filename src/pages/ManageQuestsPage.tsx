@@ -231,21 +231,27 @@ export function ManageQuestsPage() {
         const wasEditing = Boolean(editingId)
         let savedQuestId = editingId
 
-        if (editingId) {
-            const result = await updateQuest(editingId, payload)
-            if (result.error) {
-                setError(result.error.message || 'The quest could not be saved.')
-                setBusy(false)
-                return
+        try {
+            if (editingId) {
+                const result = await updateQuest(editingId, payload)
+                if (result.error) {
+                    setError(result.error.message || 'The quest could not be saved.')
+                    setBusy(false)
+                    return
+                }
+            } else {
+                const result = await createQuest({ ...payload, user_id: userId })
+                if (result.error) {
+                    setError(result.error.message || 'The quest could not be saved.')
+                    setBusy(false)
+                    return
+                }
+                savedQuestId = result.data.id
             }
-        } else {
-            const result = await createQuest({ ...payload, user_id: userId })
-            if (result.error) {
-                setError(result.error.message || 'The quest could not be saved.')
-                setBusy(false)
-                return
-            }
-            savedQuestId = result.data.id
+        } catch (saveError) {
+            setError(saveError instanceof Error ? saveError.message : 'The quest could not be saved.')
+            setBusy(false)
+            return
         }
 
         if (!savedQuestId) {

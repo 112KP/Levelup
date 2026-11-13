@@ -21,7 +21,9 @@ import { SettingsPage } from './pages/SettingsPage'
 import { ManualPage } from './pages/ManualPage'
 import { TimezoneProvider } from './auth/TimezoneProvider'
 import { AbilityStreakProvider } from './auth/AbilityStreakProvider'
+import { PersonalDataEncryptionProvider } from './auth/PersonalDataEncryptionProvider'
 import { supabase } from './lib/supabaseClient'
+import { decryptPersonalText, encryptPersonalText } from './lib/personalDataEncryption'
 import {
     signInWithGoogle,
     signInWithPassword,
@@ -401,9 +403,11 @@ function WelcomePlayerDialog({ userId }: { userId: string }) {
                     } else if (!data) {
                         setProfileError('Your player profile could not be found.')
                     } else {
+                        const displayName = await decryptPersonalText(data.display_name, userId, 'profiles.display_name')
+                        if (!active) return
                         setProfileError('')
-                        setProfileName(data.display_name)
-                        setPlayerName(data.display_name ?? '')
+                        setProfileName(displayName)
+                        setPlayerName(displayName ?? '')
                     }
                     break
                 }
@@ -445,9 +449,10 @@ function WelcomePlayerDialog({ userId }: { userId: string }) {
         setSaving(true)
         setSaveError('')
         try {
+            const encryptedDisplayName = await encryptPersonalText(displayName, userId, 'profiles.display_name')
             const { data, error } = await supabase
                 .from('profiles')
-                .update({ display_name: displayName })
+                .update({ display_name: encryptedDisplayName })
                 .eq('user_id', userId)
                 .select('user_id')
                 .maybeSingle()
@@ -615,11 +620,13 @@ function App() {
                 </p>
             )}
             <HashRouter>
-                <TimezoneProvider>
-                    <AbilityStreakProvider>
-                        <AppShell />
-                    </AbilityStreakProvider>
-                </TimezoneProvider>
+                <PersonalDataEncryptionProvider>
+                    <TimezoneProvider>
+                        <AbilityStreakProvider>
+                            <AppShell />
+                        </AbilityStreakProvider>
+                    </TimezoneProvider>
+                </PersonalDataEncryptionProvider>
             </HashRouter>
         </>
     )

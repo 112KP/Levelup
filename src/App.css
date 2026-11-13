@@ -535,6 +535,21 @@ body:has(.workspace-shell) {
     gap: 10px;
 }
 
+.settings-encryption-device {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #c7ffe0;
+    font-weight: 700;
+}
+
+.settings-section .settings-encryption-device input {
+    width: 20px;
+    min-height: 20px;
+    flex: 0 0 20px;
+    accent-color: #3ec6ff;
+}
+
 .settings-section input,
 .settings-section select {
     width: 100%;
@@ -574,6 +589,103 @@ body:has(.workspace-shell) {
 
 .settings-error {
     color: #ff9696 !important;
+}
+
+.settings-encryption-warning {
+    padding: 12px;
+    border: 1px solid rgba(255, 164, 92, 0.48);
+    color: #ffd2a8 !important;
+    background: rgba(99, 50, 16, 0.18);
+}
+
+.encryption-gate {
+    display: grid;
+    min-height: 100vh;
+    place-items: center;
+    padding: 20px;
+    color: #dfefff;
+    background: #070a12;
+}
+
+.encryption-gate-card {
+    display: grid;
+    width: min(100%, 480px);
+    gap: 14px;
+    padding: 24px;
+    border: 1px solid rgba(168, 110, 255, 0.58);
+    background: rgba(10, 18, 36, 0.92);
+    box-shadow: 0 0 28px rgba(155, 92, 240, 0.18);
+}
+
+.encryption-gate-card h1 {
+    margin: 0;
+    color: #c7ffe0;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.encryption-gate-card > p,
+.encryption-gate-form p {
+    margin: 0;
+    color: #aebbd1;
+    line-height: 1.5;
+}
+
+.encryption-gate-form {
+    display: grid;
+    gap: 10px;
+}
+
+.encryption-gate-form label {
+    color: #c7ffe0;
+    font-weight: 700;
+}
+
+.encryption-gate-form input {
+    width: 100%;
+    min-height: 46px;
+    padding: 8px 12px;
+    border: 1px solid rgba(62, 198, 255, 0.48);
+    color: #dfefff;
+    background: #0a1224;
+    font: inherit;
+}
+
+.encryption-gate-form input:focus-visible {
+    outline: 2px solid #3ec6ff;
+    outline-offset: 2px;
+}
+
+.encryption-remember-option {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #c7ffe0;
+    font-weight: 700;
+}
+
+.encryption-gate-form .encryption-remember-option input {
+    width: 18px;
+    min-height: 18px;
+    flex: 0 0 18px;
+    accent-color: #3ec6ff;
+}
+
+.encryption-gate-note {
+    font-size: 0.8rem;
+}
+
+.encryption-gate-error {
+    color: #ff9696 !important;
+}
+
+.encryption-gate-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.encryption-gate-signout {
+    justify-self: start;
 }
 
 .settings-danger-zone {

@@ -2,6 +2,20 @@ import { supabase } from './supabaseClient'
 import type { Database, QuestLogRow, QuestRow } from '../types/database.types'
 import { formatVitalEffect } from './vitals'
 import { GAME_RULES } from './gameRules'
+import {
+    decryptPersonalText,
+    encryptPersonalTextForActiveSession,
+    normalizePersonalDataError,
+} from './personalDataEncryption'
+
+async function decryptQuest(quest: QuestRow, userId: string): Promise<QuestRow> {
+    return {
+        ...quest,
+        name: await decryptPersonalText(quest.name, userId, 'quests.name'),
+        description: await decryptPersonalText(quest.description, userId, 'quests.description'),
+        unit: await decryptPersonalText(quest.unit, userId, 'quests.unit'),
+    }
+}
 
 export function getQuestVitalRewards(quest: Pick<
     QuestRow,
@@ -29,19 +43,45 @@ export function getQuestVitalPenalties(quest: Pick<
 }
 
 export async function fetchQuests(userId: string) {
-    return supabase
+    const result = await supabase
         .from('quests')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
+    if (result.error || !result.data) return result
+    try {
+        return { ...result, data: await Promise.all(result.data.map((quest) => decryptQuest(quest, userId))) }
+    } catch (decryptionError) {
+        return { ...result, data: null, error: normalizePersonalDataError(decryptionError) }
+    }
 }
 
 export async function createQuest(payload: Database['public']['Tables']['quests']['Insert']) {
-    return supabase.from('quests').insert(payload).select('id').single()
+    const encryptedPayload = {
+        ...payload,
+        name: await encryptPersonalTextForActiveSession(payload.name, 'quests.name'),
+    }
+    if (payload.description !== undefined) {
+        encryptedPayload.description = await encryptPersonalTextForActiveSession(payload.description, 'quests.description')
+    }
+    if (payload.unit !== undefined) {
+        encryptedPayload.unit = await encryptPersonalTextForActiveSession(payload.unit, 'quests.unit')
+    }
+    return supabase.from('quests').insert(encryptedPayload).select('id').single()
 }
 
 export async function updateQuest(id: string, updates: Database['public']['Tables']['quests']['Update']) {
-    return supabase.from('quests').update(updates).eq('id', id)
+    const encryptedUpdates = { ...updates }
+    if (updates.name !== undefined) {
+        encryptedUpdates.name = await encryptPersonalTextForActiveSession(updates.name, 'quests.name')
+    }
+    if (updates.description !== undefined) {
+        encryptedUpdates.description = await encryptPersonalTextForActiveSession(updates.description, 'quests.description')
+    }
+    if (updates.unit !== undefined) {
+        encryptedUpdates.unit = await encryptPersonalTextForActiveSession(updates.unit, 'quests.unit')
+    }
+    return supabase.from('quests').update(encryptedUpdates).eq('id', id)
 }
 
 export async function deleteQuest(id: string) {
@@ -59,14 +99,7 @@ export async function addQuestToToday(questId: string) {
 }
 
 export async function fetchTodayQuestLogs(userId: string, day: string) {
-    return supabase
-        .from('quest_logs')
-        .select(
-            'id, user_id, quest_id, quest_date, status, completed_at, penalty_applied, created_at, updated_at, quests:quest_id (id, name, description, abilities, xp_reward, career_xp_reward, gold_reward, hp_reward, mp_reward, emotion_reward, energy_reward, penalty_hp, penalty_mp, penalty_emotion, penalty_energy, penalty_gold, fatigue_restore, recurrence, prahar, difficulty, target_value, unit)',
-        )
-        .eq('user_id', userId)
-        .eq('quest_date', day)
-        .order('created_at', { ascending: false })
+    return fetchQuestBoardLogs(userId, day, day)
 }
 
 export async function fetchQuestBoardLogs(userId: string, day: string, weekStart: string) {
@@ -90,7 +123,14 @@ export async function fetchQuestBoardLogs(userId: string, day: string, weekStart
 
     if (questError) return { data: null, error: questError }
 
-    const questsById = new Map((quests ?? []).map((quest) => [quest.id, quest]))
+    let questsById: Map<string, QuestRow>
+    try {
+        questsById = new Map(await Promise.all(
+            (quests ?? []).map(async (quest) => [quest.id, await decryptQuest(quest, userId)] as const),
+        ))
+    } catch (decryptionError) {
+        return { data: null, error: normalizePersonalDataError(decryptionError) }
+    }
     return {
         data: logs
             .map((log) => ({
@@ -132,7 +172,14 @@ export async function fetchQuestHistory(userId: string, page: number, pageSize =
 
     if (questError) return { data: null, error: questError, count }
 
-    const questsById = new Map((quests ?? []).map((quest) => [quest.id, quest]))
+    let questsById: Map<string, QuestRow>
+    try {
+        questsById = new Map(await Promise.all(
+            (quests ?? []).map(async (quest) => [quest.id, await decryptQuest(quest, userId)] as const),
+        ))
+    } catch (decryptionError) {
+        return { data: null, error: normalizePersonalDataError(decryptionError), count }
+    }
     return {
         data: logs.map((log) => ({
             log,

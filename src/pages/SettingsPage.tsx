@@ -4,6 +4,8 @@ import { useAuth } from '../auth/useAuth'
 import { supabase } from '../lib/supabaseClient'
 import { useTimezone } from '../auth/useTimezone'
 import { GAME_RULES } from '../lib/gameRules'
+import { decryptPersonalText, encryptPersonalText } from '../lib/personalDataEncryption'
+import { usePersonalDataEncryption } from '../auth/PersonalDataEncryptionContext'
 
 const timeZones = ['UTC', ...Intl.supportedValuesOf('timeZone')]
 
@@ -68,6 +70,14 @@ function formatOffset(offsetMinutes: number) {
 export function SettingsPage() {
     const { session } = useAuth()
     const { timeZone, loading, error, updateTimeZone } = useTimezone()
+    const {
+        isEnabled,
+        rememberDevice,
+        deviceStorageError,
+        enableEncryption,
+        setRememberDevice,
+        lockEncryption,
+    } = usePersonalDataEncryption()
     const [saving, setSaving] = useState(false)
     const [saved, setSaved] = useState(false)
     const [profile, setProfile] = useState<{
@@ -77,6 +87,13 @@ export function SettingsPage() {
     } | null>(null)
     const [profileNameSaving, setProfileNameSaving] = useState(false)
     const [profileNameSaved, setProfileNameSaved] = useState(false)
+    const [encryptionPassphrase, setEncryptionPassphrase] = useState('')
+    const [encryptionPassphraseConfirmation, setEncryptionPassphraseConfirmation] = useState('')
+    const [encryptionFormError, setEncryptionFormError] = useState('')
+    const [encryptionBusy, setEncryptionBusy] = useState(false)
+    const [rememberOnThisDevice, setRememberOnThisDevice] = useState(false)
+    const [rememberDeviceBusy, setRememberDeviceBusy] = useState(false)
+    const [rememberDeviceError, setRememberDeviceError] = useState('')
     const userId = session?.user.id
     const currentProfile = profile && profile.userId === userId ? profile : null
     const profileNameLoading = Boolean(userId) && !currentProfile
@@ -91,18 +108,34 @@ export function SettingsPage() {
         async function loadProfileName() {
             if (!userId) return
 
-            const { data, error: queryError } = await supabase
-                .from('profiles')
-                .select('display_name')
-                .eq('user_id', userId)
-                .maybeSingle()
+            try {
+                const { data, error: queryError } = await supabase
+                    .from('profiles')
+                    .select('display_name')
+                    .eq('user_id', userId)
+                    .maybeSingle()
 
-            if (!active) return
-            setProfile({
-                userId,
-                displayName: data?.display_name ?? '',
-                error: queryError?.message ?? (data ? '' : 'Your profile could not be found.'),
-            })
+                if (!active) return
+                if (queryError || !data) {
+                    setProfile({
+                        userId,
+                        displayName: '',
+                        error: queryError?.message ?? 'Your profile could not be found.',
+                    })
+                    return
+                }
+                const displayName = await decryptPersonalText(data.display_name, userId, 'profiles.display_name')
+                if (!active) return
+                setProfile({ userId, displayName: displayName ?? '', error: '' })
+            } catch (loadError) {
+                if (active) {
+                    setProfile({
+                        userId,
+                        displayName: '',
+                        error: loadError instanceof Error ? loadError.message : 'Unable to load your profile name.',
+                    })
+                }
+            }
         }
 
         void loadProfileName()
@@ -123,9 +156,12 @@ export function SettingsPage() {
             : current)
         try {
             const displayName = profileName.trim()
+            const storedDisplayName = isEnabled
+                ? await encryptPersonalText(displayName, userId, 'profiles.display_name')
+                : displayName || null
             const { data, error: updateError } = await supabase
                 .from('profiles')
-                .update({ display_name: displayName || null })
+                .update({ display_name: storedDisplayName })
                 .eq('user_id', userId)
                 .select('user_id')
                 .maybeSingle()
@@ -143,6 +179,40 @@ export function SettingsPage() {
                 : { userId, displayName: profileName, error: message })
         } finally {
             setProfileNameSaving(false)
+        }
+    }
+
+    async function handleEnableEncryption(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault()
+        if (encryptionBusy) return
+        if (encryptionPassphrase !== encryptionPassphraseConfirmation) {
+            setEncryptionFormError('The passphrases do not match.')
+            return
+        }
+        setEncryptionBusy(true)
+        setEncryptionFormError('')
+        try {
+            await enableEncryption(encryptionPassphrase, rememberOnThisDevice)
+        } catch (enableError) {
+            setEncryptionFormError(
+                enableError instanceof Error ? enableError.message : 'Unable to enable encryption.',
+            )
+        } finally {
+            setEncryptionBusy(false)
+        }
+    }
+
+    async function handleRememberDeviceChange(remember: boolean) {
+        setRememberDeviceBusy(true)
+        setRememberDeviceError('')
+        try {
+            await setRememberDevice(remember)
+        } catch (rememberError) {
+            setRememberDeviceError(
+                rememberError instanceof Error ? rememberError.message : 'Unable to update this device setting.',
+            )
+        } finally {
+            setRememberDeviceBusy(false)
         }
     }
 
@@ -195,6 +265,96 @@ export function SettingsPage() {
                 {profileNameLoading && <p className="settings-message">Loading your profile...</p>}
                 {profileNameSaved && <p className="settings-message settings-success" role="status">Profile name saved.</p>}
                 {profileNameError && <p className="settings-message settings-error" role="alert">{profileNameError}</p>}
+            </div>
+
+            <div className="settings-section">
+                <h2>Personal data encryption</h2>
+                {isEnabled ? (
+                    <>
+                        <p>Your display name, quest, dungeon, inventory, and skill text is encrypted in the database.</p>
+                        <p>Activity history is not encrypted retroactively. Existing history entries may still contain readable names.</p>
+                        <label className="settings-encryption-device">
+                            <input
+                                type="checkbox"
+                                checked={rememberDevice}
+                                disabled={rememberDeviceBusy}
+                                onChange={(event) => void handleRememberDeviceChange(event.target.checked)}
+                            />
+                            Remember this device
+                        </label>
+                        <p>
+                            This stores a non-exportable encryption key in this browser’s IndexedDB, not your Levelup database.
+                            Clearing browser site data removes it. Browser storage is shared by pages on the same origin.
+                        </p>
+                        {deviceStorageError && <p className="settings-message settings-error" role="alert">{deviceStorageError}</p>}
+                        {rememberDeviceError && <p className="settings-message settings-error" role="alert">{rememberDeviceError}</p>}
+                        <button
+                            className="secondary-button settings-save-button"
+                            type="button"
+                            disabled={rememberDeviceBusy}
+                            onClick={() => void lockEncryption()}
+                        >
+                            Lock encrypted data
+                        </button>
+                    </>
+                ) : (
+                    <>
+                        <p>
+                            Encrypt display name, quest names/descriptions/units, dungeon names, inventory names/descriptions,
+                            and skill names/descriptions. Future edits will be encrypted before they are saved.
+                        </p>
+                        <p className="settings-encryption-warning" role="note">
+                            Your passphrase is not stored and has no recovery option. If you forget it, the encrypted data
+                            cannot be recovered. Write it down and keep it somewhere safe before continuing. Existing activity
+                            history is not encrypted or cleared by this action; older history entries can remain readable to
+                            database administrators.
+                        </p>
+                        <form className="settings-profile-form" onSubmit={(event) => void handleEnableEncryption(event)}>
+                            <label htmlFor="encryption-new-passphrase">Encryption passphrase</label>
+                            <input
+                                id="encryption-new-passphrase"
+                                type="password"
+                                autoComplete="new-password"
+                                minLength={12}
+                                value={encryptionPassphrase}
+                                onChange={(event) => {
+                                    setEncryptionPassphrase(event.target.value)
+                                    setEncryptionFormError('')
+                                }}
+                                required
+                            />
+                            <label htmlFor="encryption-passphrase-confirmation">Confirm passphrase</label>
+                            <input
+                                id="encryption-passphrase-confirmation"
+                                type="password"
+                                autoComplete="new-password"
+                                minLength={12}
+                                value={encryptionPassphraseConfirmation}
+                                onChange={(event) => {
+                                    setEncryptionPassphraseConfirmation(event.target.value)
+                                    setEncryptionFormError('')
+                                }}
+                                required
+                            />
+                            <label className="settings-encryption-device">
+                                <input
+                                    type="checkbox"
+                                    checked={rememberOnThisDevice}
+                                    onChange={(event) => setRememberOnThisDevice(event.target.checked)}
+                                />
+                                Remember this device
+                            </label>
+                            <p>
+                                Stores a non-exportable key in this browser’s IndexedDB, not your Levelup database. Clearing
+                                browser site data removes it. Browser storage is shared by pages on the same origin.
+                            </p>
+                            {encryptionFormError && <p className="settings-message settings-error" role="alert">{encryptionFormError}</p>}
+                            <button className="primary-button settings-save-button" type="submit" disabled={!userId || encryptionBusy}>
+                                {encryptionBusy ? 'Encrypting...' : 'Encrypt personal data'}
+                            </button>
+                        </form>
+                    </>
+                )}
             </div>
 
             <div className="settings-section">

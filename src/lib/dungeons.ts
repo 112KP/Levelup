@@ -2,6 +2,11 @@ import { supabase } from './supabaseClient'
 import { getDateKey, DEFAULT_TIME_ZONE } from './dateTime'
 import type { Database, DungeonStatus } from '../types/database.types'
 import { formatVitalEffects } from './vitals'
+import {
+    decryptPersonalText,
+    encryptPersonalTextForActiveSession,
+    normalizePersonalDataError,
+} from './personalDataEncryption'
 
 export function getDaysRemaining(deadline: string | null, timeZone = DEFAULT_TIME_ZONE) {
     if (!deadline) return null
@@ -13,11 +18,23 @@ export function getDaysRemaining(deadline: string | null, timeZone = DEFAULT_TIM
 }
 
 export async function fetchDungeons(userId: string) {
-    return supabase
+    const result = await supabase
         .from('dungeons')
         .select('*')
         .eq('user_id', userId)
         .order('deadline', { ascending: true, nullsFirst: false })
+    if (result.error || !result.data) return result
+    try {
+        return {
+            ...result,
+            data: await Promise.all(result.data.map(async (dungeon) => ({
+                ...dungeon,
+                name: await decryptPersonalText(dungeon.name, userId, 'dungeons.name'),
+            }))),
+        }
+    } catch (decryptionError) {
+        return { ...result, data: null, error: normalizePersonalDataError(decryptionError) }
+    }
 }
 
 export function getDungeonVitalEffects(dungeon: Pick<
@@ -34,11 +51,18 @@ export function getDungeonVitalEffects(dungeon: Pick<
 }
 
 export async function createDungeon(payload: Database['public']['Tables']['dungeons']['Insert']) {
-    return supabase.from('dungeons').insert(payload)
+    return supabase.from('dungeons').insert({
+        ...payload,
+        name: await encryptPersonalTextForActiveSession(payload.name, 'dungeons.name'),
+    })
 }
 
 export async function updateDungeon(id: string, updates: Database['public']['Tables']['dungeons']['Update']) {
-    return supabase.from('dungeons').update(updates).eq('id', id)
+    const encryptedUpdates = { ...updates }
+    if (updates.name !== undefined) {
+        encryptedUpdates.name = await encryptPersonalTextForActiveSession(updates.name, 'dungeons.name')
+    }
+    return supabase.from('dungeons').update(encryptedUpdates).eq('id', id)
 }
 
 export async function deleteDungeon(id: string) {

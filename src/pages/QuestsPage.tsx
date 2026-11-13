@@ -138,9 +138,16 @@ export function QuestsPage() {
             return
         }
 
-        const result = editingId
-            ? await updateQuest(editingId, payload)
-            : await createQuest({ ...payload, user_id: userId })
+        let result
+        try {
+            result = editingId
+                ? await updateQuest(editingId, payload)
+                : await createQuest({ ...payload, user_id: userId })
+        } catch (saveError) {
+            setError(saveError instanceof Error ? saveError.message : 'The quest could not be saved.')
+            setBusy(false)
+            return
+        }
 
         if (result.error) {
             setError(result.error.message || 'The quest could not be saved.')
